@@ -44,21 +44,25 @@ body{
   -webkit-tap-highlight-color: transparent;
 }
 .hdr{
-  flex-shrink:0;
-  background:var(--g8);padding:10px 16px 14px;
-  display:flex;align-items:center;gap:10px;
-  border-bottom:2px solid var(--g7);color:#fff;
-  position:fixed;top:0;left:0;right:0;z-index:20;
-  height:52px;box-sizing:border-box;
+   flex-shrink:0;
+   background:var(--g8);
+   display:flex;align-items:center;gap:10px;
+   border-bottom:2px solid var(--g7);color:#fff;
+   position:fixed;top:0;left:0;right:0;z-index:20;
+   height:52px;
+   padding-top:env(safe-area-inset-top);
+   padding-left:16px;
+   padding-right:16px;
+   padding-bottom:14px;
 }
 .msgs{
-  position:fixed;
-  top:52px;left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom));
-  overflow-y:auto;overflow-x:hidden;
-  padding:12px;
-  display:flex;flex-direction:column;gap:10px;
-  background:var(--bg);
-  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+   position:fixed;
+   top:calc(52px + env(safe-area-inset-top));left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom));
+   overflow-y:auto;overflow-x:hidden;
+   padding:12px;
+   display:flex;flex-direction:column;gap:10px;
+   background:var(--bg);
+   scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
 }
 .date-lbl{text-align:center;font-size:10px;color:var(--mut);margin:4px 0;}
 .date-lbl span{background:var(--surf);border:1px solid var(--bdr);border-radius:20px;padding:3px 12px;}
