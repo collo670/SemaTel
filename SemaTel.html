@@ -167,8 +167,6 @@ textarea{min-height:36px;max-height:120px;line-height:1.4;}
 }
 </style>
 <script src="https://unpkg.com/compromise@14.0.0"></script>
-</head>
-<body>
 <script>
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
@@ -193,6 +191,8 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 </script>
+</head>
+<body>
   <div class="hdr">
     <div class="hdr-back" onclick="Engine.resetToHome()"></div>
     <div class="logo logo-no-icon">
