@@ -1,0 +1,76 @@
+{
+  "name": "SemaTel - AI Telecom Chatbot",
+  "short_name": "SemaTel",
+  "description": "AI-powered telecom assistant for buying airtime, data, sending money, and more",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#2e7d32",
+  "background_color": "#ffffff",
+  "categories": ["utilities", "finance"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232e7d32' width='192' height='192'/><text x='96' y='120' font-size='100' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>ST</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%232e7d32' width='512' height='512'/><text x='256' y='380' font-size='280' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>ST</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23eef3eb' width='540' height='720'/><rect fill='%232e7d32' width='540' height='60'/><text x='270' y='40' font-size='32' font-weight='bold' fill='white' text-anchor='middle'>SemaTel</text></svg>",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Buy Airtime",
+      "short_name": "Airtime",
+      "description": "Quick access to buy airtime",
+      "url": "./?intent=BUY_AIRTIME",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%234caf50' width='96' height='96'/><text x='48' y='65' font-size='50' text-anchor='middle'>📱</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Check Balance",
+      "short_name": "Balance",
+      "description": "Check airtime, data, and wallet balance",
+      "url": "./?intent=CHECK_BALANCE",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%234caf50' width='96' height='96'/><text x='48' y='65' font-size='50' text-anchor='middle'>💰</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Send Money",
+      "short_name": "Send Money",
+      "description": "Transfer money to contacts",
+      "url": "./?intent=SEND_MONEY",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%234caf50' width='96' height='96'/><text x='48' y='65' font-size='50' text-anchor='middle'>💸</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}
