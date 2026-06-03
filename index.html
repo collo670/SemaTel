@@ -490,58 +490,61 @@ MLIntentModel.train([
 ]);
 
 /* ==========================================
-   4. CENTRALIZED TRANSACTION ENGINE
-   ========================================== */
+    4. CENTRALIZED TRANSACTION ENGINE
+    ========================================== */
 const TransactionEngine = {
-  process: function(txData, onResult) {
-    // Structural simulated response mirroring Flowchart step 7, 7A, 7B
-    setTimeout(() => {
-      // 15% random failure simulation for production realism
-      const isSuccess = Math.random() > 0.15;
-      if (isSuccess) {
-        // Apply deductions updates in application memory
-        if (txData.type === 'AIRTIME') {
-          ChatbotMemory.airtimeBalance += txData.amount;
-          ChatbotMemory.walletBalance -= txData.amount;
-        } else if (txData.type === 'DATA') {
-          ChatbotMemory.walletBalance -= txData.price;
-        } else if (txData.type === 'MONEY') {
-          ChatbotMemory.walletBalance -= txData.amount;
-        } else if (txData.type === 'SMS') {
-          ChatbotMemory.walletBalance -= txData.amount;
-        } else if (txData.type === 'VOUCHER') {
-          if (txData.voucherType === 'DATA') {
-            const match = String(ChatbotMemory.dataBalance).match(/([0-9]+(\.[0-9]+)?)/);
-            const currentData = match ? parseFloat(match[1]) : 0;
-            ChatbotMemory.dataBalance = `${(currentData + 1).toFixed(1)} GB`;
-          } else {
-            ChatbotMemory.airtimeBalance += txData.amount;
-          }
-        }
-        
-        // Log to recent transactions list
-        ChatbotMemory.recentTransactions.unshift({
-          type: txData.type,
-          details: txData.details || `${txData.type} Transaction`,
-          amt: txData.amount || txData.price || 0,
-          date: new Date().toISOString().split('T')[0]
-        });
+   process: function(txData) {
+     // Return a Promise for better async handling
+     return new Promise((resolve, reject) => {
+       // Structural simulated response mirroring Flowchart step 7, 7A, 7B
+       setTimeout(() => {
+         // 15% random failure simulation for production realism
+         const isSuccess = Math.random() > 0.15;
+         if (isSuccess) {
+           // Apply deductions updates in application memory
+           if (txData.type === 'AIRTIME') {
+             ChatbotMemory.airtimeBalance += txData.amount;
+             ChatbotMemory.walletBalance -= txData.amount;
+           } else if (txData.type === 'DATA') {
+             ChatbotMemory.walletBalance -= txData.price;
+           } else if (txData.type === 'MONEY') {
+             ChatbotMemory.walletBalance -= txData.amount;
+           } else if (txData.type === 'SMS') {
+             ChatbotMemory.walletBalance -= txData.amount;
+           } else if (txData.type === 'VOUCHER') {
+             if (txData.voucherType === 'DATA') {
+               const match = String(ChatbotMemory.dataBalance).match(/([0-9]+(\.[0-9]+)?)/);
+               const currentData = match ? parseFloat(match[1]) : 0;
+               ChatbotMemory.dataBalance = `${(currentData + 1).toFixed(1)} GB`;
+             } else {
+               ChatbotMemory.airtimeBalance += txData.amount;
+             }
+           }
+           
+           // Log to recent transactions list
+           ChatbotMemory.recentTransactions.unshift({
+             type: txData.type,
+             details: txData.details || `${txData.type} Transaction`,
+             amt: txData.amount || txData.price || 0,
+             date: new Date().toISOString().split('T')[0]
+           });
 
-        onResult({
-          status: 'SUCCESS',
-          ref: 'ST' + Math.floor(10000000 + Math.random() * 89999999),
-          date: new Date().toLocaleDateString(),
-          time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-        });
-      } else {
-        const failureReasons = ["Insufficient Funds", "Network Timeout Error", "Core Telecommunication API Offline", "Invalid Security Challenge Response"];
-        onResult({
-          status: 'FAILED',
-          reason: failureReasons[Math.floor(Math.random() * failureReasons.length)]
-        });
-      }
-    }, 2000);
-  }
+           resolve({
+             status: 'SUCCESS',
+             ref: 'ST' + Math.floor(10000000 + Math.random() * 89999999),
+             date: new Date().toLocaleDateString(),
+             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+           });
+         } else {
+           const failureReasons = ["Insufficient Funds", "Network Timeout Error", "Core Telecommunication API Offline", "Invalid Security Challenge Response"];
+           reject({
+             status: 'FAILED',
+             reason: failureReasons[Math.floor(Math.random() * failureReasons.length)]
+           });
+         }
+       }, 2000);
+     });
+   }
 };
 
 /* ==========================================
@@ -553,10 +556,25 @@ const Engine = {
   recognition: null,
   isListening: false,
   
-  init: function() {
-    this.initSpeechRecognition();
-    this.renderWelcome();
-  },
+init: function() {
+     this.initSpeechRecognition();
+     this.initializeStateHandlers();
+     this.renderWelcome();
+   },
+
+   initializeStateHandlers: function() {
+     this.STATE_HANDLERS = {
+       'HOME': this.handleHomeState.bind(this),
+       'CLARIFICATION': this.handleClarificationState.bind(this),
+       'AIRTIME_CUSTOM_AMT': this.handleAirtimeCustomAmount.bind(this),
+       'MONEY_CUSTOM_REC': this.handleMoneyRecipient.bind(this),
+       'MONEY_PHONE_INPUT': this.handleMoneyPhoneInput.bind(this),
+       'MONEY_CUSTOM_AMT': this.handleMoneyAmount.bind(this),
+       'BALANCE_SELECTION': this.handleBalanceSelection.bind(this),
+       'VOUCHER_TYPE_SELECTION': this.handleVoucherTypeSelection.bind(this),
+       'VOUCHER_CODE_INPUT': this.handleVoucherCodeInput.bind(this)
+     };
+   },
   
   initSpeechRecognition: function() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -659,23 +677,227 @@ const Engine = {
     box.scrollTop = box.scrollHeight;
   },
 
-  setChips: function(chipsArray) {
-    const container = document.getElementById('chipContainer');
-    if (!container) return;
-    container.innerHTML = '';
-    chipsArray.forEach(label => {
-      const btn = document.createElement('button');
-      btn.className = 'chip';
-      btn.textContent = label;
-      btn.onclick = () => {
-        this.addMessage(label, 'user');
-        this.processUserInput(label);
-      };
-      container.appendChild(btn);
-    });
-  },
+   setChips: function(chipsArray) {
+     const container = document.getElementById('chipContainer');
+     if (!container) return;
+     container.innerHTML = '';
+     chipsArray.forEach(label => {
+       const btn = document.createElement('button');
+       btn.className = 'chip';
+       btn.textContent = label;
+       btn.onclick = () => {
+         this.addMessage(label, 'user');
+         this.processUserInput(label);
+       };
+     });
+   },
 
-  resetToHome: function() {
+   // State handler methods for streamlined state transitions
+   handleHomeState: function(text) {
+     const evaluation = AIIntentEngine.parse(text);
+     if (evaluation.confidence >= 0.80) {
+       this.currentTx.amount = evaluation.entities.amount || null;
+       // wire recipient if detected
+       if (evaluation.entities && evaluation.entities.recipient) {
+         this.currentTx.recipient = evaluation.entities.recipient;
+       }
+       if (evaluation.entities && evaluation.entities.recipientPhone) {
+         this.currentTx.recipient = evaluation.entities.recipientPhone;
+       }
+       // wire provider/payment method if detected (maps to UI labels)
+       if (evaluation.entities && evaluation.entities.provider) {
+         this.currentTx.paymentMethod = evaluation.entities.provider;
+       }
+       this.routeIntent(evaluation.intent);
+     } else {
+       this.currentState = ConversationState.CLARIFICATION;
+       this.showTyping(true);
+       setTimeout(() => {
+         this.showTyping(false);
+         this.addMessage(this.translate('clarify'), 'bot');
+         this.setChips(['Buy Airtime', 'Buy Data Bundle', 'Send Money', 'Check Balance', 'Redeem Voucher', 'My Account']);
+       }, 500);
+     }
+   },
+
+   handleClarificationState: function(text) {
+     // Re-use the same logic as home state for clarification
+     this.handleHomeState(text);
+   },
+
+   handleAirtimeCustomAmount: function(text) {
+     const amt = parseInt(text.replace(/\D/g, ''));
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptAirtimePayment();
+     } else {
+       this.addMessage("Weka kiasi halali cha fedha.", "bot");
+     }
+   },
+
+   handleMoneyRecipient: function(text) {
+     this.currentTx.recipient = text;
+     this.promptMoneyAmount();
+   },
+
+   handleMoneyPhoneInput: function(text) {
+     const phone = text.replace(/\D/g, '');
+     if (phone.length >= 9) {
+       this.currentTx.recipient = phone;
+       this.promptMoneyAmount();
+     } else {
+       this.addMessage('Namba ya simu haijakamilika. Tafadhali weka namba halali (mfano: 0712345678)', 'bot');
+     }
+   },
+
+   handleMoneyAmount: function(text) {
+     const amt = parseInt(text.replace(/\D/g, ''));
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptMoneyPayment();
+     } else {
+       this.addMessage("Weka kiasi cha kuanzia Tsh 100.", "bot");
+     }
+   },
+
+   handleBalanceSelection: function(text) {
+     const answer = text.toLowerCase();
+     if (/airtime|salio|mtandao|data|wallet|wallet balance|wallet saldo|wallet salio/i.test(answer)) {
+       if (/airtime|salio/i.test(answer) && !/wallet/i.test(answer)) {
+         this.selectBalanceType('AIRTIME');
+         return;
+       }
+       if (/data|mtandao/i.test(answer)) {
+         this.selectBalanceType('DATA');
+         return;
+       }
+       if (/wallet|wallet balance|balansi|salio la wallet/i.test(answer)) {
+         this.selectBalanceType('WALLET');
+         return;
+       }
+     }
+     this.addMessage("Tafadhali chagua moja ya chaguo hapo juu: Airtime, Data, au Wallet.", 'bot');
+   },
+
+   handleVoucherTypeSelection: function(text) {
+     const answer = text.toLowerCase();
+     if (/airtime|data/i.test(answer)) {
+       this.currentTx.voucherType = /airtime/i.test(answer) ? 'AIRTIME' : 'DATA';
+       this.currentState = ConversationState.VOUCHER_CODE_INPUT;
+       this.addMessage(`E2. Tafadhali andika namba ya siri ya vocha yako ya ${this.currentTx.voucherType.toLowerCase()}:`, 'bot');
+       return;
+     }
+     this.addMessage("Chagua aina ya vocha: Airtime au Data.", 'bot');
+   },
+
+   handleVoucherCodeInput: function(text) {
+     if (text.length >= 5) {
+       this.currentTx.voucherCode = text.toUpperCase();
+       this.triggerSecurityGate('VOUCHER');
+     } else {
+       this.addMessage("Namba ya vocha haijakamilika.", "bot");
+     }
+   }
+       if (evaluation.entities && evaluation.entities.recipientPhone) {
+         this.currentTx.recipient = evaluation.entities.recipientPhone;
+       }
+       // wire provider/payment method if detected (maps to UI labels)
+       if (evaluation.entities && evaluation.entities.provider) {
+         this.currentTx.paymentMethod = evaluation.entities.provider;
+       }
+       this.routeIntent(evaluation.intent);
+     } else {
+       this.currentState = ConversationState.CLARIFICATION;
+       this.showTyping(true);
+       setTimeout(() => {
+         this.showTyping(false);
+         this.addMessage(this.translate('clarify'), 'bot');
+         this.setChips(['Buy Airtime', 'Buy Data Bundle', 'Send Money', 'Check Balance', 'Redeem Voucher', 'My Account']);
+       }, 500);
+     }
+   },
+
+   handleClarificationState: function(text) {
+     // Re-use the same logic as home state for clarification
+     this.handleHomeState(text);
+   },
+
+   handleAirtimeCustomAmount: function(text) {
+     const amt = parseInt(text.replace(/\D/g, ''));
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptAirtimePayment();
+     } else {
+       this.addMessage("Weka kiasi halali cha fedha.", "bot");
+     }
+   },
+
+   handleMoneyRecipient: function(text) {
+     this.currentTx.recipient = text;
+     this.promptMoneyAmount();
+   },
+
+   handleMoneyPhoneInput: function(text) {
+     const phone = text.replace(/\D/g, '');
+     if (phone.length >= 9) {
+       this.currentTx.recipient = phone;
+       this.promptMoneyAmount();
+     } else {
+       this.addMessage('Namba ya simu haijakamilika. Tafadhali weka namba halali (mfano: 0712345678)', 'bot');
+     }
+   },
+
+   handleMoneyAmount: function(text) {
+     const amt = parseInt(text.replace(/\D/g, ''));
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptMoneyPayment();
+     } else {
+       this.addMessage("Weka kiasi cha kuanzia Tsh 100.", "bot");
+     }
+   },
+
+   handleBalanceSelection: function(text) {
+     const answer = text.toLowerCase();
+     if (/airtime|salio|mtandao|data|wallet|wallet balance|wallet saldo|wallet salio/i.test(answer)) {
+       if (/airtime|salio/i.test(answer) && !/wallet/i.test(answer)) {
+         this.selectBalanceType('AIRTIME');
+         return;
+       }
+       if (/data|mtandao/i.test(answer)) {
+         this.selectBalanceType('DATA');
+         return;
+       }
+       if (/wallet|wallet balance|balansi|salio la wallet/i.test(answer)) {
+         this.selectBalanceType('WALLET');
+         return;
+       }
+     }
+     this.addMessage("Tafadhali chagua moja ya chaguo hapo juu: Airtime, Data, au Wallet.", 'bot');
+   },
+
+   handleVoucherTypeSelection: function(text) {
+     const answer = text.toLowerCase();
+     if (/airtime|data/i.test(answer)) {
+       this.currentTx.voucherType = /airtime/i.test(answer) ? 'AIRTIME' : 'DATA';
+       this.currentState = ConversationState.VOUCHER_CODE_INPUT;
+       this.addMessage(`E2. Tafadhali andika namba ya siri ya vocha yako ya ${this.currentTx.voucherType.toLowerCase()}:`, 'bot');
+       return;
+     }
+     this.addMessage("Chagua aina ya vocha: Airtime au Data.", 'bot');
+   },
+
+   handleVoucherCodeInput: function(text) {
+     if (text.length >= 5) {
+       this.currentTx.voucherCode = text.toUpperCase();
+       this.triggerSecurityGate('VOUCHER');
+     } else {
+       this.addMessage("Namba ya vocha haijakamilika.", "bot");
+     }
+    }
+   },
+
+   resetToHome: function() {
     this.currentState = ConversationState.HOME;
     this.currentTx = {};
     this.renderWelcome();
@@ -720,118 +942,22 @@ const Engine = {
     }
   },
 
-  processUserInput: function(text) {
-    // Dynamic State Routing
-    if (this.currentState === 'HOME' || this.currentState === 'CLARIFICATION') {
-      const evaluation = AIIntentEngine.parse(text);
-      if (evaluation.confidence >= 0.80) {
-        this.currentTx.amount = evaluation.entities.amount || null;
-        // wire recipient if detected
-        if (evaluation.entities && evaluation.entities.recipient) {
-          this.currentTx.recipient = evaluation.entities.recipient;
-        }
-        if (evaluation.entities && evaluation.entities.recipientPhone) {
-          this.currentTx.recipient = evaluation.entities.recipientPhone;
-        }
-        // wire provider/payment method if detected (maps to UI labels)
-        if (evaluation.entities && evaluation.entities.provider) {
-          this.currentTx.paymentMethod = evaluation.entities.provider;
-        }
-        this.routeIntent(evaluation.intent);
-      } else {
-        this.currentState = ConversationState.CLARIFICATION;
-        this.showTyping(true);
-        setTimeout(() => {
-          this.showTyping(false);
-          this.addMessage(this.translate('clarify'), 'bot');
-          this.setChips(['Buy Airtime', 'Buy Data Bundle', 'Send Money', 'Check Balance', 'Redeem Voucher', 'My Account']);
-        }, 500);
-      }
-      return;
-    }
+processUserInput: function(text) {
+     // Handle HOME and CLARIFICATION states with AI intent recognition
+     if (this.currentState === 'HOME' || this.currentState === 'CLARIFICATION') {
+       this.handleHomeState(text);
+       return;
+     }
 
-    // Direct routing maps inside specific states
-    if (this.currentState === 'AIRTIME_CUSTOM_AMT') {
-      const amt = parseInt(text.replace(/\D/g, ''));
-      if (amt > 0) {
-        this.currentTx.amount = amt;
-        this.promptAirtimePayment();
-      } else {
-        this.addMessage("Weka kiasi halali cha fedha.", "bot");
-      }
-      return;
-    }
-
-    if (this.currentState === 'MONEY_CUSTOM_REC') {
-      this.currentTx.recipient = text;
-      this.promptMoneyAmount();
-      return;
-    }
-
-    if (this.currentState === 'MONEY_PHONE_INPUT') {
-      const phone = text.replace(/\D/g, '');
-      if (phone.length >= 9) {
-        this.currentTx.recipient = phone;
-        this.promptMoneyAmount();
-      } else {
-        this.addMessage('Namba ya simu haijakamilika. Tafadhali weka namba halali (mfano: 0712345678)', 'bot');
-      }
-      return;
-    }
-
-    if (this.currentState === 'MONEY_CUSTOM_AMT') {
-      const amt = parseInt(text.replace(/\D/g, ''));
-      if (amt > 0) {
-        this.currentTx.amount = amt;
-        this.promptMoneyPayment();
-      } else {
-        this.addMessage("Weka kiasi cha kuanzia Tsh 100.", "bot");
-      }
-      return;
-    }
-
-    if (this.currentState === ConversationState.BALANCE_SELECTION || this.currentState === 'BALANCE_SELECTION') {
-      const answer = text.toLowerCase();
-      if (/airtime|salio|mtandao|data|wallet|wallet balance|wallet saldo|wallet salio/i.test(answer)) {
-        if (/airtime|salio/i.test(answer) && !/wallet/i.test(answer)) {
-          this.selectBalanceType('AIRTIME');
-          return;
-        }
-        if (/data|mtandao/i.test(answer)) {
-          this.selectBalanceType('DATA');
-          return;
-        }
-        if (/wallet|wallet balance|balansi|salio la wallet/i.test(answer)) {
-          this.selectBalanceType('WALLET');
-          return;
-        }
-      }
-      this.addMessage("Tafadhali chagua moja ya chaguo hapo juu: Airtime, Data, au Wallet.", 'bot');
-      return;
-    }
-
-    if (this.currentState === ConversationState.VOUCHER_TYPE_SELECTION || this.currentState === 'VOUCHER_TYPE_SELECTION') {
-      const answer = text.toLowerCase();
-      if (/airtime|data/i.test(answer)) {
-        this.currentTx.voucherType = /airtime/i.test(answer) ? 'AIRTIME' : 'DATA';
-        this.currentState = ConversationState.VOUCHER_CODE_INPUT;
-        this.addMessage(`E2. Tafadhali andika namba ya siri ya vocha yako ya ${this.currentTx.voucherType.toLowerCase()}:`, 'bot');
-        return;
-      }
-      this.addMessage("Chagua aina ya vocha: Airtime au Data.", 'bot');
-      return;
-    }
-
-    if (this.currentState === ConversationState.VOUCHER_CODE_INPUT || this.currentState === 'VOUCHER_CODE_INPUT') {
-      if (text.length >= 5) {
-        this.currentTx.voucherCode = text.toUpperCase();
-        this.triggerSecurityGate('VOUCHER');
-      } else {
-        this.addMessage("Namba ya vocha haijakamilika.", "bot");
-      }
-      return;
-    }
-  },
+     // Delegate to state-specific handlers
+     const handler = this.STATE_HANDLERS[this.currentState];
+     if (handler) {
+       handler(text);
+     } else {
+       // Fallback to home state if no handler found
+       this.resetToHome();
+     }
+   },
 
   routeIntent: function(intent) {
     if (intent === 'BUY_MINUTE_BUNDLES') {
@@ -1341,66 +1467,123 @@ const Engine = {
   /* ==========================================
      I. ENGINE ACTION HANDLING & SCREEN GENERATION
      ========================================== */
-  showConfirmationCard: function() {
-    const html = `
-      <div class="rcard">
-        <div class="rcard-title">⚙️ ${this.translate('confirm_title')}</div>
-        <div class="rcard-row"><span>Huduma:</span><span>${this.currentTx.type}</span></div>
-        <div class="rcard-row"><span>Maelezo:</span><span>${this.currentTx.details}</span></div>
-        <div class="rcard-row"><span>Kiasi/Gharama:</span><span>Tsh ${(this.currentTx.amount || this.currentTx.price || 0).toLocaleString()}</span></div>
-        <div class="rcard-row"><span>Njia ya Malipo:</span><span>${this.currentTx.paymentMethod}</span></div>
-        <div class="btn-group">
-          <button class="btn-sub" onclick="Engine.resetToHome()">${this.translate('cancel')}</button>
-          <button class="btn-block" style="margin-top:0;" onclick="Engine.triggerSecurityGate()">${this.translate('confirm')}</button>
-        </div>
-      </div>
-    `;
-    this.addMessage(null, 'bot', html);
-  },
+   showConfirmationCard: function() {
+     // Show processing indicator with shimmer effect
+     const shimID = 'shim-' + Date.now();
+     const shimHTML = `
+       <div class="rcard" id="${shimID}">
+         <div class="rcard-title">⚙️ ${this.translate('processing')}</div>
+         <div class="shimmer" style="height:12px; margin-top:8px; border-radius:6px; width:100%;"></div>
+         <div class="shimmer" style="height:12px; margin-top:4px; border-radius:6px; width:75%;"></div>
+       </div>
+     `;
+     this.addMessage(null, 'bot', shimHTML);
 
-  executeCentralizedEngine: function() {
-    this.currentState = ConversationState.PROCESSING;
-    
-    // Shimmer placeholder state generation
-    const shimID = 'shim_' + Date.now();
-    const shimHTML = `
-      <div id="${shimID}">
-        <div>${this.translate('processing').replace(/\n/g, '<br>')}</div>
-        <div class="shimmer" style="height:12px; margin-top:8px; border-radius:6px; width:100%;"></div>
-        <div class="shimmer" style="height:12px; margin-top:4px; border-radius:6px; width:75%;"></div>
-      </div>
-    `;
-    this.addMessage(null, 'bot', shimHTML);
+     // Process transaction with Promise-based TransactionEngine
+     TransactionEngine.process(this.currentTx)
+       .then((res) => {
+         // Safely tear down dynamic runtime skeleton container
+         const container = document.getElementById(shimID);
+         if (container) container.parentElement.parentElement.remove();
 
-    TransactionEngine.process(this.currentTx, (res) => {
-      // Safely tear down dynamic runtime skeleton container
-      const container = document.getElementById(shimID);
-      if (container) container.parentElement.parentElement.remove();
+         this.currentState = ConversationState.RESULT_SCREEN;
+         if (res.status === 'SUCCESS') {
+           const successHTML = `
+             <div class="rcard" style="border-left: 4px solid var(--g5);">
+               <div style="color:var(--g8);font-weight:700;font-size:14px;margin-bottom:6px;">${this.translate('success')}</div>
+               <div class="rcard-row"><span>Ref Number:</span><span>${res.ref}</span></div>
+               <div class="rcard-row"><span>Date/Time:</span><span>${res.date} | ${res.time}</span></div>
+               <div class="rcard-row"><span>Transaction:</span><span>${this.currentTx.details}</span></div>
+             </div>
+           `;
+           this.addMessage(null, 'bot', successHTML);
+         } else {
+           const failedHTML = `
+             <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
+               <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
+               <div style="font-size:12px;color:var(--txt);">Sababu: [${res.reason}]</div>
+               <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
+             </div>
+           `;
+           this.addMessage(null, 'bot', failedHTML);
+         }
+         this.askMoreHelp();
+       })
+       .catch((error) => {
+         // Handle error case
+         const container = document.getElementById(shimID);
+         if (container) container.parentElement.parentElement.remove();
+         
+         this.addMessage(null, 'bot', `
+           <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
+             <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
+             <div style="font-size:12px;color:var(--txt);">Sababu: [System Error]</div>
+             <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
+           </div>
+         `);
+         this.askMoreHelp();
+       });
+   },
 
-      this.currentState = ConversationState.RESULT_SCREEN;
-      if (res.status === 'SUCCESS') {
-        const successHTML = `
-          <div class="rcard" style="border-left: 4px solid var(--g5);">
-            <div style="color:var(--g8);font-weight:700;font-size:14px;margin-bottom:6px;">${this.translate('success')}</div>
-            <div class="rcard-row"><span>Ref Number:</span><span>${res.ref}</span></div>
-            <div class="rcard-row"><span>Date/Time:</span><span>${res.date} | ${res.time}</span></div>
-            <div class="rcard-row"><span>Transaction:</span><span>${this.currentTx.details}</span></div>
-          </div>
-        `;
-        this.addMessage(null, 'bot', successHTML);
-      } else {
-        const failedHTML = `
-          <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
-            <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
-            <div style="font-size:12px;color:var(--txt);">Sababu: [${res.reason}]</div>
-            <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
-          </div>
-        `;
-        this.addMessage(null, 'bot', failedHTML);
-      }
-      this.askMoreHelp();
-    });
-  },
+   executeCentralizedEngine: function() {
+     this.currentState = ConversationState.PROCESSING;
+     
+     // Shimmer placeholder state generation
+     const shimID = 'shim_' + Date.now();
+     const shimHTML = `
+       <div id="${shimID}">
+         <div>${this.translate('processing').replace(/\n/g, '<br>')}</div>
+         <div class="shimmer" style="height:12px; margin-top:8px; border-radius:6px; width:100%;"></div>
+         <div class="shimmer" style="height:12px; margin-top:4px; border-radius:6px; width:75%;"></div>
+       </div>
+     `;
+     this.addMessage(null, 'bot', shimHTML);
+
+     // Process transaction with Promise-based TransactionEngine
+     TransactionEngine.process(this.currentTx)
+       .then((res) => {
+         // Safely tear down dynamic runtime skeleton container
+         const container = document.getElementById(shimID);
+         if (container) container.parentElement.parentElement.remove();
+
+         this.currentState = ConversationState.RESULT_SCREEN;
+         if (res.status === 'SUCCESS') {
+           const successHTML = `
+             <div class="rcard" style="border-left: 4px solid var(--g5);">
+               <div style="color:var(--g8);font-weight:700;font-size:14px;margin-bottom:6px;">${this.translate('success')}</div>
+               <div class="rcard-row"><span>Ref Number:</span><span>${res.ref}</span></div>
+               <div class="rcard-row"><span>Date/Time:</span><span>${res.date} | ${res.time}</span></div>
+               <div class="rcard-row"><span>Transaction:</span><span>${this.currentTx.details}</span></div>
+             </div>
+           `;
+           this.addMessage(null, 'bot', successHTML);
+         } else {
+           const failedHTML = `
+             <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
+               <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
+               <div style="font-size:12px;color:var(--txt);">Sababu: [${res.reason}]</div>
+               <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
+             </div>
+           `;
+           this.addMessage(null, 'bot', failedHTML);
+         }
+         this.askMoreHelp();
+       })
+       .catch((error) => {
+         // Handle error case
+         const container = document.getElementById(shimID);
+         if (container) container.parentElement.parentElement.remove();
+         
+         this.addMessage(null, 'bot', `
+           <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
+             <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
+             <div style="font-size:12px;color:var(--txt);">Sababu: [System Error]</div>
+             <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
+           </div>
+         `);
+         this.askMoreHelp();
+       });
+   },
 
   retryTransaction: function() {
     this.showConfirmationCard();
