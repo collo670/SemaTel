@@ -1,7 +1,7 @@
 const CACHE_NAME = 'sematel-v1';
 const urlsToCache = [
   './',
-  './SemaTel.html',
+  './index.html',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Josefin+Sans:wght@600;700;800&display=swap',
   'https://fonts.gstatic.com',
@@ -14,7 +14,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(urlsToCache).catch(err => {
         console.log('Cache addAll error:', err);
-        return cache.add('./SemaTel.html');
+        return cache.add('./index.html');
       });
     }).then(() => self.skipWaiting())
   );
@@ -64,8 +64,8 @@ self.addEventListener('fetch', event => {
 
         return response;
       }).catch(() => {
-        // Offline fallback: return cached page or offline page
-        return caches.match('./SemaTel.html');
+// Offline fallback: return cached page or offline page
+         return caches.match('./index.html');
       });
     })
   );

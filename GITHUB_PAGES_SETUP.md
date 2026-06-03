@@ -22,8 +22,7 @@ GitHub will deploy the site at: `https://collo670.github.io/SemaTel/`
 - **`manifest.json`** - PWA metadata and app configuration
 - **`sw.js`** - Service Worker for offline functionality and caching
 - **`.nojekyll`** - Tells GitHub Pages to skip Jekyll processing
-- **`index.html`** - Redirect to main app (for root URL access)
-- **`SemaTel.html`** - Main application with PWA support
+- **`index.html`** - Main application with PWA support (served at root URL)
 
 ### 3. PWA Features Enabled
 
@@ -75,7 +74,7 @@ npx http-server
 
 ### 7. Future Updates
 
-When you update `SemaTel.html` or other files:
+When you update `index.html` or other files:
 1. Push changes to `main` branch
 2. GitHub Pages auto-deploys
 3. Users will be prompted to update on next app launch
