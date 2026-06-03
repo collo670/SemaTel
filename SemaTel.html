@@ -193,9 +193,6 @@ window.addEventListener('appinstalled', () => {
   deferredPrompt = null;
 });
 </script>
-</head>
-<body>
-
   <div class="hdr">
     <div class="hdr-back" onclick="Engine.resetToHome()"></div>
     <div class="logo logo-no-icon">
@@ -1324,7 +1321,7 @@ const Engine = {
         <div style="font-size:24px; font-weight:800; background:var(--g0); padding:10px; margin:12px 0; border-radius:12px; letter-spacing:4px; color:var(--g9);">${generatedOTP}</div>
         <input type="number" id="otpVal" class="btn-block" style="background:var(--bg);color:var(--txt);text-align:center;font-size:18px;" placeholder="******">
         <button class="btn-block" onclick="Engine.verifyOTPCode(${generatedOTP})">${this.translate('confirm')}</button>
-        <button class="btn-sub" style="width:100%;margin-top:6px;" onclick="Engine.closeSecurityDialog()">Cancel</button>
+        <button class="btn-sub" style="width:100%;margin-top:6px;" onclick="Engine.closeSecurityDialog()">${this.translate('cancel') || 'Cancel'}</button>
       </div>
     `;
     modal.classList.add('show');
