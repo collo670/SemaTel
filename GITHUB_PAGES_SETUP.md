@@ -33,7 +33,18 @@ GitHub will deploy the site at: `https://collo670.github.io/SemaTel/`
 ✅ **Safe Area Support**: Works with iPhone notches and home indicators
 ✅ **Fast Loading**: Service Worker caches assets for instant load
 
-### 4. How to Install on Mobile
+### 4. Prototype demo codes (vouchers)
+
+For voucher redemption testing:
+
+| Type | Valid codes |
+|------|-------------|
+| Airtime | `STAIR1000`, `STAIR5000`, `DEMO12345` |
+| Data | `STDATA1GB`, `STDATA5GB`, `DEMO54321` |
+
+Wallet PIN for security step: any **4 digits** (prototype).
+
+### 5. How to Install on Mobile
 
 #### **Android**
 1. Open `https://collo670.github.io/SemaTel/` in Chrome
@@ -46,14 +57,14 @@ GitHub will deploy the site at: `https://collo670.github.io/SemaTel/`
 3. Name it "SemaTel" and add
 4. App will install with full offline support
 
-### 5. Deployment Notes
+### 6. Deployment Notes
 
 - **No build process needed** - Just push to GitHub
 - **Assets auto-cache** - Service Worker handles offline
 - **Instant updates** - When you push changes, SW updates cache on next visit
 - **HTTPS only** - GitHub Pages provides free HTTPS (required for PWA)
 
-### 6. Testing Locally
+### 7. Testing Locally
 
 #### **Test service worker offline:**
 ```bash
@@ -72,7 +83,7 @@ npx http-server
 3. Check **Cache Storage** to view cached files
 4. Offline mode: DevTools → **Network** → Check "Offline"
 
-### 7. Future Updates
+### 8. Future Updates
 
 When you update `index.html` or other files:
 1. Push changes to `main` branch
@@ -80,7 +91,7 @@ When you update `index.html` or other files:
 3. Users will be prompted to update on next app launch
 4. Service Worker automatically updates cache
 
-### 8. Customize App Appearance
+### 9. Customize App Appearance
 
 Edit `manifest.json` to change:
 - **App name**: `"name"` and `"short_name"`
@@ -88,7 +99,7 @@ Edit `manifest.json` to change:
 - **Icons**: Add custom SVG/PNG icons
 - **Screenshots**: Add app store-style screenshots
 
-### 9. Troubleshooting
+### 10. Troubleshooting
 
 **App not installing?**
 - Ensure HTTPS (automatic on GitHub Pages)

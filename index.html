@@ -2,7 +2,7 @@
 <html lang="sw">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="SemaTel"/>
@@ -10,7 +10,9 @@
 <meta name="description" content="AI-powered telecom assistant for buying airtime, data, sending money, and more"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232e7d32' width='192' height='192'/><text x='96' y='120' font-size='100' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>ST</text></svg>"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232e7d32' width='192' height='192'/><text x='96' y='120' font-size='100' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>ST</text></svg>"/>
+<meta name="format-detection" content="telephone=no"/>
 <title>SemaTel – AI Chatbot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -22,114 +24,281 @@
   --g5:#4caf50;--g4:#66bb6a;--g3:#a5d6a7;--g1:#e8f5e9;--g0:#f1f8e9;
   --y7:#f9a825;--y5:#fdd835;--y4:#ffee58;--y1:#fffde7;
   --r6:#d32f2f;--r1:#ffebee;
-  --bg:#ffffff;--surf:#ffffff;--txt:#1a2016;--mut:#6b7c68;--bdr:#cce4c4;
+  --wa-hdr:#1f6f3f;--wa-chat:#e7efe4;--wa-in:#ffffff;--wa-out:#d9fdd3;--wa-out-txt:#111b21;
+  --wa-bar:#f0f2f0;--wa-chip:#ffffff;
+  --bg:var(--wa-chat);--surf:var(--wa-in);--txt:#111b21;--mut:#667781;--bdr:rgba(0,0,0,.08);
   --fd:'Josefin Sans',sans-serif;--fb:'DM Sans',sans-serif;
-  --sh:0 4px 24px rgba(46,125,50,0.13);
+  --sh:0 8px 32px rgba(0,0,0,.18);
+  --app-max:480px;
+  --hdr-h:56px;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
 }
-body.dark-mode{
-  --bg:#121810;--surf:#1c2419;--txt:#e2e9e0;--mut:#92a48f;--bdr:#32442f;
-  --g0:#233020;--g1:#2a3d26;--g8:#4caf50;--g9:#a5d6a7;
-}
-html{height:100%;overflow:hidden}
+html{height:100%;height:100dvh;overflow:hidden;-webkit-text-size-adjust:100%}
 body{
-  font-family:var(--fb);background:var(--bg);
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  overflow:hidden;
-  font-size:18px;
-  display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
-  margin:0; padding:0;transition:background .3s;
-  -webkit-text-size-adjust:100%;
-  -ms-text-size-adjust:100%;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  font-family:var(--fb);background:var(--wa-chat);
+  margin:0;padding:0;overflow:hidden;
+  min-height:100%;min-height:100dvh;
+  display:flex;justify-content:center;align-items:stretch;
+  font-size:16px;transition:background .3s;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  overscroll-behavior:none;
+}
+.app{
+  width:100%;max-width:var(--app-max);
+  height:100%;height:100dvh;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  position:relative;overflow:hidden;
+  padding-left:var(--sal);padding-right:var(--sar);
+}
+@media (min-width:520px){
+  body{padding:12px 0}
+  .app{border-radius:4px;box-shadow:var(--sh);height:calc(100dvh - 24px);max-height:900px}
 }
 .hdr{
-    flex-shrink:0;
-    background:var(--g8);
-    display:flex;align-items:center;gap:10px;
-    border-bottom:2px solid var(--g7);color:#fff;
-    position:fixed;top:constant(safe-area-inset-top,20px);top:env(safe-area-inset-top,20px);left:0;right:0;z-index:20;
-    height:52px;
-    padding-top:0;
-    padding-left:16px;
-    padding-right:16px;
-    padding-bottom:14px;
+  flex:0 0 auto;
+  min-height:var(--hdr-h);
+  background:var(--wa-hdr);
+  display:flex;align-items:center;gap:8px;
+  color:#fff;
+  padding:var(--sat) 8px 0;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+  z-index:20;
 }
-.logo-name{font-family:var(--fd);font-weight:800;}
-.logo-sub{font-family:var(--fd);font-weight:600;}
+.hdr-back{
+  width:44px;height:44px;min-width:44px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border-radius:50%;flex-shrink:0;
+  transition:background .15s;
+}
+.hdr-back::before{
+  content:'';width:10px;height:10px;
+  border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;
+  transform:rotate(45deg);margin-left:4px;
+}
+.hdr-back:active{background:rgba(255,255,255,.12)}
+.logo{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.logo-no-icon::before{
+  content:'ST';width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:14px;font-weight:800;flex-shrink:0;
+}
+.logo-no-icon{display:flex;align-items:center;gap:10px}
+.logo-no-icon::before{margin-right:0}
+.logo>div{min-width:0}
+.logo-name{font-family:var(--fd);font-weight:800;font-size:17px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo-sub{font-family:var(--fd);font-weight:500;font-size:12.5px;opacity:.88;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-wrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .msgs{
-    position:fixed;
-    top:calc(52px + constant(safe-area-inset-top,20px));top:calc(52px + env(safe-area-inset-top,20px));
-    left:0;right:0;
-    bottom:calc(80px + constant(safe-area-inset-bottom,20px));bottom:calc(80px + env(safe-area-inset-bottom,20px));
-    overflow-y:auto;overflow-x:hidden;
-    padding:12px;
-    display:flex;flex-direction:column;gap:10px;
-    background:var(--bg);
-    scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+  flex:1 1 auto;min-height:0;
+  overflow-y:auto;overflow-x:hidden;
+  padding:8px 10px 12px;
+  display:flex;flex-direction:column;gap:4px;
+  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 20% 30%,rgba(46,125,50,.06) 0,transparent 42%),
+    radial-gradient(circle at 80% 70%,rgba(76,175,80,.05) 0,transparent 38%);
 }
-.date-lbl{text-align:center;font-size:10px;color:var(--mut);margin:4px 0;}
-.date-lbl span{background:var(--surf);border:1px solid var(--bdr);border-radius:20px;padding:3px 12px;}
-.mrow{display:flex;align-items:flex-end;gap:6px;animation:fu .25s ease-out both;}
-.mrow.user{flex-direction:row-reverse;}
+.date-lbl{text-align:center;font-size:11px;color:var(--mut);margin:6px 0 8px}
+.date-lbl span{
+  background:rgba(255,255,255,.92);color:var(--mut);
+  border-radius:8px;padding:5px 12px;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+  font-weight:500;
+}
+.mrow{display:flex;align-items:flex-end;gap:6px;margin-bottom:2px;animation:fu .25s ease-out both;max-width:100%}
+.mrow.user{flex-direction:row-reverse}
 @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.mav{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--g8),var(--g5));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:11px;font-weight:800;color:#fff;flex-shrink:0;}
-.bub{max-width:80%;padding:10px 12px;font-size:16px;line-height:1.45;border-radius:16px;}
-.bub.bot{background:var(--surf);color:var(--txt);border-radius:16px 16px 16px 4px;border:1px solid var(--bdr);box-shadow:0 1px 3px rgba(0,0,0,.05);}
-.bub.user{background:linear-gradient(135deg,var(--g8),var(--g4));color:#fff;border-radius:16px 16px 4px 16px;}
-.bub .t{font-size:11px;opacity:.6;display:block;margin-top:4px;text-align:right;}
-.qa-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px;}
-.qa-tile{background:var(--g0);border:1px solid var(--bdr);border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-size:11px;font-weight:600;color:var(--g9);text-align:center;transition:all .1s;}
-.qa-tile:hover{background:var(--g1);transform:translateY(-1px);}
-.qa-icon{font-size:16px;}
-.rcard{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:12px;margin-top:6px;box-shadow:0 2px 8px rgba(0,0,0,.04);}
-.rcard-title{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--g8);margin-bottom:8px;display:flex;align-items:center;gap:4px;}
-.rcard-row{display:flex;justify-content:between;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--bdr);}
-.rcard-row :last-child{margin-left:auto;font-weight:600;}
-.btn-block{width:100%;padding:8px;border-radius:10px;border:none;background:var(--g8);color:#fff;font-weight:600;font-size:12.5px;margin-top:8px;cursor:pointer;transition:opacity .15s;}
-.btn-block:hover{opacity:.9;}
-.btn-group{display:flex;gap:6px;margin-top:8px;}
-.btn-sub{flex:1;padding:8px;border-radius:10px;border:1px solid var(--bdr);background:var(--g0);color:var(--g9);font-weight:600;font-size:12px;cursor:pointer;}
-.trow{display:none;align-items:flex-end;gap:6px;padding:4px 14px;background:var(--bg);}.trow.show{display:flex;}
-.tbub{background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:8px 12px;display:flex;gap:4px;}
-.td{width:6px;height:6px;border-radius:50%;background:var(--g4);animation:td 1s infinite alternate;}
+.mav{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g8),var(--g5));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:10px;font-weight:800;color:#fff;flex-shrink:0;
+  margin-bottom:2px;
+}
+.mrow.user .mav{display:none}
+.bub{
+  max-width:min(82%,calc(100vw - 80px));
+  padding:7px 10px 5px;
+  font-size:15px;line-height:1.42;
+  border-radius:8px;
+  word-wrap:break-word;overflow-wrap:anywhere;
+  box-shadow:0 1px 1px rgba(0,0,0,.06);
+}
+.bub.bot{
+  background:var(--wa-in);color:var(--txt);
+  border-radius:0 8px 8px 8px;border:1px solid var(--bdr);
+}
+.bub.user{
+  background:var(--wa-out);color:var(--wa-out-txt);
+  border-radius:8px 0 8px 8px;border:none;
+}
+.bub .t{font-size:10.5px;opacity:.55;display:block;margin-top:3px;text-align:right;line-height:1}
+.qa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;width:100%}
+.qa-tile{
+  background:var(--g0);border:1px solid var(--bdr);border-radius:12px;
+  padding:10px 6px;min-height:64px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  cursor:pointer;font-size:12px;font-weight:600;color:var(--g9);
+  text-align:center;transition:background .1s;
+  -webkit-user-select:none;user-select:none;
+}
+.qa-tile:active{background:var(--g1)}
+.qa-icon{font-size:20px;line-height:1}
+.rcard{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin-top:6px;max-width:100%}
+.rcard-title{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--g8);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.rcard-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px dashed var(--bdr)}
+.rcard-row:last-child{border-bottom:none}
+.rcard-row :last-child{font-weight:600;text-align:right;flex-shrink:0}
+.btn-block{
+  width:100%;padding:11px;border-radius:10px;border:none;
+  background:var(--g8);color:#fff;font-weight:600;font-size:13px;
+  margin-top:8px;cursor:pointer;min-height:44px;
+}
+.btn-block:active{opacity:.88}
+.btn-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btn-sub{
+  flex:1 1 calc(50% - 6px);min-width:calc(50% - 6px);
+  padding:10px;border-radius:10px;border:1px solid var(--bdr);
+  background:var(--g0);color:var(--g9);font-weight:600;font-size:12px;
+  cursor:pointer;min-height:44px;
+}
+.trow{display:none;align-items:flex-end;gap:6px;padding:4px 0}
+.trow.show{display:flex}
+.tbub{background:var(--wa-in);border:1px solid var(--bdr);border-radius:0 12px 12px 12px;padding:10px 14px;display:flex;gap:4px;align-items:center}
+.td{width:7px;height:7px;border-radius:50%;background:var(--g4);animation:td 1s infinite alternate}
 .td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
 @keyframes td{from{transform:translateY(0);opacity:.3}to{transform:translateY(-4px);opacity:1}}
-.chips{padding:6px 12px;display:flex;flex-wrap:wrap;gap:6px;background:var(--bg);overflow-x:auto;flex-shrink:0;min-height:0;}
-.chip{padding:6px 12px;border-radius:20px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid var(--g5);background:var(--surf);color:var(--g8);white-space:nowrap;transition:all .1s;}
-.chip:hover{background:var(--g0);}
-.ibar{background:var(--surf);padding:8px 12px 0;border-top:1px solid var(--bdr);position:fixed;bottom:constant(safe-area-inset-bottom,20px);bottom:env(safe-area-inset-bottom,20px);left:0;right:0;z-index:20;}
-.irow{display:flex;align-items:center;gap:6px;}
-.ibox{flex:1;background:var(--bg);border-radius:24px;border:1px solid var(--bdr);display:flex;align-items:center;padding:6px 12px;gap:6px;}
-textarea{flex:1;border:none;outline:none;background:transparent;font-family:var(--fb);font-size:16px;color:var(--txt);resize:none;min-height:40px;height:auto;}
-input, textarea, button{touch-action: manipulation;-webkit-tap-highlight-color: transparent;}
-.modal input{font-size:16px;}
-.send{width:36px;height:36px;border-radius:50%;border:none;background:var(--g8);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:14px;box-shadow:0 2px 8px rgba(46,125,50,.3);transition:all .2s;}
-.send:hover{background:var(--g7);transform:scale(1.05);}
-.mic-btn{width:28px;height:28px;border-radius:50%;border:none;background:rgba(46,125,50,0.15);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g8);font-size:14px;transition:all .2s;flex-shrink:0;}
-.mic-btn:hover{background:rgba(46,125,50,0.25);}
-.qa-tile, .btn-block, .btn-sub, .chip{touch-action: manipulation;}
-.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--g8);display:block;}
-.mic-btn.recording .rec-dot{background:#e53935;animation:pulse-dot 1s infinite;}
-@keyframes pulse-dot{0%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:0.8}100%{transform:scale(1);opacity:1}}
-.mic-btn.recording{background:#e53935;color:#fff;animation:pulse 1s infinite;}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,57,53,0.7)}50%{box-shadow:0 0 0 6px rgba(229,57,53,0.3)}100%{box-shadow:0 0 0 0 rgba(229,57,53,0)}}
-.send.recording{background:#e53935;animation:pulse 1s infinite;}
-.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(3px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
-.modal.show{display:flex;}
-.modal-content{background:var(--surf);border-radius:24px;padding:20px;width:100%;max-width:360px;box-shadow:0 10px 30px rgba(0,0,0,0.2);border:1px solid var(--bdr);animation:fu .2s ease-out;}
-.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
-.pin-btn{padding:12px;border-radius:12px;border:1px solid var(--bdr);background:var(--g0);color:var(--txt);font-weight:700;cursor:pointer;text-align:center;}
-.shimmer{background:linear-gradient(90deg,var(--g0) 25%,var(--g1) 50%,var(--g0) 75%);background-size:200% 100%;animation:loading 1.5s infinite;}
-@keyframes loading{0%{background-position:200% 0}100{background-position:-200% 0}}
+.chips-bar{
+  flex:0 0 auto;
+  padding:6px 8px;
+  display:flex;flex-wrap:nowrap;gap:8px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:var(--wa-bar);
+  border-top:1px solid var(--bdr);
+  scrollbar-width:none;
+}
+.chips-bar::-webkit-scrollbar{display:none}
+.chips-bar:empty{display:none}
+.chip{
+  flex:0 0 auto;
+  padding:8px 14px;border-radius:18px;
+  font-size:13px;font-weight:500;cursor:pointer;
+  border:1px solid var(--bdr);
+  background:var(--wa-chip);color:var(--g8);
+  white-space:nowrap;min-height:36px;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+}
+.chip:active{background:var(--g0)}
+.ibar{
+  flex:0 0 auto;
+  background:var(--wa-bar);
+  padding:6px 8px calc(6px + var(--sab));
+  border-top:1px solid var(--bdr);
+  z-index:20;
+}
+.irow{display:flex;align-items:flex-end;gap:6px}
+.ibox{
+  flex:1;min-width:0;
+  background:#fff;border-radius:24px;
+  border:1px solid var(--bdr);
+  display:flex;align-items:flex-end;
+  padding:5px 6px 5px 14px;gap:4px;
+}
+textarea{
+  flex:1;border:none;outline:none;background:transparent;
+  font-family:var(--fb);font-size:16px;color:var(--txt);
+  resize:none;min-height:24px;max-height:120px;
+  line-height:1.4;padding:6px 0;width:100%;
+}
+input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.modal input{font-size:16px}
+.send{
+  width:44px;height:44px;min-width:44px;border-radius:50%;border:none;
+  background:var(--g8);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:#fff;font-size:18px;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(46,125,50,.25);
+}
+.send:active{transform:scale(.96)}
+.mic-btn{
+  width:36px;height:36px;min-width:36px;border-radius:50%;border:none;
+  background:rgba(46,125,50,.12);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;margin-bottom:2px;
+}
+.qa-tile,.btn-block,.btn-sub,.chip,.hdr-back,.send,.mic-btn,.pin-btn{touch-action:manipulation}
+.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--g8);display:block}
+.mic-btn.recording .rec-dot{background:#e53935;animation:pulse-dot 1s infinite}
+@keyframes pulse-dot{0%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.8}100%{transform:scale(1);opacity:1}}
+.mic-btn.recording{background:#e53935;animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,57,53,.7)}50%{box-shadow:0 0 0 6px rgba(229,57,53,.3)}100%{box-shadow:0 0 0 0 rgba(229,57,53,0)}}
+.send.recording{background:#e53935;animation:pulse 1s infinite}
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  z-index:100;display:none;align-items:flex-end;justify-content:center;
+  padding:max(12px,var(--sal)) max(12px,var(--sar)) max(12px,var(--sab));
+}
+.modal.show{display:flex}
+@media (min-width:520px){.modal{align-items:center}}
+.modal-content{
+  background:var(--surf);border-radius:16px 16px 0 0;
+  padding:20px;width:100%;max-width:var(--app-max);
+  max-height:min(90dvh,560px);overflow-y:auto;
+  box-shadow:0 -4px 24px rgba(0,0,0,.2);border:1px solid var(--bdr);
+  animation:fu .2s ease-out;
+}
+@media (min-width:520px){.modal-content{border-radius:16px;max-width:360px}}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.pin-btn{
+  padding:14px;border-radius:12px;border:1px solid var(--bdr);
+  background:var(--g0);color:var(--txt);font-weight:700;
+  cursor:pointer;text-align:center;min-height:48px;font-size:18px;
+}
+.shimmer{background:linear-gradient(90deg,var(--g0) 25%,var(--g1) 50%,var(--g0) 75%);background-size:200% 100%;animation:loading 1.5s infinite}
+@keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media (max-width:360px){
+  .bub{font-size:14px;max-width:88%}
+  .qa-grid{gap:6px}
+  .qa-tile{font-size:11px;min-height:58px;padding:8px 4px}
+  .logo-name{font-size:15px}
+}
+@media (max-width:320px){
+  .btn-sub{flex:1 1 100%;min-width:100%}
+  .chip{font-size:12px;padding:7px 12px}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .hdr{min-height:48px;padding-top:max(4px,var(--sat))}
+  .logo-no-icon::before{width:32px;height:32px;font-size:12px}
+  .msgs{padding:4px 8px}
+  .ibar{padding-top:4px}
+}
+@supports (height:100dvh){
+  .app{height:100dvh}
+}
 </style>
-<script src="https://unpkg.com/compromise@14.0.0"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/compromise@14.14.0/builds/compromise.min.js"></script>
 <script>
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
-      console.log('Service Worker registered:', reg);
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg => {
+      reg.update();
+      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            nw.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
     }).catch(err => console.log('SW registration failed:', err));
   });
 }
@@ -150,29 +319,32 @@ window.addEventListener('appinstalled', () => {
 </script>
 </head>
 <body>
-  <div class="hdr">
-    <div class="hdr-back" onclick="Engine.resetToHome()"></div>
-    <div class="logo logo-no-icon">
-      <div><div class="logo-name">SemaTel</div><div class="logo-sub" id="lblSubtitle">SEMA•PATA•MALIZA</div></div>
-    </div>
-    <div class="controls">
-      <button class="btn-toggle" onclick="Engine.toggleDarkMode()"></button>
-    </div>
-  </div>
-  
-  <div class="msgs" id="chatBox">
-    <div class="date-lbl"><span id="lblToday">Leo</span></div>
-    <div class="chips" id="chipContainer"></div>
-    <div class="trow" id="typingIndicator"><div class="mav">AI</div><div class="tbub"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>
-  </div>
-  <div class="ibar">
-    <div class="irow">
-      <div class="ibox">
-        <textarea id="userInput" placeholder="Andika hapa / Type message..." onkeydown="Engine.handleInputKey(event)"></textarea>
-        <button class="mic-btn" id="micBtn" onclick="Engine.toggleMic()" title="Voice input"><span class="rec-dot"></span></button>
+  <div class="app" id="appShell">
+    <header class="hdr">
+      <div class="hdr-back" id="btnBack" role="button" aria-label="Back" tabindex="0"></div>
+      <div class="logo logo-no-icon">
+        <div><div class="logo-name">SemaTel</div><div class="logo-sub" id="lblSubtitle">SEMA•PATA•MALIZA</div></div>
       </div>
-      <button class="send" onclick="Engine.sendMessage()">➤</button>
+    </header>
+
+    <div class="chat-wrap">
+      <div class="msgs" id="chatBox" role="log" aria-live="polite">
+        <div class="date-lbl"><span id="lblToday">Leo</span></div>
+        <div class="trow" id="typingIndicator"><div class="mav">ST</div><div class="tbub"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>
+      </div>
     </div>
+
+    <div class="chips-bar" id="chipContainer" role="toolbar" aria-label="Quick replies"></div>
+
+    <footer class="ibar">
+      <div class="irow">
+        <div class="ibox">
+          <textarea id="userInput" rows="1" enterkeyhint="send" placeholder="Andika hapa / Type message..."></textarea>
+          <button type="button" class="mic-btn" id="micBtn" title="Voice input" aria-label="Voice input"><span class="rec-dot"></span></button>
+        </div>
+        <button type="button" class="send" id="btnSend" aria-label="Send">➤</button>
+      </div>
+    </footer>
   </div>
 
   <!-- SECURITY DIALOG (OTP & PIN MODAL) -->
@@ -200,8 +372,33 @@ const ConversationState = {
   ACCOUNT_FLOW: 'ACCOUNT_FLOW',
   HELP_FLOW: 'HELP_FLOW',
   SECURITY_AUTH: 'SECURITY_AUTH',
+  CONFIRM_TX: 'CONFIRM_TX',
+  AWAIT_MORE_HELP: 'AWAIT_MORE_HELP',
+  END_CHAT: 'END_CHAT',
   PROCESSING: 'PROCESSING',
   RESULT_SCREEN: 'RESULT_SCREEN'
+};
+
+const CHIP_INTENT_MAP = {
+  'Buy Airtime': 'BUY_AIRTIME',
+  'Buy Data Bundle': 'BUY_DATA_BUNDLE',
+  'Send Money': 'SEND_MONEY',
+  'Check Balance': 'CHECK_BALANCE',
+  'Redeem Voucher': 'REDEEM_VOUCHER',
+  'My Account': 'MY_ACCOUNT',
+  'Help': 'GET_HELP',
+  'Nunua Airtime': 'BUY_AIRTIME',
+  'Kifurushi cha Data': 'BUY_DATA_BUNDLE',
+  'Tuma Pesa': 'SEND_MONEY',
+  'Angalia Salio': 'CHECK_BALANCE',
+  'Vocha': 'REDEEM_VOUCHER',
+  'Akaunti Yangu': 'MY_ACCOUNT',
+  'Msaada': 'GET_HELP'
+};
+
+const VALID_VOUCHER_CODES = {
+  AIRTIME: { STAIR1000: 1000, STAIR5000: 5000, DEMO12345: 1000 },
+  DATA: { STDATA1GB: 2000, STDATA5GB: 5000, DEMO54321: 2000 }
 };
 
 const LANGUAGES = {
@@ -216,7 +413,12 @@ const LANGUAGES = {
     failed: "❌ **TRANSACTION FAILED**\nMuamala umeshindikana.",
     otp_msg: "🔐 **OTP VERIFICATION**\nTumeandika namba ya uhakiki kwenye skrini yako. Tafadhali weka hapa chini ili kuidhinisha:",
     pin_msg: "🔒 **WEKA PIN**\nWeka namba ya siri ya SemaTel Wallet kulinda usalama wako:",
-    retry: "Jaribu Tena", home: "Mwanzo"
+    retry: "Jaribu Tena", home: "Mwanzo",
+    goodbye: "Asante kwa kutumia SemaTel! Kwaheri 👋",
+    balance_fetch: "⏳ Inapata salio kutoka kwenye mtandao...",
+    invalid_voucher: "❌ Namba ya vocha si sahihi. Jaribu tena.",
+    fraud_block: "⚠️ Muamala umezuiwa kwa usalama. Jaribu tena baadaye.",
+    confirm_summary: "Angalia muamala wako kisha thibitisha:"
   },
   en: {
     welcome: "Welcome to SemaTel 👋\nI can help you perform telecom transactions seamlessly via conversation.\nChoose a service or type what you want to do.",
@@ -229,30 +431,130 @@ const LANGUAGES = {
     failed: "❌ **TRANSACTION FAILED**\nTransaction failed.",
     otp_msg: "🔐 **OTP VERIFICATION**\nAn automated verification code is displayed on your screen. Please enter it below to authorize:",
     pin_msg: "🔒 **ENTER PIN**\nEnter your secure SemaTel Wallet PIN:",
-    retry: "Retry", home: "Home"
+    retry: "Retry", home: "Home",
+    goodbye: "Thank you for using SemaTel! Goodbye 👋",
+    balance_fetch: "⏳ Fetching balance from network...",
+    invalid_voucher: "❌ Invalid voucher code. Please try again.",
+    fraud_block: "⚠️ Transaction blocked for security. Try again later.",
+    confirm_summary: "Review your transaction and confirm:"
   }
 };
 
 /* ==========================================
    2. MEMORY & DATA SYSTEM (MOCK TELECOM DATABASE)
    ========================================== */
-let ChatbotMemory = {
-  lang: 'sw',
-  theme: 'light',
-  walletBalance: 84500,
-  airtimeBalance: 12500,
-  dataBalance: "5.8 GB",
-  phoneNumber: "+255 712 345 678",
-  network: "Vodacom",
-  recentTransactions: [
-    { type: 'DATA', details: 'Kifurushi cha Wiki 1.5GB', amt: 2000, date: '2026-05-28' },
-    { type: 'MONEY', details: 'Tuma kwa Mama Anna', amt: 15000, date: '2026-05-29' }
-  ],
-  frequentContacts: [
-    { name: "Mama Anna", phone: "0712345678", provider: "Vodacom M-Pesa" },
-    { name: "Baba Juma", phone: "0765987321", provider: "Tigo Pesa" },
-    { name: "Kaka Ali", phone: "0784111222", provider: "Airtel Money" }
-  ]
+const StorageManager = {
+  KEY: 'sematel_memory_v1',
+  defaults() {
+    return {
+      lang: 'sw',
+      walletBalance: 84500,
+      airtimeBalance: 12500,
+      dataBalance: '5.8 GB',
+      phoneNumber: '+255 712 345 678',
+      network: 'Vodacom',
+      recentTransactions: [
+        { type: 'DATA', details: 'Kifurushi cha Wiki 1.5GB', amt: 2000, date: '2026-05-28' },
+        { type: 'MONEY', details: 'Tuma kwa Mama Anna', amt: 15000, date: '2026-05-29' }
+      ],
+      frequentContacts: [
+        { name: 'Mama Anna', phone: '0712345678', provider: 'Vodacom M-Pesa' },
+        { name: 'Baba Juma', phone: '0765987321', provider: 'Tigo Pesa' },
+        { name: 'Kaka Ali', phone: '0784111222', provider: 'Airtel Money' }
+      ],
+      lastTxTimes: []
+    };
+  },
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      return raw ? { ...this.defaults(), ...JSON.parse(raw) } : this.defaults();
+    } catch (e) {
+      return this.defaults();
+    }
+  },
+  save() {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify(ChatbotMemory));
+    } catch (e) { /* quota / private mode */ }
+  }
+};
+
+let ChatbotMemory = StorageManager.load();
+
+const OfflineTxQueue = {
+  KEY: 'sematel_pending_tx_v1',
+  list() {
+    try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch (e) { return []; }
+  },
+  enqueue(tx) {
+    const q = this.list();
+    q.push({ ...tx, queuedAt: Date.now() });
+    localStorage.setItem(this.KEY, JSON.stringify(q));
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'QUEUE_TX', tx });
+    }
+  },
+  clear() { localStorage.removeItem(this.KEY); }
+};
+
+const VoucherService = {
+  validate(code, type) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const normalized = (code || '').toUpperCase().replace(/\s/g, '');
+        const table = VALID_VOUCHER_CODES[type] || {};
+        if (table[normalized]) {
+          resolve({ valid: true, amount: table[normalized], code: normalized });
+        } else {
+          reject({ valid: false, reason: 'Invalid or expired voucher code' });
+        }
+      }, 1200);
+    });
+  }
+};
+
+const TelecomAPI = {
+  fetchBalance(balanceType) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (!navigator.onLine && Math.random() > 0.3) {
+          reject({ reason: 'Network unavailable' });
+          return;
+        }
+        if (balanceType === 'AIRTIME') {
+          resolve({ label: 'Airtime Balance', value: `Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}` });
+        } else if (balanceType === 'DATA') {
+          resolve({ label: 'Data Remaining', value: ChatbotMemory.dataBalance });
+        } else {
+          resolve({ label: 'M-Money Balance', value: `Tsh ${ChatbotMemory.walletBalance.toLocaleString()}` });
+        }
+      }, 1500);
+    });
+  }
+};
+
+const FraudGuard = {
+  maxAmount: 500000,
+  minGapMs: 3000,
+  check(tx) {
+    const amt = tx.amount || tx.price || 0;
+    if (amt > this.maxAmount) return false;
+    const now = Date.now();
+    const recent = (ChatbotMemory.lastTxTimes || []).filter(t => now - t < 60000);
+    if (recent.length >= 5) return false;
+    const last = ChatbotMemory.lastTxTimes[ChatbotMemory.lastTxTimes.length - 1];
+    if (last && now - last < this.minGapMs) return false;
+    return true;
+  },
+  record() {
+    ChatbotMemory.lastTxTimes = ChatbotMemory.lastTxTimes || [];
+    ChatbotMemory.lastTxTimes.push(Date.now());
+    if (ChatbotMemory.lastTxTimes.length > 20) {
+      ChatbotMemory.lastTxTimes = ChatbotMemory.lastTxTimes.slice(-20);
+    }
+    StorageManager.save();
+  }
 };
 
 /* ==========================================
@@ -335,6 +637,9 @@ const MLIntentModel = {
     });
 
     const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    if (!sorted.length) {
+      return intentFallback;
+    }
     const bestIntent = sorted[0][0];
     const scoreValues = sorted.map(([_, score]) => Math.exp(score));
     const confidence = scoreValues[0] / scoreValues.reduce((a, b) => a + b, 0);
@@ -493,59 +798,101 @@ MLIntentModel.train([
     4. CENTRALIZED TRANSACTION ENGINE
     ========================================== */
 const TransactionEngine = {
-   process: function(txData) {
-     // Return a Promise for better async handling
-     return new Promise((resolve, reject) => {
-       // Structural simulated response mirroring Flowchart step 7, 7A, 7B
-       setTimeout(() => {
-         // 15% random failure simulation for production realism
-         const isSuccess = Math.random() > 0.15;
-         if (isSuccess) {
-           // Apply deductions updates in application memory
-           if (txData.type === 'AIRTIME') {
-             ChatbotMemory.airtimeBalance += txData.amount;
-             ChatbotMemory.walletBalance -= txData.amount;
-           } else if (txData.type === 'DATA') {
-             ChatbotMemory.walletBalance -= txData.price;
-           } else if (txData.type === 'MONEY') {
-             ChatbotMemory.walletBalance -= txData.amount;
-           } else if (txData.type === 'SMS') {
-             ChatbotMemory.walletBalance -= txData.amount;
-           } else if (txData.type === 'VOUCHER') {
-             if (txData.voucherType === 'DATA') {
-               const match = String(ChatbotMemory.dataBalance).match(/([0-9]+(\.[0-9]+)?)/);
-               const currentData = match ? parseFloat(match[1]) : 0;
-               ChatbotMemory.dataBalance = `${(currentData + 1).toFixed(1)} GB`;
-             } else {
-               ChatbotMemory.airtimeBalance += txData.amount;
-             }
-           }
-           
-           // Log to recent transactions list
-           ChatbotMemory.recentTransactions.unshift({
-             type: txData.type,
-             details: txData.details || `${txData.type} Transaction`,
-             amt: txData.amount || txData.price || 0,
-             date: new Date().toISOString().split('T')[0]
-           });
+  applyBalanceChanges(txData) {
+    const pay = txData.paymentMethod || '';
+    const cost = txData.amount || txData.price || 0;
+    const fromWallet = /wallet|m-pesa|tigo|airtel|card/i.test(pay) && !/airtime balance/i.test(pay);
+    const fromAirtime = /airtime balance/i.test(pay);
 
-           resolve({
-             status: 'SUCCESS',
-             ref: 'ST' + Math.floor(10000000 + Math.random() * 89999999),
-             date: new Date().toLocaleDateString(),
-             time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-           });
-         } else {
-           const failureReasons = ["Insufficient Funds", "Network Timeout Error", "Core Telecommunication API Offline", "Invalid Security Challenge Response"];
-           reject({
-             status: 'FAILED',
-             reason: failureReasons[Math.floor(Math.random() * failureReasons.length)]
-           });
-         }
-       }, 2000);
-     });
-   }
+    if (txData.type === 'AIRTIME' || txData.type === 'BUY_AIRTIME') {
+      if (fromAirtimeBalance) {
+        ChatbotMemory.airtimeBalance -= txData.amount;
+      } else {
+        ChatbotMemory.airtimeBalance += txData.amount;
+        if (fromWallet) ChatbotMemory.walletBalance -= txData.amount;
+      }
+    } else if (txData.type === 'DATA') {
+      if (fromWallet || !fromAirtime) ChatbotMemory.walletBalance -= txData.price;
+    } else if (txData.type === 'MONEY') {
+      ChatbotMemory.walletBalance -= txData.amount;
+    } else if (txData.type === 'SMS') {
+      ChatbotMemory.walletBalance -= txData.amount;
+    } else if (txData.type === 'VOUCHER') {
+      if (txData.voucherType === 'DATA') {
+        const match = String(ChatbotMemory.dataBalance).match(/([0-9]+(\.[0-9]+)?)/);
+        const currentData = match ? parseFloat(match[1]) : 0;
+        ChatbotMemory.dataBalance = `${(currentData + 1).toFixed(1)} GB`;
+      } else {
+        ChatbotMemory.airtimeBalance += txData.amount;
+      }
+    }
+    ChatbotMemory.recentTransactions.unshift({
+      type: txData.type,
+      details: txData.details || `${txData.type} Transaction`,
+      amt: cost,
+      date: new Date().toISOString().split('T')[0]
+    });
+    StorageManager.save();
+  },
+
+  process(txData) {
+    return new Promise((resolve, reject) => {
+      const run = () => {
+        setTimeout(() => {
+          const cost = txData.amount || txData.price || 0;
+          if (fromAirtimeBalance(txData) && ChatbotMemory.airtimeBalance < cost) {
+            reject({ status: 'FAILED', reason: 'Insufficient airtime balance' });
+            return;
+          }
+          if (needsWallet(txData) && ChatbotMemory.walletBalance < cost) {
+            reject({ status: 'FAILED', reason: 'Insufficient funds' });
+            return;
+          }
+          const isSuccess = Math.random() > 0.12;
+          if (isSuccess) {
+            TransactionEngine.applyBalanceChanges(txData);
+            FraudGuard.record();
+            resolve({
+              status: 'SUCCESS',
+              ref: 'ST' + Math.floor(10000000 + Math.random() * 89999999),
+              date: new Date().toLocaleDateString(),
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+          } else {
+            const failureReasons = [
+              'Insufficient Funds',
+              'Network Timeout Error',
+              'Core Telecommunication API Offline',
+              'Payment gateway declined card'
+            ];
+            reject({
+              status: 'FAILED',
+              reason: failureReasons[Math.floor(Math.random() * failureReasons.length)]
+            });
+          }
+        }, 2000);
+      };
+
+      if (!navigator.onLine) {
+        OfflineTxQueue.enqueue(txData);
+        reject({ status: 'FAILED', reason: 'Offline – transaction queued for sync', queued: true });
+        return;
+      }
+      run();
+    });
+  }
 };
+
+function fromAirtimeBalance(tx) {
+  return /airtime balance/i.test(tx.paymentMethod || '');
+}
+function needsWallet(tx) {
+  const pay = tx.paymentMethod || '';
+  if (tx.type === 'MONEY') return true;
+  if (tx.type === 'VOUCHER') return false;
+  if (fromAirtimeBalance(tx)) return false;
+  return /wallet|m-pesa|tigo|airtel|card/i.test(pay) || tx.type === 'DATA' || tx.type === 'SMS';
+}
 
 /* ==========================================
    5. ENGINE CONTROLLER & CONVERSATION LOGIC
@@ -557,23 +904,166 @@ const Engine = {
   isListening: false,
   
 init: function() {
+     this.bindUI();
+     LayoutManager.init();
      this.initSpeechRecognition();
      this.initializeStateHandlers();
      this.renderWelcome();
+     window.addEventListener('online', () => this.flushPendingTransactions());
+     if (navigator.serviceWorker) {
+       navigator.serviceWorker.addEventListener('message', (e) => {
+         if (e.data && e.data.type === 'SYNC_COMPLETE') this.flushPendingTransactions();
+       });
+     }
+     setTimeout(() => this.handleDeepLinkIntent(), 800);
+   },
+
+   handleDeepLinkIntent: function() {
+     const params = new URLSearchParams(window.location.search);
+     const intent = params.get('intent');
+     if (intent) this.routeIntent(intent);
+   },
+
+   flushPendingTransactions: function() {
+     const pending = OfflineTxQueue.list();
+     if (!pending.length || !navigator.onLine) return;
+     OfflineTxQueue.clear();
+     this.addMessage(
+       ChatbotMemory.lang === 'sw'
+         ? `🔄 Inachakata miamala ${pending.length} iliyosubiri nje ya mtandao...`
+         : `🔄 Processing ${pending.length} queued offline transaction(s)...`,
+       'bot'
+     );
+   },
+
+   bindUI: function() {
+     const back = document.getElementById('btnBack');
+     const send = document.getElementById('btnSend');
+     const input = document.getElementById('userInput');
+     const mic = document.getElementById('micBtn');
+     const chat = document.getElementById('chatBox');
+
+     if (back) {
+       back.addEventListener('click', () => this.resetToHome());
+       back.addEventListener('keydown', (e) => {
+         if (e.key === 'Enter' || e.key === ' ') {
+           e.preventDefault();
+           this.resetToHome();
+         }
+       });
+     }
+     if (send) send.addEventListener('click', () => this.sendMessage());
+     if (input) {
+       input.addEventListener('keydown', (e) => this.handleInputKey(e));
+       input.addEventListener('input', function() {
+         LayoutManager.autoResizeTextarea(this);
+       });
+     }
+     if (mic) mic.addEventListener('click', () => this.toggleMic());
+     if (chat) {
+       chat.addEventListener('click', (e) => {
+         const tile = e.target.closest('[data-intent]');
+         if (tile && tile.dataset.intent) {
+           this.routeIntent(tile.dataset.intent);
+         }
+       });
+     }
    },
 
    initializeStateHandlers: function() {
      this.STATE_HANDLERS = {
-       'HOME': this.handleHomeState.bind(this),
-       'CLARIFICATION': this.handleClarificationState.bind(this),
-       'AIRTIME_CUSTOM_AMT': this.handleAirtimeCustomAmount.bind(this),
-       'MONEY_CUSTOM_REC': this.handleMoneyRecipient.bind(this),
-       'MONEY_PHONE_INPUT': this.handleMoneyPhoneInput.bind(this),
-       'MONEY_CUSTOM_AMT': this.handleMoneyAmount.bind(this),
-       'BALANCE_SELECTION': this.handleBalanceSelection.bind(this),
-       'VOUCHER_TYPE_SELECTION': this.handleVoucherTypeSelection.bind(this),
-       'VOUCHER_CODE_INPUT': this.handleVoucherCodeInput.bind(this)
+       HOME: this.handleHomeState.bind(this),
+       CLARIFICATION: this.handleClarificationState.bind(this),
+       AIRTIME_FLOW: this.handleAirtimeFlowInput.bind(this),
+       AIRTIME_CUSTOM_AMT: this.handleAirtimeCustomAmount.bind(this),
+       DATA_FLOW: this.handlePassiveFlowInput.bind(this),
+       MONEY_FLOW: this.handlePassiveFlowInput.bind(this),
+       MONEY_CUSTOM_REC: this.handleMoneyRecipient.bind(this),
+       MONEY_PHONE_INPUT: this.handleMoneyPhoneInput.bind(this),
+       MONEY_CUSTOM_AMT: this.handleMoneyAmount.bind(this),
+       BALANCE_SELECTION: this.handleBalanceSelection.bind(this),
+       VOUCHER_TYPE_SELECTION: this.handleVoucherTypeSelection.bind(this),
+       VOUCHER_CODE_INPUT: this.handleVoucherCodeInput.bind(this),
+       AWAIT_MORE_HELP: this.handleMoreHelpResponse.bind(this),
+       END_CHAT: this.handleEndChatInput.bind(this)
      };
+   },
+
+   handlePassiveFlowInput: function(text) {
+     this.addMessage(
+       ChatbotMemory.lang === 'sw'
+         ? 'Tafadhali tumia vitufe vilivyoonyeshwa hapo juu, au bonyeza nyuma kurudi mwanzo.'
+         : 'Please use the buttons above, or tap back to return home.',
+       'bot'
+     );
+   },
+
+   handleAirtimeFlowInput: function(text) {
+     const amt = parseInt(String(text).replace(/\D/g, ''), 10);
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptAirtimePayment();
+     } else {
+       this.handlePassiveFlowInput(text);
+     }
+   },
+
+   handleMoreHelpResponse: function(text) {
+     const t = text.toLowerCase();
+     if (/^(ndiyo|yes|ndio)\b/i.test(t) || t === 'yes') {
+       this.currentState = ConversationState.HOME;
+       this.setChips([]);
+       this.addMessage(
+         ChatbotMemory.lang === 'sw' ? 'Unaweza kuandika au kuchagua huduma:' : 'Type or choose a service:',
+         'bot'
+       );
+       this.renderServiceGrid();
+       return;
+     }
+     if (/hapana|no|asante|thank/i.test(t)) {
+       this.endChat();
+       return;
+     }
+     this.handleHomeState(text);
+   },
+
+   handleEndChatInput: function() {
+     this.addMessage(
+       ChatbotMemory.lang === 'sw' ? 'Gusa "Anza Tena" kuendelea.' : 'Tap "Start Again" to continue.',
+       'bot'
+     );
+   },
+
+   endChat: function() {
+     this.currentState = ConversationState.END_CHAT;
+     this.setChips([]);
+     const html = `
+       <div class="rcard">
+         <div style="font-weight:600;">${this.translate('goodbye')}</div>
+         <button class="btn-block" style="margin-top:10px;" onclick="Engine.resetToHome()">${ChatbotMemory.lang === 'sw' ? 'Anza Tena' : 'Start Again'}</button>
+       </div>`;
+     this.addMessage(null, 'bot', html);
+   },
+
+   renderServiceGrid: function() {
+     const gridHTML = `
+       <div class="qa-grid">
+         <div class="qa-tile" data-intent="BUY_AIRTIME" role="button" tabindex="0"><div class="qa-icon">📱</div>Airtime</div>
+         <div class="qa-tile" data-intent="BUY_DATA_BUNDLE" role="button" tabindex="0"><div class="qa-icon">📶</div>Data</div>
+         <div class="qa-tile" data-intent="SEND_MONEY" role="button" tabindex="0"><div class="qa-icon">💸</div>Send Money</div>
+         <div class="qa-tile" data-intent="CHECK_BALANCE" role="button" tabindex="0"><div class="qa-icon">💰</div>Balance</div>
+         <div class="qa-tile" data-intent="REDEEM_VOUCHER" role="button" tabindex="0"><div class="qa-icon">🎫</div>Voucher</div>
+         <div class="qa-tile" data-intent="MY_ACCOUNT" role="button" tabindex="0"><div class="qa-icon">👤</div>Account</div>
+         <div class="qa-tile" data-intent="GET_HELP" role="button" tabindex="0"><div class="qa-icon">💡</div>Help</div>
+       </div>`;
+     this.addMessage(null, 'bot', gridHTML);
+   },
+
+   resolveChipIntent: function(label) {
+     if (CHIP_INTENT_MAP[label]) return CHIP_INTENT_MAP[label];
+     const evaluation = AIIntentEngine.parse(label);
+     if (evaluation.confidence >= 0.75) return evaluation.intent;
+     return null;
    },
   
   initSpeechRecognition: function() {
@@ -587,14 +1077,15 @@ init: function() {
     this.recognition = new SpeechRecognition();
     this.recognition.continuous = false;
     this.recognition.interimResults = false;
-    this.recognition.lang = 'sw-TZ';
-    
+    this.recognition.lang = ChatbotMemory.lang === 'en' ? 'en-TZ' : 'sw-TZ';
+    this.pendingVoiceSend = false;
+
     this.recognition.onstart = () => {
       this.isListening = true;
       document.getElementById('micBtn').classList.add('recording');
       document.getElementById('userInput').placeholder = '🎙️ Listening...';
     };
-    
+
     this.recognition.onresult = (event) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -604,6 +1095,7 @@ init: function() {
       }
       if (transcript) {
         document.getElementById('userInput').value = transcript;
+        this.pendingVoiceSend = true;
       }
     };
     
@@ -616,6 +1108,10 @@ init: function() {
       this.isListening = false;
       document.getElementById('micBtn').classList.remove('recording');
       document.getElementById('userInput').placeholder = 'Andika hapa / Type message...';
+      if (this.pendingVoiceSend) {
+        this.pendingVoiceSend = false;
+        this.sendMessage();
+      }
     };
   },
   
@@ -635,15 +1131,9 @@ init: function() {
     return LANGUAGES[ChatbotMemory.lang][key] || key;
   },
 
-  toggleDarkMode: function() {
-    document.body.classList.toggle('dark-mode');
-    ChatbotMemory.theme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-  },
-
   showTyping: function(show) {
     document.getElementById('typingIndicator').classList.toggle('show', show);
-    const box = document.getElementById('chatBox');
-    box.scrollTop = box.scrollHeight;
+    LayoutManager.scrollChatToEnd();
   },
 
   addMessage: function(text, sender, elementHTML = null) {
@@ -673,22 +1163,40 @@ init: function() {
     bub.appendChild(timeSpan);
     
     row.appendChild(bub);
-    box.appendChild(row);
-    box.scrollTop = box.scrollHeight;
+    const typing = document.getElementById('typingIndicator');
+    if (typing && typing.parentNode === box) {
+      box.insertBefore(row, typing);
+    } else {
+      box.appendChild(row);
+    }
+    LayoutManager.scrollChatToEnd();
   },
 
    setChips: function(chipsArray) {
      const container = document.getElementById('chipContainer');
      if (!container) return;
      container.innerHTML = '';
-     chipsArray.forEach(label => {
+     (chipsArray || []).forEach(label => {
        const btn = document.createElement('button');
+       btn.type = 'button';
        btn.className = 'chip';
        btn.textContent = label;
        btn.onclick = () => {
          this.addMessage(label, 'user');
+         const chipIntent = this.resolveChipIntent(label);
+         if (chipIntent && (this.currentState === ConversationState.HOME ||
+             this.currentState === ConversationState.CLARIFICATION ||
+             this.currentState === ConversationState.AWAIT_MORE_HELP)) {
+           if (this.currentState === ConversationState.AWAIT_MORE_HELP) {
+             this.handleMoreHelpResponse(label);
+             return;
+           }
+           this.routeIntent(chipIntent);
+           return;
+         }
          this.processUserInput(label);
        };
+       container.appendChild(btn);
      });
    },
 
@@ -715,7 +1223,10 @@ init: function() {
        setTimeout(() => {
          this.showTyping(false);
          this.addMessage(this.translate('clarify'), 'bot');
-         this.setChips(['Buy Airtime', 'Buy Data Bundle', 'Send Money', 'Check Balance', 'Redeem Voucher', 'My Account']);
+         const chips = ChatbotMemory.lang === 'sw'
+           ? ['Nunua Airtime', 'Kifurushi cha Data', 'Tuma Pesa', 'Angalia Salio', 'Akaunti Yangu', 'Msaada']
+           : ['Buy Airtime', 'Buy Data Bundle', 'Send Money', 'Check Balance', 'My Account', 'Help'];
+         this.setChips(chips);
        }, 500);
      }
    },
@@ -791,110 +1302,24 @@ init: function() {
    },
 
    handleVoucherCodeInput: function(text) {
-     if (text.length >= 5) {
-       this.currentTx.voucherCode = text.toUpperCase();
-       this.triggerSecurityGate('VOUCHER');
-     } else {
-       this.addMessage("Namba ya vocha haijakamilika.", "bot");
-     }
-   }
-       if (evaluation.entities && evaluation.entities.recipientPhone) {
-         this.currentTx.recipient = evaluation.entities.recipientPhone;
-       }
-       // wire provider/payment method if detected (maps to UI labels)
-       if (evaluation.entities && evaluation.entities.provider) {
-         this.currentTx.paymentMethod = evaluation.entities.provider;
-       }
-       this.routeIntent(evaluation.intent);
-     } else {
-       this.currentState = ConversationState.CLARIFICATION;
-       this.showTyping(true);
-       setTimeout(() => {
-         this.showTyping(false);
-         this.addMessage(this.translate('clarify'), 'bot');
-         this.setChips(['Buy Airtime', 'Buy Data Bundle', 'Send Money', 'Check Balance', 'Redeem Voucher', 'My Account']);
-       }, 500);
-     }
-   },
-
-   handleClarificationState: function(text) {
-     // Re-use the same logic as home state for clarification
-     this.handleHomeState(text);
-   },
-
-   handleAirtimeCustomAmount: function(text) {
-     const amt = parseInt(text.replace(/\D/g, ''));
-     if (amt > 0) {
-       this.currentTx.amount = amt;
-       this.promptAirtimePayment();
-     } else {
-       this.addMessage("Weka kiasi halali cha fedha.", "bot");
-     }
-   },
-
-   handleMoneyRecipient: function(text) {
-     this.currentTx.recipient = text;
-     this.promptMoneyAmount();
-   },
-
-   handleMoneyPhoneInput: function(text) {
-     const phone = text.replace(/\D/g, '');
-     if (phone.length >= 9) {
-       this.currentTx.recipient = phone;
-       this.promptMoneyAmount();
-     } else {
-       this.addMessage('Namba ya simu haijakamilika. Tafadhali weka namba halali (mfano: 0712345678)', 'bot');
-     }
-   },
-
-   handleMoneyAmount: function(text) {
-     const amt = parseInt(text.replace(/\D/g, ''));
-     if (amt > 0) {
-       this.currentTx.amount = amt;
-       this.promptMoneyPayment();
-     } else {
-       this.addMessage("Weka kiasi cha kuanzia Tsh 100.", "bot");
-     }
-   },
-
-   handleBalanceSelection: function(text) {
-     const answer = text.toLowerCase();
-     if (/airtime|salio|mtandao|data|wallet|wallet balance|wallet saldo|wallet salio/i.test(answer)) {
-       if (/airtime|salio/i.test(answer) && !/wallet/i.test(answer)) {
-         this.selectBalanceType('AIRTIME');
-         return;
-       }
-       if (/data|mtandao/i.test(answer)) {
-         this.selectBalanceType('DATA');
-         return;
-       }
-       if (/wallet|wallet balance|balansi|salio la wallet/i.test(answer)) {
-         this.selectBalanceType('WALLET');
-         return;
-       }
-     }
-     this.addMessage("Tafadhali chagua moja ya chaguo hapo juu: Airtime, Data, au Wallet.", 'bot');
-   },
-
-   handleVoucherTypeSelection: function(text) {
-     const answer = text.toLowerCase();
-     if (/airtime|data/i.test(answer)) {
-       this.currentTx.voucherType = /airtime/i.test(answer) ? 'AIRTIME' : 'DATA';
-       this.currentState = ConversationState.VOUCHER_CODE_INPUT;
-       this.addMessage(`E2. Tafadhali andika namba ya siri ya vocha yako ya ${this.currentTx.voucherType.toLowerCase()}:`, 'bot');
+     if (text.length < 5) {
+       this.addMessage(ChatbotMemory.lang === 'sw' ? 'Namba ya vocha haijakamilika.' : 'Voucher code is too short.', 'bot');
        return;
      }
-     this.addMessage("Chagua aina ya vocha: Airtime au Data.", 'bot');
-   },
-
-   handleVoucherCodeInput: function(text) {
-     if (text.length >= 5) {
-       this.currentTx.voucherCode = text.toUpperCase();
-       this.triggerSecurityGate('VOUCHER');
-     } else {
-       this.addMessage("Namba ya vocha haijakamilika.", "bot");
-     }
-    }
+     this.currentTx.voucherCode = text.toUpperCase().replace(/\s/g, '');
+     this.currentState = ConversationState.PROCESSING;
+     this.addMessage(this.translate('balance_fetch'), 'bot');
+     VoucherService.validate(this.currentTx.voucherCode, this.currentTx.voucherType)
+       .then((res) => {
+         this.currentTx.amount = res.amount;
+         this.currentTx.type = 'VOUCHER';
+         this.currentTx.details = `Vocha ${this.currentTx.voucherType} (${res.code})`;
+         this.showTransactionConfirm();
+       })
+       .catch(() => {
+         this.currentState = ConversationState.VOUCHER_CODE_INPUT;
+         this.addMessage(this.translate('invalid_voucher'), 'bot');
+       });
    },
 
    resetToHome: function() {
@@ -904,6 +1329,14 @@ init: function() {
   },
 
   renderWelcome: function() {
+    const box = document.getElementById('chatBox');
+    if (box) {
+      const dateLbl = box.querySelector('.date-lbl');
+      const typing = document.getElementById('typingIndicator');
+      box.innerHTML = '';
+      if (dateLbl) box.appendChild(dateLbl);
+      if (typing) box.appendChild(typing);
+    }
     this.showTyping(true);
     setTimeout(() => {
       this.showTyping(false);
@@ -911,12 +1344,13 @@ init: function() {
       const gridHTML = `
         <div>${this.translate('welcome').replace(/\n/g, '<br>')}</div>
         <div class="qa-grid">
-          <div class="qa-tile" onclick="Engine.routeIntent('BUY_AIRTIME')"><div class="qa-icon">📱</div>Airtime</div>
-          <div class="qa-tile" onclick="Engine.routeIntent('BUY_DATA_BUNDLE')"><div class="qa-icon">📶</div>Data</div>
-          <div class="qa-tile" onclick="Engine.routeIntent('SEND_MONEY')"><div class="qa-icon">💸</div>Send Money</div>
-          <div class="qa-tile" onclick="Engine.routeIntent('CHECK_BALANCE')"><div class="qa-icon">💰</div>Balance</div>
-          <div class="qa-tile" onclick="Engine.routeIntent('REDEEM_VOUCHER')"><div class="qa-icon">🎫</div>Voucher</div>
-          <div class="qa-tile" onclick="Engine.routeIntent('MY_ACCOUNT')"><div class="qa-icon">👤</div>Account</div>
+          <div class="qa-tile" data-intent="BUY_AIRTIME" role="button" tabindex="0"><div class="qa-icon">📱</div>Airtime</div>
+          <div class="qa-tile" data-intent="BUY_DATA_BUNDLE" role="button" tabindex="0"><div class="qa-icon">📶</div>Data</div>
+          <div class="qa-tile" data-intent="SEND_MONEY" role="button" tabindex="0"><div class="qa-icon">💸</div>Send Money</div>
+          <div class="qa-tile" data-intent="CHECK_BALANCE" role="button" tabindex="0"><div class="qa-icon">💰</div>Balance</div>
+          <div class="qa-tile" data-intent="REDEEM_VOUCHER" role="button" tabindex="0"><div class="qa-icon">🎫</div>Voucher</div>
+          <div class="qa-tile" data-intent="MY_ACCOUNT" role="button" tabindex="0"><div class="qa-icon">👤</div>Account</div>
+          <div class="qa-tile" data-intent="GET_HELP" role="button" tabindex="0"><div class="qa-icon">💡</div>Help</div>
         </div>
       `;
       this.addMessage(null, 'bot', gridHTML);
@@ -929,6 +1363,7 @@ init: function() {
     const val = el.value.trim();
     if (!val) return;
     el.value = '';
+    LayoutManager.autoResizeTextarea(el);
     this.addMessage(val, 'user');
     this.processUserInput(val);
   },
@@ -943,27 +1378,46 @@ init: function() {
   },
 
 processUserInput: function(text) {
-     // Handle HOME and CLARIFICATION states with AI intent recognition
-     if (this.currentState === 'HOME' || this.currentState === 'CLARIFICATION') {
+     const t = (text || '').trim();
+     if (t === this.translate('retry') || /^jaribu tena$/i.test(t) || t === '🔄 ' + this.translate('retry')) {
+       this.retryTransaction();
+       return;
+     }
+     if (t === this.translate('home') || /^mwanzo$/i.test(t) || /^home$/i.test(t)) {
+       this.resetToHome();
+       return;
+     }
+     if (this.currentState === ConversationState.END_CHAT) {
+       this.handleEndChatInput(text);
+       return;
+     }
+     if (this.currentState === ConversationState.HOME ||
+         this.currentState === ConversationState.CLARIFICATION) {
        this.handleHomeState(text);
        return;
      }
-
-     // Delegate to state-specific handlers
      const handler = this.STATE_HANDLERS[this.currentState];
      if (handler) {
        handler(text);
+     } else if (this.currentState === ConversationState.CONFIRM_TX ||
+                this.currentState === ConversationState.SECURITY_AUTH ||
+                this.currentState === ConversationState.PROCESSING ||
+                this.currentState === ConversationState.RESULT_SCREEN) {
+       this.handlePassiveFlowInput(text);
      } else {
-       // Fallback to home state if no handler found
-       this.resetToHome();
+       this.handlePassiveFlowInput(text);
      }
    },
 
   routeIntent: function(intent) {
-    if (intent === 'BUY_MINUTE_BUNDLES') {
+    if (intent === 'BUY_AIRTIME' || intent === 'BUY_MINUTE_BUNDLES') {
       this.currentTx.type = 'AIRTIME';
     } else if (intent === 'BUY_SMS_PACKAGES') {
       this.currentTx.type = 'SMS';
+    } else if (intent === 'BUY_DATA_BUNDLE') {
+      this.currentTx.type = 'DATA';
+    } else if (intent === 'SEND_MONEY') {
+      this.currentTx.type = 'MONEY';
     } else {
       this.currentTx.type = intent;
     }
@@ -987,7 +1441,8 @@ processUserInput: function(text) {
         break;
       case 'SEND_MONEY':
         this.currentState = ConversationState.MONEY_FLOW;
-        this.showMoneyPaymentMethodStep();
+        this.currentTx.type = 'MONEY';
+        this.showMoneyRecipientStep();
         break;
       case 'CHECK_BALANCE':
         this.currentState = ConversationState.BALANCE_FLOW;
@@ -1052,9 +1507,10 @@ processUserInput: function(text) {
       this.showTyping(false);
       const html = `
         <div style="font-weight:600;margin-bottom:6px;">A3. Chagua Njia ya Malipo:</div>
+        <button class="btn-block" onclick="Engine.selectAirtimePay('Airtime Balance')">📱 Airtime Balance</button>
         <button class="btn-block" onclick="Engine.selectAirtimePay('M-Pesa')">Vodacom M-Pesa</button>
         <button class="btn-block" onclick="Engine.selectAirtimePay('Tigo Pesa')">Tigo Pesa</button>
-        <button class="btn-block" onclick="Engine.selectAirtimePay('Airtel Money')">Airtel Money</button>
+        <button class="btn-block" onclick="Engine.selectAirtimePay('Card')">💳 Card</button>
       `;
       this.addMessage(null, 'bot', html);
     }, 400);
@@ -1062,8 +1518,8 @@ processUserInput: function(text) {
 
   selectAirtimePay: function(method) {
     this.currentTx.paymentMethod = method;
-    this.currentTx.details = `Airtime Recharge (${this.currentTx.amount})`;
-    this.showConfirmationCard();
+    this.currentTx.details = `Airtime Recharge Tsh ${this.currentTx.amount} via ${method}`;
+    this.showTransactionConfirm();
   },
 
   showSmsOptions: function() {
@@ -1102,8 +1558,8 @@ processUserInput: function(text) {
 
   selectSmsPay: function(method) {
     this.currentTx.paymentMethod = method;
-    this.currentTx.details = `SMS Package (${this.currentTx.amount})`;
-    this.showConfirmationCard();
+    this.currentTx.details = `SMS Package Tsh ${this.currentTx.amount} via ${method}`;
+    this.showTransactionConfirm();
   },
 
   showMinuteBundles: function() {
@@ -1167,9 +1623,30 @@ processUserInput: function(text) {
 
   selectDataBundle: function(name, price, validity) {
     this.currentTx.price = price;
+    this.currentTx.bundleName = name;
     this.currentTx.details = `Data: ${name} (${validity})`;
-    this.currentTx.paymentMethod = "SemaTel Wallet Balance";
-    this.showConfirmationCard();
+    this.promptDataPayment();
+  },
+
+  promptDataPayment: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">B3. Chagua Njia ya Malipo:</div>
+        <button class="btn-block" onclick="Engine.selectDataPay('M-Money Wallet')">M-Money Wallet</button>
+        <button class="btn-block" onclick="Engine.selectDataPay('M-Pesa')">M-Pesa</button>
+        <button class="btn-block" onclick="Engine.selectDataPay('Tigo Pesa')">Tigo Pesa</button>
+        <button class="btn-block" onclick="Engine.selectDataPay('Card')">💳 Card</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectDataPay: function(method) {
+    this.currentTx.paymentMethod = method;
+    this.currentTx.details = `Data: ${this.currentTx.bundleName} – Tsh ${this.currentTx.price} via ${method}`;
+    this.showTransactionConfirm();
   },
 
   /* ==========================================
@@ -1180,10 +1657,11 @@ processUserInput: function(text) {
     setTimeout(() => {
       this.showTyping(false);
       const html = `
-        <div style="font-weight:600;margin-bottom:6px;">C1. Chagua Mtandao wa Kutumia Pesa:</div>
+        <div style="font-weight:600;margin-bottom:6px;">C3. Chagua Njia ya Malipo:</div>
         <button class="btn-block" onclick="Engine.selectMoneyPayMethod('M-Pesa')">Vodacom M-Pesa</button>
         <button class="btn-block" onclick="Engine.selectMoneyPayMethod('Tigo Pesa')">Tigo Pesa</button>
         <button class="btn-block" onclick="Engine.selectMoneyPayMethod('Airtel Money')">Airtel Money</button>
+        <button class="btn-block" onclick="Engine.selectMoneyPayMethod('Card')">💳 Card</button>
       `;
       this.addMessage(null, 'bot', html);
     }, 400);
@@ -1191,19 +1669,15 @@ processUserInput: function(text) {
 
   selectMoneyPayMethod: function(method) {
     this.currentTx.paymentMethod = method;
-    this.showMoneyRecipientPhone();
-  },
-
-  showMoneyRecipientPhone: function() {
-    this.currentState = 'MONEY_PHONE_INPUT';
-    this.addMessage(`C2. Weka namba ya simu ya mpokeaji (Mtandao: ${this.currentTx.paymentMethod}):`, 'bot');
+    this.currentTx.details = `Transfer Tsh ${this.currentTx.amount} to ${this.currentTx.recipient} via ${method}`;
+    this.showTransactionConfirm();
   },
 
   showMoneyRecipientStep: function() {
     this.showTyping(true);
     setTimeout(() => {
       this.showTyping(false);
-      let html = `<div style="font-weight:600;margin-bottom:6px;">C1. Chagua Mpokeaji wa Fedha:</div>`;
+      let html = `<div style="font-weight:600;margin-bottom:6px;">C1. Chagua Mpokeaji (namba au jina):</div>`;
       ChatbotMemory.frequentContacts.forEach(c => {
         html += `
           <div class="rcard" style="cursor:pointer; padding:8px;" onclick="Engine.selectMoneyRecipient('${c.name} - ${c.phone}')">
@@ -1231,25 +1705,13 @@ processUserInput: function(text) {
     setTimeout(() => {
       this.showTyping(false);
       if (this.currentTx.amount) {
-        this.promptMoneyPayment();
+        this.showMoneyPaymentMethodStep();
       } else {
         this.currentState = 'MONEY_CUSTOM_AMT';
-        this.addMessage(`C3. Weka kiasi unachotaka kumtumia kwa ${this.currentTx.recipient}:`, 'bot');
+        this.addMessage(`C2. Weka kiasi unachotaka kumtumia ${this.currentTx.recipient}:`, 'bot');
         this.setChips(['1000', '5000', '10000', '25000']);
       }
     }, 400);
-  },
-
-  promptMoneyPayment: function() {
-    this.currentTx.details = `Transfer Pesa: Tsh ${this.currentTx.amount} kwa ${this.currentTx.recipient} via ${this.currentTx.paymentMethod}`;
-    this.currentTx.type = 'MONEY';
-    this.showConfirmationCard();
-  },
-
-  selectMoneyPay: function(method) {
-    this.currentTx.paymentMethod = method;
-    this.currentTx.details = `Tuma pesa kwenda kwa ${this.currentTx.recipient}`;
-    this.showConfirmationCard();
   },
 
   showBalanceOptions: function() {
@@ -1261,7 +1723,7 @@ processUserInput: function(text) {
         <div style="font-weight:600;margin-bottom:6px;">D1. Chagua Salio Unayotaka Kuangalia:</div>
         <button class="btn-block" onclick="Engine.selectBalanceType('AIRTIME')">Airtime Balance</button>
         <button class="btn-block" onclick="Engine.selectBalanceType('DATA')">Data Remaining</button>
-        <button class="btn-block" onclick="Engine.selectBalanceType('WALLET')">Wallet Balance</button>
+        <button class="btn-block" onclick="Engine.selectBalanceType('WALLET')">M-Money Balance</button>
       `;
       this.addMessage(null, 'bot', html);
     }, 400);
@@ -1269,30 +1731,26 @@ processUserInput: function(text) {
 
   selectBalanceType: function(type) {
     this.currentTx.balanceType = type;
-    this.showSelectedBalance();
-  },
-
-  showSelectedBalance: function() {
-    this.showTyping(true);
-    setTimeout(() => {
-      this.showTyping(false);
-      let detail = '';
-      if (this.currentTx.balanceType === 'AIRTIME') {
-        detail = `Airtime Balance: Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}`;
-      } else if (this.currentTx.balanceType === 'DATA') {
-        detail = `Data Remaining: ${ChatbotMemory.dataBalance}`;
-      } else {
-        detail = `Wallet Balance: Tsh ${ChatbotMemory.walletBalance.toLocaleString()}`;
-      }
-      const html = `
-        <div class="rcard">
-          <div class="rcard-title">📋 Balance Result</div>
-          <div class="rcard-row"><span>${detail}</span></div>
-        </div>
-      `;
-      this.addMessage(null, 'bot', html);
-      this.askMoreHelp();
-    }, 400);
+    this.currentState = ConversationState.BALANCE_FLOW;
+    this.addMessage(this.translate('balance_fetch'), 'bot');
+    TelecomAPI.fetchBalance(type)
+      .then((res) => {
+        const html = `
+          <div class="rcard">
+            <div class="rcard-title">📋 ${res.label}</div>
+            <div class="rcard-row"><span>${res.value}</span></div>
+            <div style="font-size:10px;color:var(--mut);margin-top:6px;">${ChatbotMemory.network} • ${new Date().toLocaleTimeString()}</div>
+          </div>`;
+        this.addMessage(null, 'bot', html);
+        this.askMoreHelp();
+      })
+      .catch((err) => {
+        this.addMessage(
+          `❌ ${err.reason || 'Failed to fetch balance'}. ${this.translate('retry')}?`,
+          'bot'
+        );
+        this.setChips([this.translate('retry'), this.translate('home')]);
+      });
   },
 
   /* ==========================================
@@ -1333,7 +1791,11 @@ processUserInput: function(text) {
   selectVoucherType: function(type) {
     this.currentTx.voucherType = type;
     this.currentState = ConversationState.VOUCHER_CODE_INPUT;
-    this.addMessage(`E2. Tafadhali andika namba ya siri ya vocha yako ya ${type.toLowerCase()}:`, 'bot');
+    const demo = type === 'AIRTIME' ? 'STAIR1000, DEMO12345' : 'STDATA1GB, DEMO54321';
+    this.addMessage(
+      `E2. Ingiza namba ya vocha (${type.toLowerCase()}).\nDemo: ${demo}`,
+      'bot'
+    );
   },
 
   /* ==========================================
@@ -1381,18 +1843,51 @@ processUserInput: function(text) {
   /* ==========================================
      H. HIGHLY CONFIGURABLE SECURITY GATE (OTP/PIN)
      ========================================== */
+  buildTxSummaryLines: function() {
+    const tx = this.currentTx;
+    const lines = [];
+    if (tx.details) lines.push(['Huduma / Service', tx.details]);
+    if (tx.recipient) lines.push(['Mpokeaji / Recipient', tx.recipient]);
+    if (tx.amount) lines.push(['Kiasi / Amount', `Tsh ${Number(tx.amount).toLocaleString()}`]);
+    if (tx.price) lines.push(['Kiasi / Amount', `Tsh ${Number(tx.price).toLocaleString()}`]);
+    if (tx.paymentMethod) lines.push(['Malipo / Payment', tx.paymentMethod]);
+    return lines;
+  },
+
+  showTransactionConfirm: function() {
+    if (!FraudGuard.check(this.currentTx)) {
+      this.addMessage(this.translate('fraud_block'), 'bot');
+      return;
+    }
+    this.currentState = ConversationState.CONFIRM_TX;
+    const rows = this.buildTxSummaryLines().map(([k, v]) =>
+      `<div class="rcard-row"><span>${k}</span><span>${v}</span></div>`
+    ).join('');
+    const html = `
+      <div class="rcard">
+        <div class="rcard-title">${this.translate('confirm_title')}</div>
+        <div style="font-size:12px;margin-bottom:8px;">${this.translate('confirm_summary')}</div>
+        ${rows}
+        <button class="btn-block" style="margin-top:10px;" onclick="Engine.confirmTransaction()">${this.translate('confirm')}</button>
+        <button class="btn-sub" style="width:100%;margin-top:6px;" onclick="Engine.cancelTransaction()">${this.translate('cancel')}</button>
+      </div>`;
+    this.addMessage(null, 'bot', html);
+  },
+
+  confirmTransaction: function() {
+    const secType = this.currentTx.type === 'VOUCHER' ? 'VOUCHER' : (this.currentTx.type || 'TX');
+    this.triggerSecurityGate(secType);
+  },
+
+  cancelTransaction: function() {
+    this.addMessage(ChatbotMemory.lang === 'sw' ? 'Muamala umeghairiwa.' : 'Transaction cancelled.', 'bot');
+    this.resetToHome();
+  },
+
   triggerSecurityGate: function(type) {
     this.currentState = ConversationState.SECURITY_AUTH;
     const modal = document.getElementById('securityModal');
     const content = document.getElementById('securityModalContent');
-    
-    if (type === 'VOUCHER') {
-      // Voucher redemption uses the selected voucher type to determine the top-up target.
-      this.currentTx.amount = this.currentTx.voucherType === 'AIRTIME' ? 1000 : 2000;
-      this.currentTx.details = `Vocha ya ${this.currentTx.voucherType.toLowerCase()} (${this.currentTx.voucherCode})`;
-      this.executeCentralizedEngine();
-      return;
-    }
 
     // Generating cryptographic random security code
     const generatedOTP = Math.floor(100000 + Math.random() * 899999);
@@ -1461,145 +1956,152 @@ processUserInput: function(text) {
 
   closeSecurityDialog: function() {
     document.getElementById('securityModal').classList.remove('show');
-    this.resetToHome();
+    if (this.currentState === ConversationState.SECURITY_AUTH) {
+      this.currentState = ConversationState.CONFIRM_TX;
+      this.addMessage(
+        ChatbotMemory.lang === 'sw' ? 'Uthibitisho umeghairiwa.' : 'Verification cancelled.',
+        'bot'
+      );
+    }
   },
 
   /* ==========================================
      I. ENGINE ACTION HANDLING & SCREEN GENERATION
      ========================================== */
-   showConfirmationCard: function() {
-     // Show processing indicator with shimmer effect
+   processTransaction: function() {
+     this.currentState = ConversationState.PROCESSING;
      const shimID = 'shim-' + Date.now();
      const shimHTML = `
        <div class="rcard" id="${shimID}">
          <div class="rcard-title">⚙️ ${this.translate('processing')}</div>
          <div class="shimmer" style="height:12px; margin-top:8px; border-radius:6px; width:100%;"></div>
          <div class="shimmer" style="height:12px; margin-top:4px; border-radius:6px; width:75%;"></div>
-       </div>
-     `;
+       </div>`;
      this.addMessage(null, 'bot', shimHTML);
 
-     // Process transaction with Promise-based TransactionEngine
      TransactionEngine.process(this.currentTx)
-       .then((res) => {
-         // Safely tear down dynamic runtime skeleton container
-         const container = document.getElementById(shimID);
-         if (container) container.parentElement.parentElement.remove();
+       .then((res) => this.renderTransactionResult(shimID, res, null))
+       .catch((error) => this.renderTransactionResult(shimID, null, error));
+   },
 
-         this.currentState = ConversationState.RESULT_SCREEN;
-         if (res.status === 'SUCCESS') {
-           const successHTML = `
-             <div class="rcard" style="border-left: 4px solid var(--g5);">
-               <div style="color:var(--g8);font-weight:700;font-size:14px;margin-bottom:6px;">${this.translate('success')}</div>
-               <div class="rcard-row"><span>Ref Number:</span><span>${res.ref}</span></div>
-               <div class="rcard-row"><span>Date/Time:</span><span>${res.date} | ${res.time}</span></div>
-               <div class="rcard-row"><span>Transaction:</span><span>${this.currentTx.details}</span></div>
-             </div>
-           `;
-           this.addMessage(null, 'bot', successHTML);
-         } else {
-           const failedHTML = `
-             <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
-               <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
-               <div style="font-size:12px;color:var(--txt);">Sababu: [${res.reason}]</div>
-               <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
-             </div>
-           `;
-           this.addMessage(null, 'bot', failedHTML);
-         }
-         this.askMoreHelp();
-       })
-       .catch((error) => {
-         // Handle error case
-         const container = document.getElementById(shimID);
-         if (container) container.parentElement.parentElement.remove();
-         
-         this.addMessage(null, 'bot', `
-           <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
-             <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
-             <div style="font-size:12px;color:var(--txt);">Sababu: [System Error]</div>
-             <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
-           </div>
-         `);
-         this.askMoreHelp();
-       });
+   renderTransactionResult: function(shimID, res, error) {
+     const container = document.getElementById(shimID);
+     if (container && container.parentElement && container.parentElement.parentElement) {
+       container.parentElement.parentElement.remove();
+     }
+     this.currentState = ConversationState.RESULT_SCREEN;
+     if (res && res.status === 'SUCCESS') {
+       const successHTML = `
+         <div class="rcard" style="border-left: 4px solid var(--g5);">
+           <div style="color:var(--g8);font-weight:700;font-size:14px;margin-bottom:6px;">${this.translate('success')}</div>
+           <div class="rcard-row"><span>Ref Number:</span><span>${res.ref}</span></div>
+           <div class="rcard-row"><span>Date/Time:</span><span>${res.date} | ${res.time}</span></div>
+           <div class="rcard-row"><span>Transaction:</span><span>${this.currentTx.details}</span></div>
+         </div>`;
+       this.addMessage(null, 'bot', successHTML);
+     } else {
+       const reason = (error && error.reason) || (res && res.reason) || 'System Error';
+       const queued = error && error.queued;
+       const failedHTML = `
+         <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
+           <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
+           <div style="font-size:12px;color:var(--txt);">Sababu: ${reason}</div>
+           ${queued ? '<div style="font-size:11px;margin-top:4px;">Itasawazishwa ukiwa mtandaoni.</div>' : ''}
+           <button class="btn-block" style="background:var(--r6);margin-top:8px;" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
+         </div>`;
+       this.addMessage(null, 'bot', failedHTML);
+     }
+     this.askMoreHelp();
    },
 
    executeCentralizedEngine: function() {
-     this.currentState = ConversationState.PROCESSING;
-     
-     // Shimmer placeholder state generation
-     const shimID = 'shim_' + Date.now();
-     const shimHTML = `
-       <div id="${shimID}">
-         <div>${this.translate('processing').replace(/\n/g, '<br>')}</div>
-         <div class="shimmer" style="height:12px; margin-top:8px; border-radius:6px; width:100%;"></div>
-         <div class="shimmer" style="height:12px; margin-top:4px; border-radius:6px; width:75%;"></div>
-       </div>
-     `;
-     this.addMessage(null, 'bot', shimHTML);
-
-     // Process transaction with Promise-based TransactionEngine
-     TransactionEngine.process(this.currentTx)
-       .then((res) => {
-         // Safely tear down dynamic runtime skeleton container
-         const container = document.getElementById(shimID);
-         if (container) container.parentElement.parentElement.remove();
-
-         this.currentState = ConversationState.RESULT_SCREEN;
-         if (res.status === 'SUCCESS') {
-           const successHTML = `
-             <div class="rcard" style="border-left: 4px solid var(--g5);">
-               <div style="color:var(--g8);font-weight:700;font-size:14px;margin-bottom:6px;">${this.translate('success')}</div>
-               <div class="rcard-row"><span>Ref Number:</span><span>${res.ref}</span></div>
-               <div class="rcard-row"><span>Date/Time:</span><span>${res.date} | ${res.time}</span></div>
-               <div class="rcard-row"><span>Transaction:</span><span>${this.currentTx.details}</span></div>
-             </div>
-           `;
-           this.addMessage(null, 'bot', successHTML);
-         } else {
-           const failedHTML = `
-             <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
-               <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
-               <div style="font-size:12px;color:var(--txt);">Sababu: [${res.reason}]</div>
-               <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
-             </div>
-           `;
-           this.addMessage(null, 'bot', failedHTML);
-         }
-         this.askMoreHelp();
-       })
-       .catch((error) => {
-         // Handle error case
-         const container = document.getElementById(shimID);
-         if (container) container.parentElement.parentElement.remove();
-         
-         this.addMessage(null, 'bot', `
-           <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
-             <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
-             <div style="font-size:12px;color:var(--txt);">Sababu: [System Error]</div>
-             <button class="btn-block" style="background:var(--r6);" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
-           </div>
-         `);
-         this.askMoreHelp();
-       });
+     this.processTransaction();
    },
 
   retryTransaction: function() {
-    this.showConfirmationCard();
+    this.showTransactionConfirm();
   },
 
   askMoreHelp: function() {
     setTimeout(() => {
       this.addMessage(this.translate('more_help'), 'bot');
+      this.currentState = ConversationState.AWAIT_MORE_HELP;
       this.setChips(ChatbotMemory.lang === 'sw' ? ['NDIYO', 'HAPANA, ASANTE'] : ['YES', 'NO, THANK YOU']);
-      this.currentState = 'HOME'; // Ready for fresh pipeline loop back context evaluation
-    }, 1000);
+    }, 800);
   }
 };
 
-// Start system instantiation mapping
-window.onload = () => Engine.init();
+/* Mobile layout: viewport height + keyboard (WhatsApp-style shell) */
+const LayoutManager = {
+  app: null,
+  chatBox: null,
+  init() {
+    this.app = document.getElementById('appShell');
+    this.chatBox = document.getElementById('chatBox');
+    this.updateViewport();
+    window.addEventListener('resize', () => this.updateViewport());
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => this.updateViewport(), 150);
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.updateViewport());
+      window.visualViewport.addEventListener('scroll', () => this.updateViewport());
+    }
+    const input = document.getElementById('userInput');
+    if (input) this.autoResizeTextarea(input);
+  },
+  updateViewport() {
+    if (!this.app) return;
+    const vv = window.visualViewport;
+    const mobileLayout = window.matchMedia('(max-width: 520px), (pointer: coarse)').matches;
+    if (vv && mobileLayout) {
+      this.app.style.height = Math.round(vv.height) + 'px';
+      this.app.style.marginTop = Math.round(vv.offsetTop) + 'px';
+    } else {
+      this.app.style.height = '';
+      this.app.style.marginTop = '';
+    }
+    this.scrollChatToEnd();
+  },
+  autoResizeTextarea(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    this.scrollChatToEnd();
+  },
+  scrollChatToEnd() {
+    if (!this.chatBox) return;
+    requestAnimationFrame(() => {
+      this.chatBox.scrollTop = this.chatBox.scrollHeight;
+    });
+  }
+};
+
+// Expose globals for dynamic in-chat buttons (onclick in bot HTML)
+window.Engine = Engine;
+window.LayoutManager = LayoutManager;
+
+function bootSemaTel() {
+  if (bootSemaTel.done) return;
+  bootSemaTel.done = true;
+  try {
+    Engine.init();
+  } catch (err) {
+    console.error('SemaTel init failed:', err);
+    const box = document.getElementById('chatBox');
+    if (box) {
+      box.insertAdjacentHTML('beforeend',
+        '<div class="mrow"><div class="bub bot">Hitilafu katika kuanzisha programu. Pakia upya ukurasa (Ctrl+Shift+R).</div></div>');
+    }
+  }
+}
+bootSemaTel.done = false;
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootSemaTel);
+} else {
+  bootSemaTel();
+}
 </script>
 </body>
 </html>
