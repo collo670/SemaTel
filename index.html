@@ -413,8 +413,125 @@ const CHIP_INTENT_MAP = {
   'Angalia Salio': 'CHECK_BALANCE',
   'Vocha': 'REDEEM_VOUCHER',
   'Akaunti Yangu': 'MY_ACCOUNT',
-  'Msaada': 'GET_HELP'
+  'Msaada': 'GET_HELP',
+  'Nunua Bando': 'BUY_DATA_BUNDLE',
+  'Niongezee Data': 'BUY_DATA_BUNDLE',
+  'Angalia Bando': 'CHECK_BALANCE',
+  'Nunua Vocha': 'BUY_AIRTIME',
+  'Kata Bando': 'BUY_DATA_BUNDLE'
 };
+
+/* Swahili/English telecom vocabulary from maneno.docx — each phrase maps to one intent */
+const MANENO_LEXICON = {
+  BUY_AIRTIME: [
+    'muda wa maongezi', 'kadi ya kuongeza salio', 'ongeza salio', 'nunua salio', 'jaza salio',
+    'tuma salio', 'hamisha salio', 'niongezee', 'niongezee vocha', 'weka vocha', 'nipatie vocha',
+    'tuma vocha', 'nitumie vocha', 'naomba vocha', 'niongezee muda', 'nipigie vocha',
+    'nicheki vocha', 'nirushie vocha', 'nipandishie salio', 'nibusti salio',
+    'niongezee bando la kupiga', 'buy airtime', 'add airtime', 'send airtime',
+    'transfer airtime', 'voice package', 'recharge', 'credit', 'weka hela', 'kadi ya malipo',
+    'jaza', 'ongeza', 'airtime', 'nunua airtime'
+  ],
+  BUY_MINUTE_BUNDLES: [
+    'nipe dakika', 'dakika za kupiga', 'nifungulie dakika', 'dakika', 'miniti',
+    'vifurushi vya dakika', 'kifurushi cha dakika', 'vifurushi vya simu', 'buy minutes',
+    'nunua dakika'
+  ],
+  BUY_DATA_BUNDLE: [
+    'bando la internet', 'kifurushi cha internet', 'kifurushi cha data', 'nunua data',
+    'ongeza data', 'neti', 'net', 'bundle', 'vifurushi', 'nunua bando', 'niongezee data',
+    'nipe internet', 'nahitaji gb', 'nahitaji mb', 'nataka data', 'nataka kifurushi',
+    'ongeza internet', 'weka data', 'nipatie gb', 'nifungulie net', 'nifungulie internet',
+    'niongezee neti', 'nipe net', 'nipe gb', 'nibusti data', 'naomba bando', 'nicheki bando',
+    'nifungulie bundle', 'nipe gigi', 'nipe giga', 'nataka kugoogle', 'nataka kuingia mtandaoni',
+    'nataka kuingia online', 'nipe bundle', 'combo', 'mchanganyiko', 'all-in-one',
+    'daily bundle', 'weekly bundle', 'monthly bundle', 'nataka combo', 'niongezee kifurushi',
+    'nipe package', 'nifungulie kifurushi', 'nipe cha wiki', 'nipe cha mwezi', 'nipe cha siku',
+    'nipe combo', 'nifungulie cha mwezi', 'nipe cha kupiga na internet', 'nipe mchanganyiko',
+    'nifungulie full package', 'kata bando', 'kata kifurushi', 'lipa bando',
+    'nunua bundle kwa mpesa', 'nunua kifurushi kwa m-pesa', 'nunua kwa airtel money',
+    'nunua kwa tigo pesa', 'nunua kwa halopesa', 'kata gb', 'kata net', 'nifanyie bando',
+    'buy data', 'buy bundle', 'add data', 'weekly package', 'monthly package',
+    'unlimited bundle', 'internet package', 'combo package', 'social bundle',
+    'tiktok bundle', 'whatsapp bundle', 'youtube bundle', 'instagram bundle',
+    'intaneti', 'mtandao', 'paketi', 'pakeji', 'bando', 'data', 'internet', 'mb', 'gb',
+    'kifurushi', 'package', 'kifurushi cha', 'kifurushi cha data', 'bando'
+  ],
+  BUY_SMS_PACKAGES: [
+    'ujumbe mfupi', 'kifurushi cha sms', 'nunua sms', 'msg', 'message', 'ujumbe',
+    'niongezee sms', 'nipe sms', 'weka sms', 'nahitaji sms', 'nifungulie sms', 'nipatie sms',
+    'nibusti sms', 'niongezee meseji', 'buy sms', 'sms bundle', 'paketi ya sms',
+    'matumizi ya sms', 'tuma sms', 'jumbe', 'sms', 'meseji'
+  ],
+  CHECK_BALANCE: [
+    'angalia salio', 'kagua salio', 'salio lililobaki', 'salio langu', 'nina salio kiasi gani',
+    'check salio', 'check balance', 'nicheki salio', 'na baki na ngapi', 'nimebakiza kiasi gani',
+    'salio limefika wapi', 'vocha imebaki ngapi', 'angalia data', 'data imebaki ngapi',
+    'nimebakiza gb ngapi', 'nimebakiza mb ngapi', 'check data', 'check internet',
+    'nicheki bando', 'bando limebaki ngapi', 'data imefika wapi', 'net imebaki ngapi',
+    'nimebakiza net kiasi gani', 'angalia salio yangu', 'balance yangu', 'salio', 'balance',
+    'balansi', 'kagua', 'angalia', 'check'
+  ],
+  REDEEM_VOUCHER: [
+    'ingiza vocha', 'voucher code', 'namba ya vocha', 'redeem voucher', 'use voucher',
+    'kuponi', 'kod', 'code ya vocha', 'pin ya vocha', 'vocha ya airtime', 'vocha ya mtandao',
+    'voucher', 'vocha'
+  ],
+  SEND_MONEY: [
+    'tuma pesa', 'tumia', 'peleka', 'hamisha', 'tuma shilingi', 'tuma tsh', 'toa pesa',
+    'tuma', 'transfer', 'send money', 'lipa', 'lipia', 'pesa', 'hela', 'malipo'
+  ],
+  MY_ACCOUNT: [
+    'akaunti', 'akaunti yangu', 'profile', 'wasifu', 'taarifa', 'mimi', 'dashboard',
+    'settings', 'mipangilio', 'taarifa zangu'
+  ],
+  GET_HELP: [
+    'kifurushi kinaisha lini', 'data inaisha lini', 'muda wa matumizi', 'expiry date',
+    'bundle validity', 'bando lina expire lini', 'kifurushi kina kata lini', 'net inaisha lini',
+    'bando lina baki siku ngapi', 'msaada', 'saidia', 'help', 'maswali', 'faq', 'huduma',
+    'agent', 'mtaalamu', 'maswali yanayoulizwa sana', 'support', 'nahitaji msaada'
+  ]
+};
+
+const ManenoIntentIndex = (function() {
+  const phraseList = [];
+  Object.keys(MANENO_LEXICON).forEach(function(intent) {
+    MANENO_LEXICON[intent].forEach(function(phrase) {
+      const p = (phrase || '').toLowerCase().trim();
+      if (p) phraseList.push({ intent: intent, phrase: p });
+    });
+  });
+  phraseList.sort(function(a, b) { return b.phrase.length - a.phrase.length; });
+  const escapeRe = function(s) {
+    return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  };
+  return {
+    match: function(text) {
+      const n = (text || '').toLowerCase().trim();
+      if (!n) return null;
+      for (let i = 0; i < phraseList.length; i++) {
+        const item = phraseList[i];
+        const re = new RegExp('\\b' + escapeRe(item.phrase) + '\\b', 'i');
+        if (re.test(n) || (item.phrase.indexOf(' ') >= 0 && n.indexOf(item.phrase) >= 0)) {
+          return item;
+        }
+      }
+      return null;
+    },
+    trainingData: function() {
+      const out = [];
+      Object.keys(MANENO_LEXICON).forEach(function(intent) {
+        MANENO_LEXICON[intent].forEach(function(phrase) {
+          out.push({ intent: intent, utterance: phrase });
+        });
+      });
+      return out;
+    },
+    keywordsFor: function(intent) {
+      return MANENO_LEXICON[intent] ? MANENO_LEXICON[intent].slice() : [];
+    }
+  };
+})();
 
 const VALID_VOUCHER_CODES = {
   AIRTIME: { STAIR1000: 1000, STAIR5000: 5000, DEMO12345: 1000 },
@@ -715,7 +832,8 @@ const AIIntentEngine = {
       'm-pesa': 'M-Pesa', 'mpesa': 'M-Pesa', 'm pesa': 'M-Pesa', 'vodacom m-pesa': 'M-Pesa',
       'vodacom m pesa': 'M-Pesa', 'vodacom': 'M-Pesa', 'tigo': 'Tigo Pesa', 'tigo pesa': 'Tigo Pesa',
       'tigo-pesa': 'Tigo Pesa', 'airtel': 'Airtel Money', 'airtel money': 'Airtel Money',
-      'airtel-money': 'Airtel Money', 'airtelmoney': 'Airtel Money'
+      'airtel-money': 'Airtel Money', 'airtelmoney': 'Airtel Money',
+      'halopesa': 'HaloPesa', 'halo pesa': 'HaloPesa', 'halo-pesa': 'HaloPesa'
     };
     let provider = null;
     Object.keys(providerKeywords).forEach(key => {
@@ -727,6 +845,11 @@ const AIIntentEngine = {
       mlResult.entities.provider = provider;
     }
 
+    const manenoHit = ManenoIntentIndex.match(normalized);
+    if (manenoHit) {
+      return { intent: manenoHit.intent, confidence: 0.99, entities: mlResult.entities };
+    }
+
     // Use ML model result if it is strong enough, otherwise fallback to keyword mapping
     if (mlResult.confidence >= 0.68 && mlResult.intent !== 'UNKNOWN') {
       return mlResult;
@@ -736,15 +859,15 @@ const AIIntentEngine = {
       intent: 'UNKNOWN', confidence: 0.30, entities: mlResult.entities
     };
     const containsAny = (arr) => arr.some(w => new RegExp('\\b' + w.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&') + '\\b', 'i').test(normalized));
-    const AIRTIME_KEYS = ['airtime','salio','jaza','ongeza','recharge','credit','weka hela','weka','nunua dakika','nunua','ongeza salio','jaza salio','kadi ya malipo'];
-    const DATA_KEYS = ['data','kifurushi','bando','kifurushi cha','intaneti','internet','mtandao','mb','gb','bando','kifurushi cha data','bundle','paketi','pakeji'];
-    const SMS_KEYS = ['sms','jumbe','matumizi ya sms','tuma sms','sms bundle','paketi ya sms'];
-    const MINUTE_KEYS = ['dakika','miniti','vifurushi vya dakika','kifurushi cha dakika','vifurushi vya simu'];
-    const MONEY_KEYS = ['tuma','tuma pesa','tumia','peleka','transfer','hamisha','lipa','lipia','tuma','tuma shilingi','tuma tsh','pesa','hela','malipo','toa pesa'];
-    const BALANCE_KEYS = ['salio','angalia salio','kagua salio','check','balance','balansi','salio langu','angalia','kagua','angalia salio yangu'];
-    const VOUCHER_KEYS = ['vocha','voucher','namba ya vocha','ingiza vocha','kuponi','kod','code ya vocha','pin ya vocha','vocha ya airtime','vocha ya mtandao'];
-    const ACCOUNT_KEYS = ['akaunti','akaunti yangu','profile','wasifu','taarifa','mimi','dashboard','settings','mipangilio'];
-    const HELP_KEYS = ['msaada','saidia','help','maswali','faq','huduma','agent','mtaalamu'];
+    const AIRTIME_KEYS = ManenoIntentIndex.keywordsFor('BUY_AIRTIME');
+    const DATA_KEYS = ManenoIntentIndex.keywordsFor('BUY_DATA_BUNDLE');
+    const SMS_KEYS = ManenoIntentIndex.keywordsFor('BUY_SMS_PACKAGES');
+    const MINUTE_KEYS = ManenoIntentIndex.keywordsFor('BUY_MINUTE_BUNDLES');
+    const MONEY_KEYS = ManenoIntentIndex.keywordsFor('SEND_MONEY');
+    const BALANCE_KEYS = ManenoIntentIndex.keywordsFor('CHECK_BALANCE');
+    const VOUCHER_KEYS = ManenoIntentIndex.keywordsFor('REDEEM_VOUCHER');
+    const ACCOUNT_KEYS = ManenoIntentIndex.keywordsFor('MY_ACCOUNT');
+    const HELP_KEYS = ManenoIntentIndex.keywordsFor('GET_HELP');
 
     const extractor = (arr, intent, confidence) => {
       if (containsAny(arr)) {
@@ -766,11 +889,10 @@ const AIIntentEngine = {
   }
 };
 
-// Train the intent model with sample Swahili/English utterances for higher accuracy
-MLIntentModel.train([
+// Train intent model: maneno.docx vocabulary + conversational examples
+MLIntentModel.train(ManenoIntentIndex.trainingData().concat([
   { intent: 'BUY_AIRTIME', utterance: 'Jaza 2000 kwa M-Pesa' },
   { intent: 'BUY_AIRTIME', utterance: 'Nataka kuongeza salio' },
-  { intent: 'BUY_AIRTIME', utterance: 'Recharge airtime' },
   { intent: 'BUY_AIRTIME', utterance: 'Nunua airtime ya 10000' },
   { intent: 'BUY_AIRTIME', utterance: 'Tuma salio kwenye simu yangu' },
   { intent: 'BUY_DATA_BUNDLE', utterance: 'Nunua data 1GB' },
@@ -784,35 +906,15 @@ MLIntentModel.train([
   { intent: 'SEND_MONEY', utterance: 'Tumia Tigo Pesa kumtuma pesa' },
   { intent: 'SEND_MONEY', utterance: 'Send money to Ali' },
   { intent: 'CHECK_BALANCE', utterance: 'Angalia salio langu' },
-  { intent: 'CHECK_BALANCE', utterance: 'salio' },
+  { intent: 'CHECK_BALANCE', utterance: 'Check my balance' },
   { intent: 'BUY_SMS_PACKAGES', utterance: 'Nunua SMS' },
   { intent: 'BUY_SMS_PACKAGES', utterance: 'Pata paketi ya sms' },
-  { intent: 'BUY_SMS_PACKAGES', utterance: 'sms bundle' },
-  { intent: 'BUY_SMS_PACKAGES', utterance: 'SMS' },
   { intent: 'BUY_MINUTE_BUNDLES', utterance: 'Nataka dakika' },
-  { intent: 'BUY_MINUTE_BUNDLES', utterance: 'vifurushi vya dakika' },
-  { intent: 'BUY_MINUTE_BUNDLES', utterance: 'buy minutes' },
-  { intent: 'BUY_MINUTE_BUNDLES', utterance: 'dakika' },
-  { intent: 'CHECK_BALANCE', utterance: 'Check my balance' },
-  { intent: 'CHECK_BALANCE', utterance: 'Salio' },
-  { intent: 'CHECK_BALANCE', utterance: 'Balance yangu' },
-  { intent: 'CHECK_BALANCE', utterance: 'Kagua salio' },
-  { intent: 'REDEEM_VOUCHER', utterance: 'Ingiza vocha' },
-  { intent: 'REDEEM_VOUCHER', utterance: 'Voucher code' },
-  { intent: 'REDEEM_VOUCHER', utterance: 'Namba ya vocha' },
-  { intent: 'REDEEM_VOUCHER', utterance: 'Redeem voucher' },
-  { intent: 'REDEEM_VOUCHER', utterance: 'Use voucher' },
   { intent: 'MY_ACCOUNT', utterance: 'Akaunti yangu' },
   { intent: 'MY_ACCOUNT', utterance: 'Show profile' },
-  { intent: 'MY_ACCOUNT', utterance: 'Dashboard' },
-  { intent: 'MY_ACCOUNT', utterance: 'Taarifa zangu' },
-  { intent: 'MY_ACCOUNT', utterance: 'Profile' },
   { intent: 'GET_HELP', utterance: 'Nahitaji msaada' },
-  { intent: 'GET_HELP', utterance: 'Help me' },
-  { intent: 'GET_HELP', utterance: 'Maswali yanayoulizwa sana' },
-  { intent: 'GET_HELP', utterance: 'Saidia' },
-  { intent: 'GET_HELP', utterance: 'Support' }
-]);
+  { intent: 'GET_HELP', utterance: 'Help me' }
+]));
 
 /* ==========================================
     4. CENTRALIZED TRANSACTION ENGINE
