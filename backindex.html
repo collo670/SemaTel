@@ -1,0 +1,3085 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="SemaTel"/>
+<meta name="theme-color" content="#2e7d32"/>
+<meta name="description" content="AI-powered telecom assistant for buying airtime, data, sending money, and more"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232e7d32' width='192' height='192'/><text x='96' y='120' font-size='100' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>ST</text></svg>"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232e7d32' width='192' height='192'/><text x='96' y='120' font-size='100' font-weight='bold' fill='white' text-anchor='middle' font-family='Arial'>ST</text></svg>"/>
+<meta name="format-detection" content="telephone=no"/>
+<title>SemaTel – AI Chatbot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&amp;family=Josefin+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g9:#1b5e20;--g8:#2e7d32;--g7:#388e3c;--g6:#43a047;
+  --g5:#4caf50;--g4:#66bb6a;--g3:#a5d6a7;--g1:#e8f5e9;--g0:#f1f8e9;
+  --y7:#f9a825;--y5:#fdd835;--y4:#ffee58;--y1:#fffde7;
+  --r6:#d32f2f;--r1:#ffebee;
+  --wa-hdr:#1f6f3f;--wa-chat:#e7efe4;--wa-in:#ffffff;--wa-out:#d9fdd3;--wa-out-txt:#111b21;
+  --wa-bar:#f0f2f0;--wa-chip:#ffffff;
+  --bg:var(--wa-chat);--surf:var(--wa-in);--txt:#111b21;--mut:#667781;--bdr:rgba(0,0,0,.08);
+  --fd:'Josefin Sans',sans-serif;--fb:'DM Sans',sans-serif;
+  --sh:0 8px 32px rgba(0,0,0,.18);
+  --app-max:480px;
+  --hdr-h:56px;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
+}
+html{height:100%;height:100dvh;overflow:hidden;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--fb);background:var(--wa-chat);
+  margin:0;padding:0;overflow:hidden;
+  min-height:100%;min-height:100dvh;
+  display:flex;justify-content:center;align-items:stretch;
+  font-size:16px;transition:background .3s;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  overscroll-behavior:none;
+}
+.app{
+  width:100%;max-width:var(--app-max);
+  height:100%;height:100dvh;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  position:relative;overflow:hidden;
+  padding-left:var(--sal);padding-right:var(--sar);
+}
+@media (min-width:520px){
+  body{padding:12px 0}
+  .app{border-radius:4px;box-shadow:var(--sh);height:calc(100dvh - 24px);max-height:900px}
+}
+.hdr{
+  flex:0 0 auto;
+  min-height:var(--hdr-h);
+  background:var(--wa-hdr);
+  display:flex;align-items:center;gap:8px;
+  color:#fff;
+  padding:var(--sat) 8px 0;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+  z-index:20;
+}
+.hdr-back{
+  width:44px;height:44px;min-width:44px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border-radius:50%;flex-shrink:0;
+  transition:background .15s;
+}
+.hdr-back::before{
+  content:'';width:10px;height:10px;
+  border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;
+  transform:rotate(45deg);margin-left:4px;
+}
+.hdr-back:active{background:rgba(255,255,255,.12)}
+.logo{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.logo-no-icon::before{
+  content:'ST';width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:14px;font-weight:800;flex-shrink:0;
+}
+.logo-no-icon{display:flex;align-items:center;gap:10px}
+.logo-no-icon::before{margin-right:0}
+.logo>div{min-width:0}
+.logo-name{font-family:var(--fd);font-weight:800;font-size:17px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo-sub{font-family:var(--fd);font-weight:500;font-size:12.5px;opacity:.88;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-wrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.msgs{
+  flex:1 1 auto;min-height:0;
+  overflow-y:auto;overflow-x:hidden;
+  padding:8px 10px 12px;
+  display:flex;flex-direction:column;gap:4px;
+  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(circle at 20% 30%,rgba(46,125,50,.06) 0,transparent 42%),
+    radial-gradient(circle at 80% 70%,rgba(76,175,80,.05) 0,transparent 38%);
+}
+.date-lbl{text-align:center;font-size:11px;color:var(--mut);margin:6px 0 8px}
+.date-lbl span{
+  background:rgba(255,255,255,.92);color:var(--mut);
+  border-radius:8px;padding:5px 12px;
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+  font-weight:500;
+}
+.mrow{display:flex;align-items:flex-end;gap:6px;margin-bottom:2px;animation:fu .25s ease-out both;max-width:100%}
+.mrow.user{flex-direction:row-reverse}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.mav{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--g8),var(--g5));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-size:10px;font-weight:800;color:#fff;flex-shrink:0;
+  margin-bottom:2px;
+}
+.mrow.user .mav{display:none}
+.bub{
+  max-width:min(82%,calc(100vw - 80px));
+  padding:7px 10px 5px;
+  font-size:15px;line-height:1.42;
+  border-radius:8px;
+  word-wrap:break-word;overflow-wrap:anywhere;
+  box-shadow:0 1px 1px rgba(0,0,0,.06);
+}
+.bub.bot{
+  background:var(--wa-in);color:var(--txt);
+  border-radius:0 8px 8px 8px;border:1px solid var(--bdr);
+}
+.bub.user{
+  background:var(--wa-out);color:var(--wa-out-txt);
+  border-radius:8px 0 8px 8px;border:none;
+}
+.bub .t{font-size:10.5px;opacity:.55;display:block;margin-top:3px;text-align:right;line-height:1}
+.qa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;width:100%}
+.qa-tile{
+  background:var(--g0);border:1px solid var(--bdr);border-radius:12px;
+  padding:10px 6px;min-height:64px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  cursor:pointer;font-size:12px;font-weight:600;color:var(--g9);
+  text-align:center;transition:background .1s;
+  -webkit-user-select:none;user-select:none;
+}
+.qa-tile:active{background:var(--g1)}
+.qa-icon{font-size:20px;line-height:1}
+.rcard{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin-top:6px;max-width:100%}
+.rcard-title{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--g8);margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.rcard-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px dashed var(--bdr)}
+.rcard-row:last-child{border-bottom:none}
+.rcard-row :last-child{font-weight:600;text-align:right;flex-shrink:0}
+.btn-block{
+  width:100%;padding:11px;border-radius:10px;border:none;
+  background:var(--g8);color:#fff;font-weight:600;font-size:13px;
+  margin-top:8px;cursor:pointer;min-height:44px;
+}
+.btn-block:active{opacity:.88}
+.btn-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btn-sub{
+  flex:1 1 calc(50% - 6px);min-width:calc(50% - 6px);
+  padding:10px;border-radius:10px;border:1px solid var(--bdr);
+  background:var(--g0);color:var(--g9);font-weight:600;font-size:12px;
+  cursor:pointer;min-height:44px;
+}
+.trow{display:none;align-items:flex-end;gap:6px;padding:4px 0}
+.trow.show{display:flex}
+.tbub{background:var(--wa-in);border:1px solid var(--bdr);border-radius:0 12px 12px 12px;padding:10px 14px;display:flex;gap:4px;align-items:center}
+.td{width:7px;height:7px;border-radius:50%;background:var(--g4);animation:td 1s infinite alternate}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes td{from{transform:translateY(0);opacity:.3}to{transform:translateY(-4px);opacity:1}}
+.chips-bar{
+  flex:0 0 auto;
+  padding:6px 8px;
+  display:flex;flex-wrap:nowrap;gap:8px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:var(--wa-bar);
+  border-top:1px solid var(--bdr);
+  scrollbar-width:none;
+}
+.chips-bar::-webkit-scrollbar{display:none}
+.chips-bar:empty{display:none}
+.chip{
+  flex:0 0 auto;
+  padding:8px 14px;border-radius:18px;
+  font-size:13px;font-weight:500;cursor:pointer;
+  border:1px solid var(--bdr);
+  background:var(--wa-chip);color:var(--g8);
+  white-space:nowrap;min-height:36px;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+}
+.chip:active{background:var(--g0)}
+.ibar{
+  flex:0 0 auto;
+  background:var(--wa-bar);
+  padding:6px 8px calc(6px + var(--sab));
+  border-top:1px solid var(--bdr);
+  z-index:20;
+}
+.irow{display:flex;align-items:flex-end;gap:6px}
+.ibox{
+  flex:1;min-width:0;
+  background:#fff;border-radius:24px;
+  border:1px solid var(--bdr);
+  display:flex;align-items:flex-end;
+  padding:5px 6px 5px 14px;gap:4px;
+}
+textarea{
+  flex:1;border:none;outline:none;background:transparent;
+  font-family:var(--fb);font-size:16px;color:var(--txt);
+  resize:none;min-height:24px;max-height:120px;
+  line-height:1.4;padding:6px 0;width:100%;
+}
+input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.modal input{font-size:16px}
+.send{
+  width:44px;height:44px;min-width:44px;border-radius:50%;border:none;
+  background:var(--g8);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:#fff;font-size:18px;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(46,125,50,.25);
+}
+.send:active{transform:scale(.96)}
+.mic-btn{
+  width:36px;height:36px;min-width:36px;border-radius:50%;border:none;
+  background:rgba(46,125,50,.12);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;margin-bottom:2px;
+}
+.qa-tile,.btn-block,.btn-sub,.chip,.hdr-back,.send,.mic-btn,.pin-btn{touch-action:manipulation}
+.rec-dot{width:10px;height:10px;border-radius:50%;background:var(--g8);display:block}
+.mic-btn.recording .rec-dot{background:#e53935;animation:pulse-dot 1s infinite}
+@keyframes pulse-dot{0%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.8}100%{transform:scale(1);opacity:1}}
+.mic-btn.recording{background:#e53935;animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,57,53,.7)}50%{box-shadow:0 0 0 6px rgba(229,57,53,.3)}100%{box-shadow:0 0 0 0 rgba(229,57,53,0)}}
+.send.recording{background:#e53935;animation:pulse 1s infinite}
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  z-index:100;display:none;align-items:flex-end;justify-content:center;
+  padding:max(12px,var(--sal)) max(12px,var(--sar)) max(12px,var(--sab));
+}
+.modal.show{display:flex}
+@media (min-width:520px){.modal{align-items:center}}
+.modal-content{
+  background:var(--surf);border-radius:16px 16px 0 0;
+  padding:20px;width:100%;max-width:var(--app-max);
+  max-height:min(90dvh,560px);overflow-y:auto;
+  box-shadow:0 -4px 24px rgba(0,0,0,.2);border:1px solid var(--bdr);
+  animation:fu .2s ease-out;
+}
+@media (min-width:520px){.modal-content{border-radius:16px;max-width:360px}}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.pin-btn{
+  padding:14px;border-radius:12px;border:1px solid var(--bdr);
+  background:var(--g0);color:var(--txt);font-weight:700;
+  cursor:pointer;text-align:center;min-height:48px;font-size:18px;
+}
+.shimmer{background:linear-gradient(90deg,var(--g0) 25%,var(--g1) 50%,var(--g0) 75%);background-size:200% 100%;animation:loading 1.5s infinite}
+@keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media (max-width:519px){
+  :root{--hdr-h:70px}
+  .hdr{
+    padding:var(--sat) 10px 10px;
+    gap:10px;
+  }
+  .logo-no-icon::before{width:44px;height:44px;font-size:15px}
+  .logo-name{font-size:18px}
+  .logo-sub{font-size:13px}
+  .ibar{padding:10px 10px calc(10px + var(--sab))}
+  .ibox{
+    padding:8px 8px 8px 16px;
+    border-radius:26px;
+    min-height:50px;
+    align-items:center;
+  }
+  textarea{min-height:34px;padding:8px 0;line-height:1.45}
+  .send{width:48px;height:48px;min-width:48px;font-size:19px}
+  .mic-btn{width:40px;height:40px;min-width:40px;margin-bottom:0}
+}
+@media (max-width:360px){
+  .bub{font-size:14px;max-width:88%}
+  .qa-grid{gap:6px}
+  .qa-tile{font-size:11px;min-height:58px;padding:8px 4px}
+  .logo-name{font-size:15px}
+}
+@media (max-width:320px){
+  .btn-sub{flex:1 1 100%;min-width:100%}
+  .chip{font-size:12px;padding:7px 12px}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .hdr{min-height:48px;padding-top:max(4px,var(--sat))}
+  .logo-no-icon::before{width:32px;height:32px;font-size:12px}
+  .msgs{padding:4px 8px}
+  .ibar{padding-top:4px}
+}
+@supports (height:100dvh){
+  .app{height:100dvh}
+}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/compromise@14.14.0/builds/compromise.min.js"></script>
+<script>
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg => {
+      reg.update();
+      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            nw.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(err => console.log('SW registration failed:', err));
+  });
+}
+
+// Handle app install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show custom install button if needed
+  console.log('App can be installed');
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('PWA installed successfully');
+  deferredPrompt = null;
+});
+</script>
+</head>
+<body>
+  <div class="app" id="appShell">
+    <header class="hdr">
+      <div class="hdr-back" id="btnBack" role="button" aria-label="Back" tabindex="0"></div>
+      <div class="logo logo-no-icon">
+        <div><div class="logo-name">SemaTel</div><div class="logo-sub" id="lblSubtitle">SEMA•PATA•MALIZA</div></div>
+      </div>
+    </header>
+
+    <div class="chat-wrap">
+      <div class="msgs" id="chatBox" role="log" aria-live="polite">
+        <div class="date-lbl"><span id="lblToday">Leo</span></div>
+        <div class="trow" id="typingIndicator"><div class="mav">ST</div><div class="tbub"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>
+      </div>
+    </div>
+
+    <div class="chips-bar" id="chipContainer" role="toolbar" aria-label="Quick replies"></div>
+
+    <footer class="ibar">
+      <div class="irow">
+        <div class="ibox">
+          <textarea id="userInput" rows="1" enterkeyhint="send" placeholder="Andika hapa / Type message..."></textarea>
+          <button type="button" class="mic-btn" id="micBtn" title="Voice input" aria-label="Voice input"><span class="rec-dot"></span></button>
+        </div>
+        <button type="button" class="send" id="btnSend" aria-label="Send">➤</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- SECURITY DIALOG (OTP & PIN MODAL) -->
+  <div class="modal" id="securityModal">
+    <div class="modal-content" id="securityModalContent"></div>
+  </div>
+
+<script>
+/* ==========================================
+   1. CONVERSATION STATE MACHINE & DICTIONARY
+   ========================================== */
+const ConversationState = {
+  HOME: 'HOME',
+  CLARIFICATION: 'CLARIFICATION',
+  AIRTIME_FLOW: 'AIRTIME_FLOW',
+  DATA_FLOW: 'DATA_FLOW',
+  MONEY_FLOW: 'MONEY_FLOW',
+  MONEY_PROVIDER_SELECT: 'MONEY_PROVIDER_SELECT',
+  MONEY_PHONE_COLLECT: 'MONEY_PHONE_COLLECT',
+  MONEY_AMOUNT_COLLECT: 'MONEY_AMOUNT_COLLECT',
+  MONEY_OTP_VERIFY: 'MONEY_OTP_VERIFY',
+  MONEY_PIN_COLLECT: 'MONEY_PIN_COLLECT',
+  BALANCE_FLOW: 'BALANCE_FLOW',
+  BALANCE_SELECTION: 'BALANCE_SELECTION',
+  SMS_FLOW: 'SMS_FLOW',
+  MINUTE_FLOW: 'MINUTE_FLOW',
+  VOUCHER_FLOW: 'VOUCHER_FLOW',
+  VOUCHER_TYPE_SELECTION: 'VOUCHER_TYPE_SELECTION',
+  VOUCHER_CODE_INPUT: 'VOUCHER_CODE_INPUT',
+  ACCOUNT_FLOW: 'ACCOUNT_FLOW',
+  HELP_FLOW: 'HELP_FLOW',
+  SECURITY_AUTH: 'SECURITY_AUTH',
+  CONFIRM_TX: 'CONFIRM_TX',
+  AWAIT_MORE_HELP: 'AWAIT_MORE_HELP',
+  END_CHAT: 'END_CHAT',
+  PROCESSING: 'PROCESSING',
+  RESULT_SCREEN: 'RESULT_SCREEN',
+  LUKU_FLOW: 'LUKU_FLOW',
+  LUKU_AMOUNT_COLLECT: 'LUKU_AMOUNT_COLLECT',
+  LUKU_METER_COLLECT: 'LUKU_METER_COLLECT',
+  LUKU_PIN_COLLECT: 'LUKU_PIN_COLLECT'
+};
+
+const CHIP_INTENT_MAP = {
+  'Buy Airtime': 'BUY_AIRTIME',
+  'Buy Data Bundle': 'BUY_DATA_BUNDLE',
+  'Send Money': 'SEND_MONEY',
+  'Check Balance': 'CHECK_BALANCE',
+  'Redeem Voucher': 'REDEEM_VOUCHER',
+  'My Account': 'MY_ACCOUNT',
+  'Help': 'GET_HELP',
+  'Nunua Airtime': 'BUY_AIRTIME',
+  'Kifurushi cha Data': 'BUY_DATA_BUNDLE',
+  'Tuma Pesa': 'SEND_MONEY',
+  'Angalia Salio': 'CHECK_BALANCE',
+  'Vocha': 'REDEEM_VOUCHER',
+  'Akaunti Yangu': 'MY_ACCOUNT',
+  'Msaada': 'GET_HELP',
+  'Nunua Bando': 'BUY_DATA_BUNDLE',
+  'Niongezee Data': 'BUY_DATA_BUNDLE',
+  'Angalia Bando': 'CHECK_BALANCE',
+  'Nunua Vocha': 'BUY_AIRTIME',
+  'Kata Bando': 'BUY_DATA_BUNDLE',
+  'LUKU': 'BUY_LUKU',
+  'Nunua LUKU': 'BUY_LUKU',
+  'Umeme': 'BUY_LUKU',
+  'Nunua Umeme': 'BUY_LUKU',
+  'Buy LUKU': 'BUY_LUKU'
+};
+
+/* Swahili/English telecom vocabulary from maneno.docx — each phrase maps to one intent */
+const MANENO_LEXICON = {
+  BUY_AIRTIME: [
+    'muda wa maongezi', 'kadi ya kuongeza salio', 'ongeza salio', 'nunua salio', 'jaza salio',
+    'tuma salio', 'hamisha salio', 'niongezee', 'niongezee vocha', 'weka vocha', 'nipatie vocha',
+    'tuma vocha', 'nitumie vocha', 'naomba vocha', 'niongezee muda', 'nipigie vocha',
+    'nicheki vocha', 'nirushie vocha', 'nipandishie salio', 'nibusti salio',
+    'niongezee bando la kupiga', 'buy airtime', 'add airtime', 'send airtime',
+    'transfer airtime', 'voice package', 'recharge', 'credit', 'weka hela', 'kadi ya malipo',
+    'jaza', 'ongeza', 'airtime', 'nunua airtime'
+  ],
+  BUY_MINUTE_BUNDLES: [
+    'nipe dakika', 'dakika za kupiga', 'nifungulie dakika', 'dakika', 'miniti',
+    'vifurushi vya dakika', 'kifurushi cha dakika', 'vifurushi vya simu', 'buy minutes',
+    'nunua dakika'
+  ],
+  BUY_DATA_BUNDLE: [
+    'bando la internet', 'kifurushi cha internet', 'kifurushi cha data', 'nunua data',
+    'ongeza data', 'neti', 'net', 'bundle', 'vifurushi', 'nunua bando', 'niongezee data',
+    'nipe internet', 'nahitaji gb', 'nahitaji mb', 'nataka data', 'nataka kifurushi',
+    'ongeza internet', 'weka data', 'nipatie gb', 'nifungulie net', 'nifungulie internet',
+    'niongezee neti', 'nipe net', 'nipe gb', 'nibusti data', 'naomba bando', 'nicheki bando',
+    'nifungulie bundle', 'nipe gigi', 'nipe giga', 'nataka kugoogle', 'nataka kuingia mtandaoni',
+    'nataka kuingia online', 'nipe bundle', 'combo', 'mchanganyiko', 'all-in-one',
+    'daily bundle', 'weekly bundle', 'monthly bundle', 'nataka combo', 'niongezee kifurushi',
+    'nipe package', 'nifungulie kifurushi', 'nipe cha wiki', 'nipe cha mwezi', 'nipe cha siku',
+    'nipe combo', 'nifungulie cha mwezi', 'nipe cha kupiga na internet', 'nipe mchanganyiko',
+    'nifungulie full package', 'kata bando', 'kata kifurushi', 'lipa bando',
+    'nunua bundle kwa mpesa', 'nunua kifurushi kwa m-pesa', 'nunua kwa airtel money',
+    'nunua kwa tigo pesa', 'nunua kwa halopesa', 'kata gb', 'kata net', 'nifanyie bando',
+    'buy data', 'buy bundle', 'add data', 'weekly package', 'monthly package',
+    'unlimited bundle', 'internet package', 'combo package', 'social bundle',
+    'tiktok bundle', 'whatsapp bundle', 'youtube bundle', 'instagram bundle',
+    'intaneti', 'mtandao', 'paketi', 'pakeji', 'bando', 'data', 'internet', 'mb', 'gb',
+    'kifurushi', 'package', 'kifurushi cha', 'kifurushi cha data', 'bando'
+  ],
+  BUY_SMS_PACKAGES: [
+    'ujumbe mfupi', 'kifurushi cha sms', 'nunua sms', 'msg', 'message', 'ujumbe',
+    'niongezee sms', 'nipe sms', 'weka sms', 'nahitaji sms', 'nifungulie sms', 'nipatie sms',
+    'nibusti sms', 'niongezee meseji', 'buy sms', 'sms bundle', 'paketi ya sms',
+    'matumizi ya sms', 'tuma sms', 'jumbe', 'sms', 'meseji'
+  ],
+  CHECK_BALANCE: [
+    'angalia salio', 'kagua salio', 'salio lililobaki', 'salio langu', 'nina salio kiasi gani',
+    'check salio', 'check balance', 'nicheki salio', 'na baki na ngapi', 'nimebakiza kiasi gani',
+    'salio limefika wapi', 'vocha imebaki ngapi', 'angalia data', 'data imebaki ngapi',
+    'nimebakiza gb ngapi', 'nimebakiza mb ngapi', 'check data', 'check internet',
+    'nicheki bando', 'bando limebaki ngapi', 'data imefika wapi', 'net imebaki ngapi',
+    'nimebakiza net kiasi gani', 'angalia salio yangu', 'balance yangu', 'salio', 'balance',
+    'balansi', 'kagua', 'angalia', 'check'
+  ],
+  REDEEM_VOUCHER: [
+    'ingiza vocha', 'voucher code', 'namba ya vocha', 'redeem voucher', 'use voucher',
+    'kuponi', 'kod', 'code ya vocha', 'pin ya vocha', 'vocha ya airtime', 'vocha ya mtandao',
+    'voucher', 'vocha'
+  ],
+  SEND_MONEY: [
+    'tuma pesa', 'tumia', 'peleka', 'hamisha', 'tuma shilingi', 'tuma tsh', 'toa pesa',
+    'tuma', 'transfer', 'send money', 'lipa', 'lipia', 'pesa', 'hela', 'malipo'
+  ],
+  MY_ACCOUNT: [
+    'akaunti', 'akaunti yangu', 'profile', 'wasifu', 'taarifa', 'mimi', 'dashboard',
+    'settings', 'mipangilio', 'taarifa zangu'
+  ],
+  BUY_LUKU: [
+    'luku', 'nunua luku', 'umeme', 'nunua umeme', 'lipa umeme', 'token ya umeme',
+    'umeme wa nyumbani', 'weka umeme', 'niongezee umeme', 'nipigie luku',
+    'nataka luku', 'nipe luku', 'nahitaji luku', 'naomba luku',
+    'luku ya', 'umeme wa', 'buy luku', 'electricity', 'electricity token',
+    'power token', 'prepaid electricity', 'tanesco', 'zesco', 'dawasco',
+    'token', 'meita', 'meter', 'namba ya meita', 'meter number'
+  ],
+  GET_HELP: [
+    'kifurushi kinaisha lini', 'data inaisha lini', 'muda wa matumizi', 'expiry date',
+    'bundle validity', 'bando lina expire lini', 'kifurushi kina kata lini', 'net inaisha lini',
+    'bando lina baki siku ngapi', 'msaada', 'saidia', 'help', 'maswali', 'faq', 'huduma',
+    'agent', 'mtaalamu', 'maswali yanayoulizwa sana', 'support', 'nahitaji msaada'
+  ]
+};
+
+const ManenoIntentIndex = (function() {
+  const phraseList = [];
+  Object.keys(MANENO_LEXICON).forEach(function(intent) {
+    MANENO_LEXICON[intent].forEach(function(phrase) {
+      const p = (phrase || '').toLowerCase().trim();
+      if (p) phraseList.push({ intent: intent, phrase: p });
+    });
+  });
+  phraseList.sort(function(a, b) { return b.phrase.length - a.phrase.length; });
+  const escapeRe = function(s) {
+    return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  };
+  return {
+    match: function(text) {
+      const n = (text || '').toLowerCase().trim();
+      if (!n) return null;
+      for (let i = 0; i < phraseList.length; i++) {
+        const item = phraseList[i];
+        const re = new RegExp('\\b' + escapeRe(item.phrase) + '\\b', 'i');
+        if (re.test(n) || (item.phrase.indexOf(' ') >= 0 && n.indexOf(item.phrase) >= 0)) {
+          return item;
+        }
+      }
+      return null;
+    },
+    trainingData: function() {
+      const out = [];
+      Object.keys(MANENO_LEXICON).forEach(function(intent) {
+        MANENO_LEXICON[intent].forEach(function(phrase) {
+          out.push({ intent: intent, utterance: phrase });
+        });
+      });
+      return out;
+    },
+    keywordsFor: function(intent) {
+      return MANENO_LEXICON[intent] ? MANENO_LEXICON[intent].slice() : [];
+    }
+  };
+})();
+
+const VALID_VOUCHER_CODES = {
+  AIRTIME: { STAIR1000: 1000, STAIR5000: 5000, DEMO12345: 1000 },
+  DATA: { STDATA1GB: 2000, STDATA5GB: 5000, DEMO54321: 2000 }
+};
+
+const LANGUAGES = {
+  sw: {
+    welcome: "Karibu SemaTel 👋\nNaweza kukusaidia kufanya huduma za simu kwa njia ya mazungumzo.\nChagua huduma au andika unachotaka kufanya.",
+    clarify: "⚠️ **CLARIFICATION**\nSamahani, sijakuelewa vizuri.\nJe unataka kufanya nini?",
+    more_help: "❓ **Je, unahitaji msaada zaidi?**",
+    confirm_title: "THIBITISHA MUAMALA",
+    cancel: "Ghairi", confirm: "Thibitisha", yes: "NDIYO", no: "HAPANA",
+    processing: "⚙️ **INASHUGHULIKIA...**\nInatuma ombi kwenye mifumo ya mtandao na malipo...",
+    success: "✅ **TRANSACTION SUCCESSFUL**\nMuamala umekamilika kikamilifu.",
+    failed: "❌ **TRANSACTION FAILED**\nMuamala umeshindikana.",
+    otp_msg: "🔐 **OTP VERIFICATION**\nTumeandika namba ya uhakiki kwenye skrini yako. Tafadhali weka hapa chini ili kuidhinisha:",
+    pin_msg: "🔒 **WEKA PIN**\nWeka namba ya siri ya SemaTel Wallet kulinda usalama wako:",
+    retry: "Jaribu Tena", home: "Mwanzo",
+    goodbye: "Asante kwa kutumia SemaTel! Kwaheri 👋",
+    balance_fetch: "⏳ Inapata salio kutoka kwenye mtandao...",
+    invalid_voucher: "❌ Namba ya vocha si sahihi. Jaribu tena.",
+    fraud_block: "⚠️ Muamala umezuiwa kwa usalama. Jaribu tena baadaye.",
+    confirm_summary: "Angalia muamala wako kisha thibitisha:"
+  },
+  en: {
+    welcome: "Welcome to SemaTel 👋\nI can help you perform telecom transactions seamlessly via conversation.\nChoose a service or type what you want to do.",
+    clarify: "⚠️ **CLARIFICATION**\nSorry, I didn't quite catch that.\nWhat would you like to do?",
+    more_help: "❓ **Do you need any further help?**",
+    confirm_title: "CONFIRM TRANSACTION",
+    cancel: "Cancel", confirm: "Confirm", yes: "YES", no: "NO",
+    processing: "⚙️ **PROCESSING...**\nSending request to core telecom and payment gateway layers...",
+    success: "✅ **TRANSACTION SUCCESSFUL**\nYour transaction was completed.",
+    failed: "❌ **TRANSACTION FAILED**\nTransaction failed.",
+    otp_msg: "🔐 **OTP VERIFICATION**\nAn automated verification code is displayed on your screen. Please enter it below to authorize:",
+    pin_msg: "🔒 **ENTER PIN**\nEnter your secure SemaTel Wallet PIN:",
+    retry: "Retry", home: "Home",
+    goodbye: "Thank you for using SemaTel! Goodbye 👋",
+    balance_fetch: "⏳ Fetching balance from network...",
+    invalid_voucher: "❌ Invalid voucher code. Please try again.",
+    fraud_block: "⚠️ Transaction blocked for security. Try again later.",
+    confirm_summary: "Review your transaction and confirm:"
+  }
+};
+
+/* ==========================================
+   2. MEMORY & DATA SYSTEM (MOCK TELECOM DATABASE)
+   ========================================== */
+const StorageManager = {
+  KEY: 'sematel_memory_v1',
+  defaults() {
+    return {
+      lang: 'sw',
+      walletBalance: 84500,
+      airtimeBalance: 12500,
+      dataBalance: '5.8 GB',
+      phoneNumber: '+255 712 345 678',
+      network: 'Vodacom',
+      recentTransactions: [
+        { type: 'DATA', details: 'Kifurushi cha Wiki 1.5GB', amt: 2000, date: '2026-05-28' },
+        { type: 'MONEY', details: 'Tuma kwa Mama Anna', amt: 15000, date: '2026-05-29' }
+      ],
+      frequentContacts: [
+        { name: 'Mama Anna', phone: '0712345678', provider: 'Vodacom M-Pesa' },
+        { name: 'Baba Juma', phone: '0765987321', provider: 'Tigo Pesa' },
+        { name: 'Kaka Ali', phone: '0784111222', provider: 'Airtel Money' }
+      ],
+      lastTxTimes: []
+    };
+  },
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      return raw ? { ...this.defaults(), ...JSON.parse(raw) } : this.defaults();
+    } catch (e) {
+      return this.defaults();
+    }
+  },
+  save() {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify(ChatbotMemory));
+    } catch (e) { /* quota / private mode */ }
+  }
+};
+
+let ChatbotMemory = StorageManager.load();
+
+const OfflineTxQueue = {
+  KEY: 'sematel_pending_tx_v1',
+  list() {
+    try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); } catch (e) { return []; }
+  },
+  enqueue(tx) {
+    const q = this.list();
+    q.push({ ...tx, queuedAt: Date.now() });
+    localStorage.setItem(this.KEY, JSON.stringify(q));
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'QUEUE_TX', tx });
+    }
+  },
+  clear() { localStorage.removeItem(this.KEY); }
+};
+
+const VoucherService = {
+  validate(code, type) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const normalized = (code || '').toUpperCase().replace(/\s/g, '');
+        const table = VALID_VOUCHER_CODES[type] || {};
+        if (table[normalized]) {
+          resolve({ valid: true, amount: table[normalized], code: normalized });
+        } else {
+          reject({ valid: false, reason: 'Invalid or expired voucher code' });
+        }
+      }, 1200);
+    });
+  }
+};
+
+const TelecomAPI = {
+  fetchBalance(balanceType) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (!navigator.onLine && Math.random() > 0.3) {
+          reject({ reason: 'Network unavailable' });
+          return;
+        }
+        if (balanceType === 'AIRTIME') {
+          resolve({ label: 'Airtime Balance', value: `Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}` });
+        } else if (balanceType === 'DATA') {
+          resolve({ label: 'Data Remaining', value: ChatbotMemory.dataBalance });
+        } else {
+          resolve({ label: 'M-Money Balance', value: `Tsh ${ChatbotMemory.walletBalance.toLocaleString()}` });
+        }
+      }, 1500);
+    });
+  }
+};
+
+const FraudGuard = {
+  maxAmount: 500000,
+  minGapMs: 3000,
+  check(tx) {
+    const amt = tx.amount || tx.price || 0;
+    if (amt > this.maxAmount) return false;
+    const now = Date.now();
+    const recent = (ChatbotMemory.lastTxTimes || []).filter(t => now - t < 60000);
+    if (recent.length >= 5) return false;
+    const last = ChatbotMemory.lastTxTimes[ChatbotMemory.lastTxTimes.length - 1];
+    if (last && now - last < this.minGapMs) return false;
+    return true;
+  },
+  record() {
+    ChatbotMemory.lastTxTimes = ChatbotMemory.lastTxTimes || [];
+    ChatbotMemory.lastTxTimes.push(Date.now());
+    if (ChatbotMemory.lastTxTimes.length > 20) {
+      ChatbotMemory.lastTxTimes = ChatbotMemory.lastTxTimes.slice(-20);
+    }
+    StorageManager.save();
+  }
+};
+
+/* ==========================================
+   3. NLP + ML INTENT RECOGNITION ENGINE
+   ========================================== */
+const MLIntentModel = {
+  trained: false,
+  intents: [],
+  vocabulary: {},
+  tokenCounts: {},
+  priors: {},
+
+  tokenize: function(text) {
+    return (text || '').toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(Boolean);
+  },
+
+  normalizeText: function(text) {
+    if (typeof window !== 'undefined' && window.nlp) {
+      try {
+        return window.nlp(text).normalize({ punctuation: true, whitespace: true, lowercase: true }).out('text');
+      } catch (e) {
+        return text.toLowerCase();
+      }
+    }
+    return text.toLowerCase();
+  },
+
+  train: function(trainingData) {
+    this.trained = false;
+    this.intents = [];
+    this.vocabulary = {};
+    this.tokenCounts = {};
+    this.priors = {};
+    const dataset = trainingData || [];
+    const intentCounts = {};
+
+    dataset.forEach(item => {
+      const intent = item.intent;
+      intentCounts[intent] = (intentCounts[intent] || 0) + 1;
+      this.tokenCounts[intent] = this.tokenCounts[intent] || {};
+      const text = this.normalizeText(item.utterance);
+      const tokens = this.tokenize(text);
+      tokens.forEach(token => {
+        this.vocabulary[token] = (this.vocabulary[token] || 0) + 1;
+        this.tokenCounts[intent][token] = (this.tokenCounts[intent][token] || 0) + 1;
+      });
+    });
+
+    this.intents = Array.from(new Set(dataset.map(item => item.intent)));
+
+    const totalDocs = dataset.length;
+    Object.keys(intentCounts).forEach(intent => {
+      this.priors[intent] = Math.log((intentCounts[intent] + 1) / (totalDocs + Object.keys(intentCounts).length));
+    });
+    this.trained = true;
+  },
+
+  classify: function(text) {
+    const intentFallback = {
+      intent: 'UNKNOWN', confidence: 0.30, entities: {}
+    };
+    if (!this.trained || !text || !text.trim()) {
+      return intentFallback;
+    }
+
+    const normalizedText = this.normalizeText(text);
+    const tokens = this.tokenize(normalizedText);
+    if (!tokens.length) {
+      return intentFallback;
+    }
+
+    const scores = {};
+    this.intents.forEach((intent, i) => {
+      if (!(intent in scores)) scores[intent] = this.priors[intent] || Math.log(1 / (this.intents.length + 1));
+      const totalTokenCount = Object.values(this.tokenCounts[intent]).reduce((sum, v) => sum + v, 0) + Object.keys(this.vocabulary).length;
+      tokens.forEach(token => {
+        const count = this.tokenCounts[intent][token] || 0;
+        scores[intent] += Math.log((count + 1) / totalTokenCount);
+      });
+    });
+
+    const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+    if (!sorted.length) {
+      return intentFallback;
+    }
+    const bestIntent = sorted[0][0];
+    const scoreValues = sorted.map(([_, score]) => Math.exp(score));
+    const confidence = scoreValues[0] / scoreValues.reduce((a, b) => a + b, 0);
+
+    const entities = {
+      amount: null,
+      recipient: null,
+      recipientPhone: null,
+      provider: null
+    };
+
+    const phoneMatch = text.match(/(\+?255\s?7\d{2}\s?\d{3}\s?\d{3}|\+?2557\d{8}|0\d{9}|07\d{8})/g);
+    if (phoneMatch) {
+      entities.recipientPhone = phoneMatch[0].replace(/\s+/g, '');
+      entities.recipient = entities.recipientPhone;
+    }
+
+    const amountMatch = text.match(/(\d+[\d,\.]*)\s*(k|ksh|tsh|elfu)?/i);
+    if (amountMatch) {
+      let amt = parseInt(amountMatch[1].replace(/[,.]/g, ''));
+      const suffix = (amountMatch[2] || '').toLowerCase();
+      if (suffix === 'k' || suffix === 'elfu') {
+        if (amt < 100) amt *= 1000;
+      }
+      entities.amount = amt;
+    }
+
+    if (window.nlp) {
+      try {
+        const doc = window.nlp(text);
+        const people = doc.people().out('text');
+        if (people) {
+          entities.recipient = people;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return {
+      intent: bestIntent,
+      confidence: Math.max(0.01, Math.min(0.99, confidence)),
+      entities
+    };
+  }
+};
+
+const AIIntentEngine = {
+  parse: function(text) {
+    const normalized = (text || '').toLowerCase().trim();
+    const mlResult = MLIntentModel.classify(text);
+    const providerKeywords = {
+      'm-pesa': 'M-Pesa', 'mpesa': 'M-Pesa', 'm pesa': 'M-Pesa', 'vodacom m-pesa': 'M-Pesa',
+      'vodacom m pesa': 'M-Pesa', 'vodacom': 'M-Pesa', 'tigo': 'Tigo Pesa', 'tigo pesa': 'Tigo Pesa',
+      'tigo-pesa': 'Tigo Pesa', 'airtel': 'Airtel Money', 'airtel money': 'Airtel Money',
+      'airtel-money': 'Airtel Money', 'airtelmoney': 'Airtel Money',
+      'halopesa': 'HaloPesa', 'halo pesa': 'HaloPesa', 'halo-pesa': 'HaloPesa'
+    };
+    let provider = null;
+    Object.keys(providerKeywords).forEach(key => {
+      if (new RegExp('\\b' + key.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\b', 'i').test(normalized)) {
+        provider = providerKeywords[key];
+      }
+    });
+    if (provider && !mlResult.entities.provider) {
+      mlResult.entities.provider = provider;
+    }
+
+    const manenoHit = ManenoIntentIndex.match(normalized);
+    if (manenoHit) {
+      return { intent: manenoHit.intent, confidence: 0.99, entities: mlResult.entities };
+    }
+
+    // Use ML model result if it is strong enough, otherwise fallback to keyword mapping
+    if (mlResult.confidence >= 0.68 && mlResult.intent !== 'UNKNOWN') {
+      return mlResult;
+    }
+
+    const Fallback = {
+      intent: 'UNKNOWN', confidence: 0.30, entities: mlResult.entities
+    };
+    const containsAny = (arr) => arr.some(w => new RegExp('\\b' + w.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&') + '\\b', 'i').test(normalized));
+    const AIRTIME_KEYS = ManenoIntentIndex.keywordsFor('BUY_AIRTIME');
+    const DATA_KEYS = ManenoIntentIndex.keywordsFor('BUY_DATA_BUNDLE');
+    const SMS_KEYS = ManenoIntentIndex.keywordsFor('BUY_SMS_PACKAGES');
+    const MINUTE_KEYS = ManenoIntentIndex.keywordsFor('BUY_MINUTE_BUNDLES');
+    const MONEY_KEYS = ManenoIntentIndex.keywordsFor('SEND_MONEY');
+    const BALANCE_KEYS = ManenoIntentIndex.keywordsFor('CHECK_BALANCE');
+    const VOUCHER_KEYS = ManenoIntentIndex.keywordsFor('REDEEM_VOUCHER');
+    const ACCOUNT_KEYS = ManenoIntentIndex.keywordsFor('MY_ACCOUNT');
+    const HELP_KEYS = ManenoIntentIndex.keywordsFor('GET_HELP');
+
+    const extractor = (arr, intent, confidence) => {
+      if (containsAny(arr)) {
+        return { intent, confidence, entities: mlResult.entities };
+      }
+      return null;
+    };
+
+    return extractor(BALANCE_KEYS, 'CHECK_BALANCE', 0.97) ||
+      extractor(MINUTE_KEYS, 'BUY_MINUTE_BUNDLES', 0.96) ||
+      extractor(SMS_KEYS, 'BUY_SMS_PACKAGES', 0.96) ||
+      extractor(AIRTIME_KEYS, 'BUY_AIRTIME', 0.96) ||
+      extractor(DATA_KEYS, 'BUY_DATA_BUNDLE', 0.95) ||
+      extractor(MONEY_KEYS, 'SEND_MONEY', 0.94) ||
+      extractor(VOUCHER_KEYS, 'REDEEM_VOUCHER', 0.92) ||
+      extractor(ACCOUNT_KEYS, 'MY_ACCOUNT', 0.93) ||
+      extractor(HELP_KEYS, 'GET_HELP', 0.98) ||
+      Fallback;
+  }
+};
+
+// Train intent model: maneno.docx vocabulary + conversational examples
+MLIntentModel.train(ManenoIntentIndex.trainingData().concat([
+  { intent: 'BUY_AIRTIME', utterance: 'Jaza 2000 kwa M-Pesa' },
+  { intent: 'BUY_AIRTIME', utterance: 'Nataka kuongeza salio' },
+  { intent: 'BUY_AIRTIME', utterance: 'Nunua airtime ya 10000' },
+  { intent: 'BUY_AIRTIME', utterance: 'Tuma salio kwenye simu yangu' },
+  { intent: 'BUY_DATA_BUNDLE', utterance: 'Nunua data 1GB' },
+  { intent: 'BUY_DATA_BUNDLE', utterance: 'Nataka kifurushi cha internet' },
+  { intent: 'BUY_DATA_BUNDLE', utterance: 'Bundle ya data' },
+  { intent: 'BUY_DATA_BUNDLE', utterance: 'Pata mtandao wa 5GB' },
+  { intent: 'BUY_DATA_BUNDLE', utterance: 'Kifurushi cha mwishoni' },
+  { intent: 'SEND_MONEY', utterance: 'Tuma 5000 kwa Mama Anna' },
+  { intent: 'SEND_MONEY', utterance: 'Transfer pesa kwa 0712345678' },
+  { intent: 'SEND_MONEY', utterance: 'Lipa kwa Baba Juma' },
+  { intent: 'SEND_MONEY', utterance: 'Tumia Tigo Pesa kumtuma pesa' },
+  { intent: 'SEND_MONEY', utterance: 'Send money to Ali' },
+  { intent: 'CHECK_BALANCE', utterance: 'Angalia salio langu' },
+  { intent: 'CHECK_BALANCE', utterance: 'Check my balance' },
+  { intent: 'BUY_SMS_PACKAGES', utterance: 'Nunua SMS' },
+  { intent: 'BUY_SMS_PACKAGES', utterance: 'Pata paketi ya sms' },
+  { intent: 'BUY_MINUTE_BUNDLES', utterance: 'Nataka dakika' },
+  { intent: 'MY_ACCOUNT', utterance: 'Akaunti yangu' },
+  { intent: 'MY_ACCOUNT', utterance: 'Show profile' },
+  { intent: 'GET_HELP', utterance: 'Nahitaji msaada' },
+  { intent: 'GET_HELP', utterance: 'Help me' }
+]));
+
+/* ==========================================
+    4. CENTRALIZED TRANSACTION ENGINE
+    ========================================== */
+const TransactionEngine = {
+  applyBalanceChanges(txData) {
+    const pay = txData.paymentMethod || '';
+    const cost = txData.amount || txData.price || 0;
+    const fromWallet = /wallet|m-pesa|tigo|airtel|card/i.test(pay) && !/airtime balance/i.test(pay);
+    const fromAirtime = /airtime balance/i.test(pay);
+
+    if (txData.type === 'AIRTIME' || txData.type === 'BUY_AIRTIME') {
+      if (fromAirtimeBalance) {
+        ChatbotMemory.airtimeBalance -= txData.amount;
+      } else {
+        ChatbotMemory.airtimeBalance += txData.amount;
+        if (fromWallet) ChatbotMemory.walletBalance -= txData.amount;
+      }
+    } else if (txData.type === 'DATA') {
+      if (fromWallet || !fromAirtime) ChatbotMemory.walletBalance -= txData.price;
+    } else if (txData.type === 'MONEY') {
+      ChatbotMemory.walletBalance -= txData.amount;
+    } else if (txData.type === 'SMS') {
+      ChatbotMemory.walletBalance -= txData.amount;
+    } else if (txData.type === 'VOUCHER') {
+      if (txData.voucherType === 'DATA') {
+        const match = String(ChatbotMemory.dataBalance).match(/([0-9]+(\.[0-9]+)?)/);
+        const currentData = match ? parseFloat(match[1]) : 0;
+        ChatbotMemory.dataBalance = `${(currentData + 1).toFixed(1)} GB`;
+      } else {
+        ChatbotMemory.airtimeBalance += txData.amount;
+      }
+    }
+    ChatbotMemory.recentTransactions.unshift({
+      type: txData.type,
+      details: txData.details || `${txData.type} Transaction`,
+      amt: cost,
+      date: new Date().toISOString().split('T')[0]
+    });
+    StorageManager.save();
+  },
+
+  process(txData) {
+    return new Promise((resolve, reject) => {
+      const run = () => {
+        setTimeout(() => {
+          const cost = txData.amount || txData.price || 0;
+          if (fromAirtimeBalance(txData) && ChatbotMemory.airtimeBalance < cost) {
+            reject({ status: 'FAILED', reason: 'Insufficient airtime balance' });
+            return;
+          }
+          if (needsWallet(txData) && ChatbotMemory.walletBalance < cost) {
+            reject({ status: 'FAILED', reason: 'Insufficient funds' });
+            return;
+          }
+          const isSuccess = Math.random() > 0.12;
+          if (isSuccess) {
+            TransactionEngine.applyBalanceChanges(txData);
+            FraudGuard.record();
+            resolve({
+              status: 'SUCCESS',
+              ref: 'ST' + Math.floor(10000000 + Math.random() * 89999999),
+              date: new Date().toLocaleDateString(),
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+          } else {
+            const failureReasons = [
+              'Insufficient Funds',
+              'Network Timeout Error',
+              'Core Telecommunication API Offline',
+              'Payment gateway declined card'
+            ];
+            reject({
+              status: 'FAILED',
+              reason: failureReasons[Math.floor(Math.random() * failureReasons.length)]
+            });
+          }
+        }, 2000);
+      };
+
+      if (!navigator.onLine) {
+        OfflineTxQueue.enqueue(txData);
+        reject({ status: 'FAILED', reason: 'Offline – transaction queued for sync', queued: true });
+        return;
+      }
+      run();
+    });
+  }
+};
+
+function fromAirtimeBalance(tx) {
+  return /airtime balance/i.test(tx.paymentMethod || '');
+}
+function needsWallet(tx) {
+  const pay = tx.paymentMethod || '';
+  if (tx.type === 'MONEY') return true;
+  if (tx.type === 'VOUCHER') return false;
+  if (fromAirtimeBalance(tx)) return false;
+  return /wallet|m-pesa|tigo|airtel|card/i.test(pay) || tx.type === 'DATA' || tx.type === 'SMS';
+}
+
+/* ==========================================
+   5. ENGINE CONTROLLER & CONVERSATION LOGIC
+   ========================================== */
+const Engine = {
+  currentState: ConversationState.HOME,
+  currentTx: {},
+  recognition: null,
+  isListening: false,
+  
+init: function() {
+     this.bindUI();
+     LayoutManager.init();
+     this.initSpeechRecognition();
+     this.initializeStateHandlers();
+     this.renderWelcome();
+     window.addEventListener('online', () => this.flushPendingTransactions());
+     if (navigator.serviceWorker) {
+       navigator.serviceWorker.addEventListener('message', (e) => {
+         if (e.data && e.data.type === 'SYNC_COMPLETE') this.flushPendingTransactions();
+       });
+     }
+     setTimeout(() => this.handleDeepLinkIntent(), 800);
+   },
+
+   handleDeepLinkIntent: function() {
+     const params = new URLSearchParams(window.location.search);
+     const intent = params.get('intent');
+     if (intent) this.routeIntent(intent);
+   },
+
+   flushPendingTransactions: function() {
+     const pending = OfflineTxQueue.list();
+     if (!pending.length || !navigator.onLine) return;
+     OfflineTxQueue.clear();
+     this.addMessage(
+       ChatbotMemory.lang === 'sw'
+         ? `🔄 Inachakata miamala ${pending.length} iliyosubiri nje ya mtandao...`
+         : `🔄 Processing ${pending.length} queued offline transaction(s)...`,
+       'bot'
+     );
+   },
+
+   bindUI: function() {
+     const back = document.getElementById('btnBack');
+     const send = document.getElementById('btnSend');
+     const input = document.getElementById('userInput');
+     const mic = document.getElementById('micBtn');
+     const chat = document.getElementById('chatBox');
+
+     if (back) {
+       back.addEventListener('click', () => this.resetToHome());
+       back.addEventListener('keydown', (e) => {
+         if (e.key === 'Enter' || e.key === ' ') {
+           e.preventDefault();
+           this.resetToHome();
+         }
+       });
+     }
+     if (send) send.addEventListener('click', () => this.sendMessage());
+     if (input) {
+       input.addEventListener('keydown', (e) => this.handleInputKey(e));
+       input.addEventListener('input', function() {
+         LayoutManager.autoResizeTextarea(this);
+       });
+     }
+     if (mic) mic.addEventListener('click', () => this.toggleMic());
+     if (chat) {
+       chat.addEventListener('click', (e) => {
+         const tile = e.target.closest('[data-intent]');
+         if (tile && tile.dataset.intent) {
+           this.routeIntent(tile.dataset.intent);
+         }
+       });
+     }
+   },
+
+   initializeStateHandlers: function() {
+     this.STATE_HANDLERS = {
+       HOME: this.handleHomeState.bind(this),
+       CLARIFICATION: this.handleClarificationState.bind(this),
+       AIRTIME_FLOW: this.handleAirtimeFlowInput.bind(this),
+       AIRTIME_CUSTOM_AMT: this.handleAirtimeCustomAmount.bind(this),
+       DATA_FLOW: this.handlePassiveFlowInput.bind(this),
+       MONEY_FLOW: this.handlePassiveFlowInput.bind(this),
+       MONEY_PROVIDER_SELECT: this.handlePassiveFlowInput.bind(this),
+       MONEY_PHONE_COLLECT: this.handleMoneyPhoneCollect.bind(this),
+       MONEY_AMOUNT_COLLECT: this.handleMoneyAmountCollect.bind(this),
+       MONEY_OTP_VERIFY: this.handlePassiveFlowInput.bind(this),
+       MONEY_PIN_COLLECT: this.handlePassiveFlowInput.bind(this),
+       MONEY_CUSTOM_REC: this.handleMoneyRecipient.bind(this),
+       MONEY_PHONE_INPUT: this.handleMoneyPhoneInput.bind(this),
+       MONEY_CUSTOM_AMT: this.handleMoneyAmount.bind(this),
+       BALANCE_SELECTION: this.handleBalanceSelection.bind(this),
+       VOUCHER_TYPE_SELECTION: this.handleVoucherTypeSelection.bind(this),
+       VOUCHER_CODE_INPUT: this.handleVoucherCodeInput.bind(this),
+       LUKU_FLOW: this.handlePassiveFlowInput.bind(this),
+       LUKU_AMOUNT_COLLECT: this.handleLukuAmountCollect.bind(this),
+       LUKU_METER_COLLECT: this.handleLukuMeterCollect.bind(this),
+       LUKU_PIN_COLLECT: this.handlePassiveFlowInput.bind(this),
+       AWAIT_MORE_HELP: this.handleMoreHelpResponse.bind(this),
+       END_CHAT: this.handleEndChatInput.bind(this)
+     };
+   },
+
+   handlePassiveFlowInput: function(text) {
+     this.addMessage(
+       ChatbotMemory.lang === 'sw'
+         ? 'Tafadhali tumia vitufe vilivyoonyeshwa hapo juu, au bonyeza nyuma kurudi mwanzo.'
+         : 'Please use the buttons above, or tap back to return home.',
+       'bot'
+     );
+   },
+
+   handleAirtimeFlowInput: function(text) {
+     const amt = parseInt(String(text).replace(/\D/g, ''), 10);
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptAirtimePayment();
+     } else {
+       this.handlePassiveFlowInput(text);
+     }
+   },
+
+   handleMoreHelpResponse: function(text) {
+     const t = text.toLowerCase();
+     if (/^(ndiyo|yes|ndio)\b/i.test(t) || t === 'yes') {
+       this.currentState = ConversationState.HOME;
+       this.setChips([]);
+       this.addMessage(
+         ChatbotMemory.lang === 'sw' ? 'Unaweza kuandika au kuchagua huduma:' : 'Type or choose a service:',
+         'bot'
+       );
+       this.renderServiceGrid();
+       return;
+     }
+     if (/hapana|no|asante|thank/i.test(t)) {
+       this.endChat();
+       return;
+     }
+     this.handleHomeState(text);
+   },
+
+   handleEndChatInput: function() {
+     this.addMessage(
+       ChatbotMemory.lang === 'sw' ? 'Gusa "Anza Tena" kuendelea.' : 'Tap "Start Again" to continue.',
+       'bot'
+     );
+   },
+
+   endChat: function() {
+     this.currentState = ConversationState.END_CHAT;
+     this.setChips([]);
+     const html = `
+       <div class="rcard">
+         <div style="font-weight:600;">${this.translate('goodbye')}</div>
+         <button class="btn-block" style="margin-top:10px;" onclick="Engine.resetToHome()">${ChatbotMemory.lang === 'sw' ? 'Anza Tena' : 'Start Again'}</button>
+       </div>`;
+     this.addMessage(null, 'bot', html);
+   },
+
+   renderServiceGrid: function() {
+     const gridHTML = `
+       <div class="qa-grid">
+         <div class="qa-tile" data-intent="BUY_AIRTIME" role="button" tabindex="0"><div class="qa-icon">📱</div>Airtime</div>
+         <div class="qa-tile" data-intent="BUY_DATA_BUNDLE" role="button" tabindex="0"><div class="qa-icon">📶</div>Data</div>
+         <div class="qa-tile" data-intent="SEND_MONEY" role="button" tabindex="0"><div class="qa-icon">💸</div>Send Money</div>
+         <div class="qa-tile" data-intent="CHECK_BALANCE" role="button" tabindex="0"><div class="qa-icon">💰</div>Balance</div>
+         <div class="qa-tile" data-intent="REDEEM_VOUCHER" role="button" tabindex="0"><div class="qa-icon">🎫</div>Voucher</div>
+         <div class="qa-tile" data-intent="MY_ACCOUNT" role="button" tabindex="0"><div class="qa-icon">👤</div>Account</div>
+         <div class="qa-tile" data-intent="BUY_LUKU" role="button" tabindex="0"><div class="qa-icon">⚡</div>LUKU</div>
+         <div class="qa-tile" data-intent="GET_HELP" role="button" tabindex="0"><div class="qa-icon">💡</div>Help</div>
+       </div>`;
+     this.addMessage(null, 'bot', gridHTML);
+   },
+
+   resolveChipIntent: function(label) {
+     if (CHIP_INTENT_MAP[label]) return CHIP_INTENT_MAP[label];
+     const evaluation = AIIntentEngine.parse(label);
+     if (evaluation.confidence >= 0.75) return evaluation.intent;
+     return null;
+   },
+  
+  initSpeechRecognition: function() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.log('Speech Recognition not supported');
+      document.getElementById('micBtn').style.display = 'none';
+      return;
+    }
+    
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = false;
+    this.recognition.interimResults = false;
+    this.recognition.lang = ChatbotMemory.lang === 'en' ? 'en-TZ' : 'sw-TZ';
+    this.pendingVoiceSend = false;
+
+    this.recognition.onstart = () => {
+      this.isListening = true;
+      document.getElementById('micBtn').classList.add('recording');
+      document.getElementById('userInput').placeholder = '🎙️ Listening...';
+    };
+
+    this.recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          transcript += event.results[i][0].transcript;
+        }
+      }
+      if (transcript) {
+        document.getElementById('userInput').value = transcript;
+        this.pendingVoiceSend = true;
+      }
+    };
+    
+    this.recognition.onerror = (event) => {
+      console.error('Speech recognition error', event.error);
+      this.addMessage('🎙️ Sikio halijasomeka. Jaribu tena.', 'bot');
+    };
+    
+    this.recognition.onend = () => {
+      this.isListening = false;
+      document.getElementById('micBtn').classList.remove('recording');
+      document.getElementById('userInput').placeholder = 'Andika hapa / Type message...';
+      if (this.pendingVoiceSend) {
+        this.pendingVoiceSend = false;
+        this.sendMessage();
+      }
+    };
+  },
+  
+  toggleMic: function() {
+    if (!this.recognition) {
+      this.addMessage('🎙️ Voice input not supported.', 'bot');
+      return;
+    }
+    if (this.isListening) {
+      this.recognition.stop();
+    } else {
+      this.recognition.start();
+    }
+  },
+  
+  translate: function(key) {
+    return LANGUAGES[ChatbotMemory.lang][key] || key;
+  },
+
+  showTyping: function(show) {
+    document.getElementById('typingIndicator').classList.toggle('show', show);
+    LayoutManager.scrollChatToEnd();
+  },
+
+  addMessage: function(text, sender, elementHTML = null) {
+    const box = document.getElementById('chatBox');
+    const row = document.createElement('div');
+    row.className = `mrow ${sender}`;
+    
+    if (sender === 'bot') {
+      const av = document.createElement('div');
+      av.className = 'mav';
+      av.textContent = 'ST';
+      row.appendChild(av);
+    }
+    
+    const bub = document.createElement('div');
+    bub.className = `bub ${sender}`;
+    
+    if (elementHTML) {
+      bub.innerHTML = elementHTML;
+    } else {
+      bub.innerText = text;
+    }
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 't';
+    timeSpan.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    bub.appendChild(timeSpan);
+    
+    row.appendChild(bub);
+    const typing = document.getElementById('typingIndicator');
+    if (typing && typing.parentNode === box) {
+      box.insertBefore(row, typing);
+    } else {
+      box.appendChild(row);
+    }
+    LayoutManager.scrollChatToEnd();
+  },
+
+   setChips: function(chipsArray) {
+     const container = document.getElementById('chipContainer');
+     if (!container) return;
+     container.innerHTML = '';
+     (chipsArray || []).forEach(label => {
+       const btn = document.createElement('button');
+       btn.type = 'button';
+       btn.className = 'chip';
+       btn.textContent = label;
+       btn.onclick = () => {
+         this.addMessage(label, 'user');
+         const chipIntent = this.resolveChipIntent(label);
+         if (chipIntent && (this.currentState === ConversationState.HOME ||
+             this.currentState === ConversationState.CLARIFICATION ||
+             this.currentState === ConversationState.AWAIT_MORE_HELP)) {
+           if (this.currentState === ConversationState.AWAIT_MORE_HELP) {
+             this.handleMoreHelpResponse(label);
+             return;
+           }
+           this.routeIntent(chipIntent);
+           return;
+         }
+         this.processUserInput(label);
+       };
+       container.appendChild(btn);
+     });
+   },
+
+   // State handler methods for streamlined state transitions
+   handleHomeState: function(text) {
+     const evaluation = AIIntentEngine.parse(text);
+     if (evaluation.confidence >= 0.80) {
+       this.currentTx.amount = evaluation.entities.amount || null;
+       // wire recipient if detected
+       if (evaluation.entities && evaluation.entities.recipient) {
+         this.currentTx.recipient = evaluation.entities.recipient;
+       }
+       if (evaluation.entities && evaluation.entities.recipientPhone) {
+         this.currentTx.recipient = evaluation.entities.recipientPhone;
+       }
+       // wire provider/payment method if detected (maps to UI labels)
+       if (evaluation.entities && evaluation.entities.provider) {
+         this.currentTx.paymentMethod = evaluation.entities.provider;
+       }
+       this.routeIntent(evaluation.intent);
+     } else {
+       this.currentState = ConversationState.CLARIFICATION;
+       this.showTyping(true);
+       setTimeout(() => {
+         this.showTyping(false);
+         this.addMessage(this.translate('clarify'), 'bot');
+         const chips = ChatbotMemory.lang === 'sw'
+           ? ['Nunua Airtime', 'Kifurushi cha Data', 'Tuma Pesa', 'Angalia Salio', 'Akaunti Yangu', 'Msaada']
+           : ['Buy Airtime', 'Buy Data Bundle', 'Send Money', 'Check Balance', 'My Account', 'Help'];
+         this.setChips(chips);
+       }, 500);
+     }
+   },
+
+   handleClarificationState: function(text) {
+     // Re-use the same logic as home state for clarification
+     this.handleHomeState(text);
+   },
+
+   handleAirtimeCustomAmount: function(text) {
+     const amt = parseInt(text.replace(/\D/g, ''));
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptAirtimePayment();
+     } else {
+       this.addMessage("Weka kiasi halali cha fedha.", "bot");
+     }
+   },
+
+   handleMoneyRecipient: function(text) {
+     this.currentTx.recipient = text;
+     this.promptMoneyAmount();
+   },
+
+   handleMoneyPhoneInput: function(text) {
+     const phone = text.replace(/\D/g, '');
+     if (phone.length >= 9) {
+       this.currentTx.recipient = phone;
+       this.promptMoneyAmount();
+     } else {
+       this.addMessage('Namba ya simu haijakamilika. Tafadhali weka namba halali (mfano: 0712345678)', 'bot');
+     }
+   },
+
+   handleMoneyAmount: function(text) {
+     const amt = parseInt(text.replace(/\D/g, ''));
+     if (amt > 0) {
+       this.currentTx.amount = amt;
+       this.promptMoneyPayment();
+     } else {
+       this.addMessage("Weka kiasi cha kuanzia Tsh 100.", "bot");
+     }
+   },
+
+   handleBalanceSelection: function(text) {
+     const answer = text.toLowerCase();
+     if (/airtime|salio|mtandao|data|wallet|wallet balance|wallet saldo|wallet salio/i.test(answer)) {
+       if (/airtime|salio/i.test(answer) && !/wallet/i.test(answer)) {
+         this.selectBalanceType('AIRTIME');
+         return;
+       }
+       if (/data|mtandao/i.test(answer)) {
+         this.selectBalanceType('DATA');
+         return;
+       }
+       if (/wallet|wallet balance|balansi|salio la wallet/i.test(answer)) {
+         this.selectBalanceType('WALLET');
+         return;
+       }
+     }
+     this.addMessage("Tafadhali chagua moja ya chaguo hapo juu: Airtime, Data, au Wallet.", 'bot');
+   },
+
+   handleVoucherTypeSelection: function(text) {
+     const answer = text.toLowerCase();
+     if (/airtime|data/i.test(answer)) {
+       this.currentTx.voucherType = /airtime/i.test(answer) ? 'AIRTIME' : 'DATA';
+       this.currentState = ConversationState.VOUCHER_CODE_INPUT;
+       this.addMessage(`E2. Tafadhali andika namba ya siri ya vocha yako ya ${this.currentTx.voucherType.toLowerCase()}:`, 'bot');
+       return;
+     }
+     this.addMessage("Chagua aina ya vocha: Airtime au Data.", 'bot');
+   },
+
+   handleVoucherCodeInput: function(text) {
+     if (text.length < 5) {
+       this.addMessage(ChatbotMemory.lang === 'sw' ? 'Namba ya vocha haijakamilika.' : 'Voucher code is too short.', 'bot');
+       return;
+     }
+     this.currentTx.voucherCode = text.toUpperCase().replace(/\s/g, '');
+     this.currentState = ConversationState.PROCESSING;
+     this.addMessage(this.translate('balance_fetch'), 'bot');
+     VoucherService.validate(this.currentTx.voucherCode, this.currentTx.voucherType)
+       .then((res) => {
+         this.currentTx.amount = res.amount;
+         this.currentTx.type = 'VOUCHER';
+         this.currentTx.details = `Vocha ${this.currentTx.voucherType} (${res.code})`;
+         this.showTransactionConfirm();
+       })
+       .catch(() => {
+         this.currentState = ConversationState.VOUCHER_CODE_INPUT;
+         this.addMessage(this.translate('invalid_voucher'), 'bot');
+       });
+   },
+
+   resetToHome: function() {
+    this.currentState = ConversationState.HOME;
+    this.currentTx = {};
+    this.renderWelcome();
+  },
+
+  renderWelcome: function() {
+    const box = document.getElementById('chatBox');
+    if (box) {
+      const dateLbl = box.querySelector('.date-lbl');
+      const typing = document.getElementById('typingIndicator');
+      box.innerHTML = '';
+      if (dateLbl) box.appendChild(dateLbl);
+      if (typing) box.appendChild(typing);
+    }
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      
+      const gridHTML = `
+        <div>${this.translate('welcome').replace(/\n/g, '<br>')}</div>
+        <div class="qa-grid">
+          <div class="qa-tile" data-intent="BUY_AIRTIME" role="button" tabindex="0"><div class="qa-icon">📱</div>Airtime</div>
+          <div class="qa-tile" data-intent="BUY_DATA_BUNDLE" role="button" tabindex="0"><div class="qa-icon">📶</div>Data</div>
+          <div class="qa-tile" data-intent="SEND_MONEY" role="button" tabindex="0"><div class="qa-icon">💸</div>Send Money</div>
+          <div class="qa-tile" data-intent="CHECK_BALANCE" role="button" tabindex="0"><div class="qa-icon">💰</div>Balance</div>
+          <div class="qa-tile" data-intent="REDEEM_VOUCHER" role="button" tabindex="0"><div class="qa-icon">🎫</div>Voucher</div>
+          <div class="qa-tile" data-intent="MY_ACCOUNT" role="button" tabindex="0"><div class="qa-icon">👤</div>Account</div>
+          <div class="qa-tile" data-intent="BUY_LUKU" role="button" tabindex="0"><div class="qa-icon">⚡</div>LUKU</div>
+          <div class="qa-tile" data-intent="GET_HELP" role="button" tabindex="0"><div class="qa-icon">💡</div>Help</div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', gridHTML);
+      this.setChips([]);
+    }, 400);
+  },
+
+  sendMessage: function() {
+    const el = document.getElementById('userInput');
+    const val = el.value.trim();
+    if (!val) return;
+    el.value = '';
+    LayoutManager.autoResizeTextarea(el);
+    this.addMessage(val, 'user');
+    this.processUserInput(val);
+  },
+
+  handleInputKey: function(event) {
+    if (!event) return;
+    const key = event.key || event.keyCode;
+    if (key === 'Enter' || key === 13) {
+      event.preventDefault();
+      this.sendMessage();
+    }
+  },
+
+/*
+   * processUserInput(input)
+   *
+   * Accepts either a single string or an array of strings.
+   *
+   * • Single string  → processes one message and returns its response descriptor
+   *   (same behaviour as before; all existing callers are unaffected).
+   *
+   * • Array of strings → iterates every element in order, processes each one
+   *   through the same state-machine pipeline, and returns an array of response
+   *   descriptors that mirrors the input order exactly.
+   *
+   * Response descriptor shape:
+   *   {
+   *     input     : string,          // the original input text
+   *     intent    : string|null,     // resolved intent key, or null for system commands
+   *     confidence: number|null,     // NLP confidence [0-1], or null for system commands
+   *     state     : string,          // ConversationState at the time this item was processed
+   *     handled   : boolean          // true when a recognised handler ran
+   *   }
+   */
+  processUserInput: function(input) {
+    /* ── Batch branch ── */
+    if (Array.isArray(input)) {
+      return input.map(function(item) { return Engine._processSingle(item); });
+    }
+
+    /* ── Single-string branch (all existing callers unchanged) ── */
+    this._processSingle(input);
+  },
+
+  /* _processSingle(text)
+   *
+   * The single source of truth for processing one user message.
+   * Handles two orthogonal concerns:
+   *
+   * 1. INTENT ESCAPE — whenever the user types a recognisable intent keyword
+   *    (confidence ≥ 0.80) while the bot is mid-flow, the current flow is
+   *    abandoned and the new intent is routed immediately.  This is what lets
+   *    the conversation keep moving regardless of which flow state is active.
+   *    States that must never be interrupted (active OTP / PIN / confirm screens,
+   *    ongoing processing) are explicitly excluded from the escape hatch.
+   *
+   * 2. FLOW-SPECIFIC TEXT INPUT — states that genuinely need typed text
+   *    (phone numbers, amounts, voucher codes, etc.) receive it normally via
+   *    their STATE_HANDLERS entry; the intent-escape check runs first and only
+   *    fires when the text matches a different service, so legitimate in-flow
+   *    text is never hijacked.
+   */
+  _processSingle: function(text) {
+    const t = (text || '').trim();
+
+    /* ── System-command shortcuts ── */
+    if (t === this.translate('retry') || /^jaribu tena$/i.test(t) || t === '🔄 ' + this.translate('retry')) {
+      this.retryTransaction();
+      return { input: t, intent: 'SYSTEM_RETRY', confidence: null, state: this.currentState, handled: true };
+    }
+    if (t === this.translate('home') || /^mwanzo$/i.test(t) || /^home$/i.test(t)) {
+      this.resetToHome();
+      return { input: t, intent: 'SYSTEM_HOME', confidence: null, state: this.currentState, handled: true };
+    }
+
+    /* ── Snapshot the state before any handler mutates it ── */
+    const stateAtEntry = this.currentState;
+
+    /* ── States where we must NEVER interrupt mid-transaction ── */
+    const lockedStates = [
+      ConversationState.SECURITY_AUTH,
+      ConversationState.PROCESSING,
+      ConversationState.RESULT_SCREEN,
+      ConversationState.MONEY_OTP_VERIFY,
+      ConversationState.MONEY_PIN_COLLECT,
+      ConversationState.LUKU_PIN_COLLECT,
+      ConversationState.CONFIRM_TX
+    ];
+
+    /* ── States where the user is expected to type meaningful text (phone,
+       amount, voucher code, etc.) — intent-escape should NOT fire here
+       unless the input clearly has zero numeric / code content ── */
+    const textInputStates = [
+      ConversationState.MONEY_PHONE_COLLECT,
+      ConversationState.MONEY_AMOUNT_COLLECT,
+      ConversationState.VOUCHER_CODE_INPUT,
+      'MONEY_CUSTOM_REC',
+      'MONEY_PHONE_INPUT',
+      'MONEY_CUSTOM_AMT',
+      'AIRTIME_CUSTOM_AMT',
+      ConversationState.LUKU_AMOUNT_COLLECT,
+      ConversationState.LUKU_METER_COLLECT
+    ];
+
+    /* ── Intent-escape: try to parse a fresh intent from whatever the user typed.
+       Fire if:
+         • We are NOT in a locked or text-input state, AND
+         • The recognised intent is different from the intent that owns the
+           current flow, AND
+         • Confidence is high enough (≥ 0.80).
+       When it fires, reset currentTx and route the new intent so the
+       conversation continues naturally instead of hitting a dead end. ── */
+    const isLocked    = lockedStates.indexOf(stateAtEntry) !== -1;
+    const isTextInput = textInputStates.indexOf(stateAtEntry) !== -1;
+    const isHomelike  = stateAtEntry === ConversationState.HOME ||
+                        stateAtEntry === ConversationState.CLARIFICATION ||
+                        stateAtEntry === ConversationState.AWAIT_MORE_HELP ||
+                        stateAtEntry === ConversationState.END_CHAT;
+
+    if (!isLocked && !isTextInput && !isHomelike) {
+      const evaluation = AIIntentEngine.parse(t);
+      if (evaluation.confidence >= 0.80 && evaluation.intent !== 'UNKNOWN') {
+        /* Wire any pre-detected entities so the new flow can use them */
+        this.currentTx = { type: evaluation.intent };
+        if (evaluation.entities.amount)        this.currentTx.amount        = evaluation.entities.amount;
+        if (evaluation.entities.recipient)     this.currentTx.recipient     = evaluation.entities.recipient;
+        if (evaluation.entities.recipientPhone) this.currentTx.recipient    = evaluation.entities.recipientPhone;
+        if (evaluation.entities.provider)      this.currentTx.paymentMethod = evaluation.entities.provider;
+
+        this.currentState = ConversationState.HOME;   /* allow routeIntent to set its own state */
+        this.routeIntent(evaluation.intent);
+        return { input: t, intent: evaluation.intent, confidence: evaluation.confidence, state: stateAtEntry, handled: true };
+      }
+    }
+
+    /* ── Standard state-machine routing (unchanged from original) ── */
+    if (stateAtEntry === ConversationState.END_CHAT) {
+      this.handleEndChatInput(text);
+      return { input: t, intent: null, confidence: null, state: stateAtEntry, handled: true };
+    }
+
+    if (stateAtEntry === ConversationState.HOME ||
+        stateAtEntry === ConversationState.CLARIFICATION) {
+      const evaluation = AIIntentEngine.parse(t);
+      this.handleHomeState(text);
+      return {
+        input     : t,
+        intent    : evaluation.intent,
+        confidence: evaluation.confidence,
+        state     : stateAtEntry,
+        handled   : true
+      };
+    }
+
+    if (stateAtEntry === ConversationState.AWAIT_MORE_HELP) {
+      const evaluation = AIIntentEngine.parse(t);
+      this.handleMoreHelpResponse(text);
+      return {
+        input     : t,
+        intent    : evaluation.intent,
+        confidence: evaluation.confidence,
+        state     : stateAtEntry,
+        handled   : true
+      };
+    }
+
+    const handler = this.STATE_HANDLERS[stateAtEntry];
+    if (handler) {
+      const evaluation = AIIntentEngine.parse(t);
+      handler(text);
+      return {
+        input     : t,
+        intent    : evaluation.intent,
+        confidence: evaluation.confidence,
+        state     : stateAtEntry,
+        handled   : true
+      };
+    }
+
+    /* ── True passive states: should never reach here in normal use ── */
+    this.handlePassiveFlowInput(text);
+    return { input: t, intent: null, confidence: null, state: stateAtEntry, handled: false };
+  },
+
+  routeIntent: function(intent) {
+    if (intent === 'BUY_AIRTIME' || intent === 'BUY_MINUTE_BUNDLES') {
+      this.currentTx.type = 'AIRTIME';
+    } else if (intent === 'BUY_SMS_PACKAGES') {
+      this.currentTx.type = 'SMS';
+    } else if (intent === 'BUY_DATA_BUNDLE') {
+      this.currentTx.type = 'DATA';
+    } else if (intent === 'SEND_MONEY') {
+      this.currentTx.type = 'MONEY';
+    } else if (intent === 'BUY_LUKU') {
+      this.currentTx.type = 'LUKU';
+    } else {
+      this.currentTx.type = intent;
+    }
+    
+    switch(intent) {
+      case 'BUY_AIRTIME':
+        this.currentState = ConversationState.AIRTIME_FLOW;
+        this.showAirtimeOptions();
+        break;
+      case 'BUY_MINUTE_BUNDLES':
+        this.currentState = ConversationState.MINUTE_FLOW;
+        this.showMinuteBundles();
+        break;
+      case 'BUY_SMS_PACKAGES':
+        this.currentState = ConversationState.SMS_FLOW;
+        this.showSmsOptions();
+        break;
+      case 'BUY_DATA_BUNDLE':
+        this.currentState = ConversationState.DATA_FLOW;
+        this.showDataCategories();
+        break;
+      case 'SEND_MONEY':
+        this.currentState = ConversationState.MONEY_FLOW;
+        this.currentTx = { type: 'MONEY' };
+        this.showMoneyProviderStep();
+        break;
+      case 'CHECK_BALANCE':
+        this.currentState = ConversationState.BALANCE_FLOW;
+        this.showBalanceOptions();
+        break;
+      case 'REDEEM_VOUCHER':
+        this.currentState = ConversationState.VOUCHER_FLOW;
+        this.showVoucherTypeSelection();
+        break;
+      case 'MY_ACCOUNT':
+        this.currentState = ConversationState.ACCOUNT_FLOW;
+        this.showAccountDashboard();
+        break;
+      case 'BUY_LUKU':
+        this.currentState = ConversationState.LUKU_FLOW;
+        this.currentTx = { type: 'LUKU' };
+        this.showLukuProviderStep();
+        break;
+      case 'GET_HELP':
+        this.showHelpCenter();
+        break;
+      default:
+        this.resetToHome();
+    }
+  },
+
+  /* ==========================================
+     A. BUY AIRTIME FLOW SUB-MODULE
+     ========================================== */
+  showAirtimeOptions: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      if (this.currentTx.amount) {
+        // if a payment method was pre-detected (e.g., M-Pesa), auto-select it
+        if (this.currentTx.paymentMethod) {
+          this.selectAirtimePay(this.currentTx.paymentMethod);
+          return;
+        }
+        this.promptAirtimePayment();
+      } else {
+        const html = `
+          <div style="font-weight:600;margin-bottom:6px;">A1. Chagua Kiasi cha Airtime:</div>
+          <button class="btn-block" onclick="Engine.selectAirtimeAmt(1000)">Tsh 1,000</button>
+          <button class="btn-block" onclick="Engine.selectAirtimeAmt(2000)">Tsh 2,000</button>
+          <button class="btn-block" onclick="Engine.selectAirtimeAmt(5000)">Tsh 5,000</button>
+          <button class="btn-sub" style="margin-top:4px; width:100%;" onclick="Engine.setCustomAirtimeAmt()">Kiasi Kingine</button>
+        `;
+        this.addMessage(null, 'bot', html);
+      }
+    }, 400);
+  },
+
+  selectAirtimeAmt: function(amt) {
+    this.currentTx.amount = amt;
+    this.promptAirtimePayment();
+  },
+
+  setCustomAirtimeAmt: function() {
+    this.currentState = 'AIRTIME_CUSTOM_AMT';
+    this.addMessage("Andika kiasi unachotaka kuweka (Mfano: 1500):", "bot");
+  },
+
+  promptAirtimePayment: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">A3. Chagua Njia ya Malipo:</div>
+        <button class="btn-block" onclick="Engine.selectAirtimePay('Airtime Balance')">📱 Airtime Balance</button>
+        <button class="btn-block" onclick="Engine.selectAirtimePay('M-Pesa')">Vodacom M-Pesa</button>
+        <button class="btn-block" onclick="Engine.selectAirtimePay('Tigo Pesa')">Tigo Pesa</button>
+        <button class="btn-block" onclick="Engine.selectAirtimePay('Card')">💳 Card</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectAirtimePay: function(method) {
+    this.currentTx.paymentMethod = method;
+    this.currentTx.details = `Airtime Recharge Tsh ${this.currentTx.amount} via ${method}`;
+    this.showTransactionConfirm();
+  },
+
+  showSmsOptions: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">SMS1. Chagua kifurushi cha SMS:</div>
+        <button class="btn-block" onclick="Engine.selectSmsPackage('100 SMS', 1000)">100 SMS - Tsh 1,000</button>
+        <button class="btn-block" onclick="Engine.selectSmsPackage('250 SMS', 2000)">250 SMS - Tsh 2,000</button>
+        <button class="btn-block" onclick="Engine.selectSmsPackage('500 SMS', 3500)">500 SMS - Tsh 3,500</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectSmsPackage: function(name, price) {
+    this.currentTx.amount = price;
+    this.currentTx.details = `${name} SMS Package`;
+    this.promptSmsPayment();
+  },
+
+  promptSmsPayment: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">SMS2. Chagua Njia ya Malipo:</div>
+        <button class="btn-block" onclick="Engine.selectSmsPay('M-Pesa')">Vodacom M-Pesa</button>
+        <button class="btn-block" onclick="Engine.selectSmsPay('Tigo Pesa')">Tigo Pesa</button>
+        <button class="btn-block" onclick="Engine.selectSmsPay('Airtel Money')">Airtel Money</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectSmsPay: function(method) {
+    this.currentTx.paymentMethod = method;
+    this.currentTx.details = `SMS Package Tsh ${this.currentTx.amount} via ${method}`;
+    this.showTransactionConfirm();
+  },
+
+  showMinuteBundles: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">D1. Chagua kifurushi cha dakika:</div>
+        <button class="btn-block" onclick="Engine.selectMinuteBundle('100 Dakika', 2000)">100 Dakika - Tsh 2,000</button>
+        <button class="btn-block" onclick="Engine.selectMinuteBundle('250 Dakika', 3500)">250 Dakika - Tsh 3,500</button>
+        <button class="btn-block" onclick="Engine.selectMinuteBundle('500 Dakika', 6000)">500 Dakika - Tsh 6,000</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectMinuteBundle: function(name, price) {
+    this.currentTx.amount = price;
+    this.currentTx.details = `${name} Voice Bundle`;
+    this.promptAirtimePayment();
+  },
+
+  /* ==========================================
+     B. DATA BUNDLE FLOW SUB-MODULE
+     ========================================== */
+  showDataCategories: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">B1. Chagua Aina ya Kifurushi:</div>
+        <button class="btn-block" onclick="Engine.showBundlesList('Daily')">📅 Kifurushi cha Siku (Daily)</button>
+        <button class="btn-block" onclick="Engine.showBundlesList('Weekly')">🗓️ Kifurushi cha Wiki (Weekly)</button>
+        <button class="btn-block" onclick="Engine.showBundlesList('Monthly')">🚀 Kifurushi cha Mwezi (Monthly)</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  showBundlesList: function(category) {
+    let bundles = [];
+    if (category === 'Daily') {
+      bundles = [{name: "500MB Shimmer", price: 500, val: "Masaa 24"}, {name: "1GB Max", price: 1000, val: "Masaa 24"}];
+    } else if (category === 'Weekly') {
+      bundles = [{name: "3GB Wiki", price: 3000, val: "Siku 7"}, {name: "5GB Extreme", price: 5000, val: "Siku 7"}];
+    } else {
+      bundles = [{name: "15GB Heavyweight", price: 15000, val: "Siku 30"}, {name: "30GB Unlimited", price: 30000, val: "Siku 30"}];
+    }
+
+    let listHTML = `<div style="font-weight:600;margin-bottom:6px;">B2. Chagua Bando Lako:</div>`;
+    bundles.forEach((b, idx) => {
+      listHTML += `
+        <div class="rcard" style="cursor:pointer;" onclick="Engine.selectDataBundle('${b.name}', ${b.price}, '${b.val}')">
+          <div style="font-weight:700; color:var(--g8);">${b.name}</div>
+          <div style="font-size:11px; color:var(--mut);">Gharama: Tsh ${b.price.toLocaleString()} | Muda: ${b.val}</div>
+        </div>
+      `;
+    });
+    this.addMessage(null, 'bot', listHTML);
+  },
+
+  selectDataBundle: function(name, price, validity) {
+    this.currentTx.price = price;
+    this.currentTx.bundleName = name;
+    this.currentTx.details = `Data: ${name} (${validity})`;
+    this.promptDataPayment();
+  },
+
+  promptDataPayment: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">B3. Chagua Njia ya Malipo:</div>
+        <button class="btn-block" onclick="Engine.selectDataPay('M-Money Wallet')">M-Money Wallet</button>
+        <button class="btn-block" onclick="Engine.selectDataPay('M-Pesa')">M-Pesa</button>
+        <button class="btn-block" onclick="Engine.selectDataPay('Tigo Pesa')">Tigo Pesa</button>
+        <button class="btn-block" onclick="Engine.selectDataPay('Card')">💳 Card</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectDataPay: function(method) {
+    this.currentTx.paymentMethod = method;
+    this.currentTx.details = `Data: ${this.currentTx.bundleName} – Tsh ${this.currentTx.price} via ${method}`;
+    this.showTransactionConfirm();
+  },
+
+  /* ==========================================
+     C. SEND MONEY FLOW SUB-MODULE
+     Sequential 6-Step Workflow:
+       C1 → Provider selection
+       C2 → Phone number (namba ya mpokeaji)
+       C3 → Amount (kiasi)
+       C4 → OTP verification
+       C5 → PIN (masked dots)
+       C6 → Confirm & process
+     ========================================== */
+
+  /* STEP C1 – Select mobile network provider */
+  showMoneyProviderStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.MONEY_PROVIDER_SELECT;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const title = isSw ? 'C1. Chagua mtandao wa malipo:' : 'C1. Select mobile payment network:';
+      const html = `
+        <div style="font-weight:600;margin-bottom:8px;">${title}</div>
+        <button class="btn-block" style="display:flex;align-items:center;gap:10px;" onclick="Engine.selectMoneyProvider('M-Pesa')">
+          <span style="font-size:18px;">🟢</span>
+          <span style="text-align:left;"><strong>M-Pesa</strong><br><span style="font-size:11px;font-weight:400;opacity:.7;">Vodacom</span></span>
+        </button>
+        <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;" onclick="Engine.selectMoneyProvider('Tigo Pesa')">
+          <span style="font-size:18px;">🔵</span>
+          <span style="text-align:left;"><strong>Tigo Pesa</strong><br><span style="font-size:11px;font-weight:400;opacity:.7;">Tigo</span></span>
+        </button>
+        <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;" onclick="Engine.selectMoneyProvider('HaloPesa')">
+          <span style="font-size:18px;">🟡</span>
+          <span style="text-align:left;"><strong>HaloPesa</strong><br><span style="font-size:11px;font-weight:400;opacity:.7;">TTCL Halotel</span></span>
+        </button>
+        <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;" onclick="Engine.selectMoneyProvider('SelcomPay')">
+          <span style="font-size:18px;">🟠</span>
+          <span style="text-align:left;"><strong>SelcomPay</strong><br><span style="font-size:11px;font-weight:400;opacity:.7;">Selcom</span></span>
+        </button>
+        <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;" onclick="Engine.selectMoneyProvider('AzamPesa')">
+          <span style="font-size:18px;">🔴</span>
+          <span style="text-align:left;"><strong>AzamPesa</strong><br><span style="font-size:11px;font-weight:400;opacity:.7;">Azam</span></span>
+        </button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectMoneyProvider: function(provider) {
+    this.currentTx.paymentMethod = provider;
+    this.addMessage(provider, 'user');
+    this.showMoneyPhoneStep();
+  },
+
+  /* STEP C2 – Collect recipient phone number */
+  showMoneyPhoneStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.MONEY_PHONE_COLLECT;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const label = isSw
+        ? 'C2. Weka <strong>namba ya mpokeaji</strong> (simu):'
+        : 'C2. Enter <strong>recipient\'s phone number</strong>:';
+
+      /* Quick-pick frequent contacts */
+      let contactsHTML = '';
+      if (ChatbotMemory.frequentContacts && ChatbotMemory.frequentContacts.length) {
+        contactsHTML = `<div style="font-size:11.5px;font-weight:600;color:var(--g8);margin:10px 0 4px;">${isSw ? '📋 Wasiliani wa Hivi Karibuni:' : '📋 Recent Contacts:'}</div>`;
+        ChatbotMemory.frequentContacts.forEach(c => {
+          contactsHTML += `
+            <div class="rcard" style="cursor:pointer;padding:7px 10px;margin-bottom:4px;" onclick="Engine.quickPickContact('${c.phone}', '${c.name}')">
+              <strong style="font-size:13px;">👤 ${c.name}</strong>
+              <span style="float:right;font-size:11px;color:var(--mut);">${c.phone}</span>
+            </div>`;
+        });
+      }
+
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">${label}</div>
+        <div style="font-size:12px;color:var(--mut);margin-bottom:8px;">${isSw ? 'Mfano: 0712345678 au +255712345678' : 'E.g. 0712345678 or +255712345678'}</div>
+        ${contactsHTML}
+        <div style="font-size:11.5px;color:var(--mut);margin-top:6px;">${isSw ? 'Au andika namba moja kwa moja kwenye kisanduku cha maandishi 👇' : 'Or type the number directly in the text box 👇'}</div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  quickPickContact: function(phone, name) {
+    this.currentTx.recipient = phone;
+    this.currentTx.recipientName = name;
+    this.addMessage(`${name} – ${phone}`, 'user');
+    this.showMoneyAmountStep();
+  },
+
+  handleMoneyPhoneCollect: function(text) {
+    const digits = text.replace(/\D/g, '');
+    /* Accept 9-digit local, 10-digit (0...), 12-digit (255...) or 13-digit (+255...) */
+    if (digits.length >= 9 && digits.length <= 13) {
+      this.currentTx.recipient = text.trim();
+      this.showMoneyAmountStep();
+    } else {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(
+        isSw
+          ? '⚠️ Namba si sahihi. Tafadhali weka namba kamili ya simu (mfano: 0712345678).'
+          : '⚠️ Invalid number. Please enter a full phone number (e.g. 0712345678).',
+        'bot'
+      );
+    }
+  },
+
+  /* STEP C3 – Collect amount */
+  showMoneyAmountStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.MONEY_AMOUNT_COLLECT;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const recDisplay = this.currentTx.recipientName
+        ? `${this.currentTx.recipientName} (${this.currentTx.recipient})`
+        : this.currentTx.recipient;
+      const label = isSw
+        ? `C3. Weka <strong>kiasi</strong> unachotaka kumtumia <em>${recDisplay}</em>:`
+        : `C3. Enter the <strong>amount</strong> to send to <em>${recDisplay}</em>:`;
+      const html = `
+        <div style="font-weight:600;margin-bottom:8px;">${label}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+          <button class="btn-sub" onclick="Engine.quickPickAmount(1000)">Tsh 1,000</button>
+          <button class="btn-sub" onclick="Engine.quickPickAmount(5000)">Tsh 5,000</button>
+          <button class="btn-sub" onclick="Engine.quickPickAmount(10000)">Tsh 10,000</button>
+          <button class="btn-sub" onclick="Engine.quickPickAmount(25000)">Tsh 25,000</button>
+          <button class="btn-sub" onclick="Engine.quickPickAmount(50000)">Tsh 50,000</button>
+        </div>
+        <div style="font-size:11.5px;color:var(--mut);">${isSw ? 'Au andika kiasi chochote 👇' : 'Or type any amount 👇'}</div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  quickPickAmount: function(amt) {
+    this.currentTx.amount = amt;
+    this.addMessage(`Tsh ${amt.toLocaleString()}`, 'user');
+    this.showMoneyOTPStep();
+  },
+
+  handleMoneyAmountCollect: function(text) {
+    const raw = text.replace(/[,.\s]/g, '');
+    const amt = parseInt(raw, 10);
+    if (amt >= 100) {
+      this.currentTx.amount = amt;
+      this.showMoneyOTPStep();
+    } else {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(
+        isSw
+          ? '⚠️ Weka kiasi cha kuanzia Tsh 100.'
+          : '⚠️ Please enter an amount of at least Tsh 100.',
+        'bot'
+      );
+    }
+  },
+
+  /* STEP C4 – OTP generation & in-chat verification */
+  showMoneyOTPStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.MONEY_OTP_VERIFY;
+      /* Generate a 6-digit OTP and store it */
+      this._moneyOTP = Math.floor(100000 + Math.random() * 899999);
+      const isSw = ChatbotMemory.lang === 'sw';
+
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--g5);">
+          <div class="rcard-title">🔐 ${isSw ? 'Uthibitisho wa OTP' : 'OTP Verification'}</div>
+          <div style="font-size:12.5px;margin-bottom:10px;">
+            ${isSw
+              ? 'Namba ya uthibitisho imetumwa. Inaonekana hapa kwa madhumuni ya majaribio:'
+              : 'A verification code has been generated. Shown here for demo purposes:'}
+          </div>
+          <div style="font-size:28px;font-weight:800;letter-spacing:8px;text-align:center;
+                      background:var(--g0);border-radius:10px;padding:10px 6px;
+                      color:var(--g9);margin-bottom:12px;">${this._moneyOTP}</div>
+          <div style="font-size:12px;margin-bottom:8px;color:var(--mut);">
+            ${isSw ? 'Ingiza namba hiyo hapa chini kuthibitisha:' : 'Enter the code below to verify:'}
+          </div>
+          <input id="moneyOTPInput" type="tel" inputmode="numeric" maxlength="6"
+            style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--bdr);
+                   font-size:20px;text-align:center;letter-spacing:6px;font-weight:700;
+                   background:var(--bg);color:var(--txt);"
+            placeholder="- - - - - -"
+            oninput="this.value=this.value.replace(/\\D/g,'')"/>
+          <button class="btn-block" style="margin-top:10px;" onclick="Engine.verifyMoneyOTP()">
+            ${isSw ? '✅ Thibitisha OTP' : '✅ Verify OTP'}
+          </button>
+          <button class="btn-sub" style="width:100%;margin-top:6px;" onclick="Engine.cancelTransaction()">
+            ${isSw ? 'Ghairi' : 'Cancel'}
+          </button>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 600);
+  },
+
+  verifyMoneyOTP: function() {
+    const inputEl = document.getElementById('moneyOTPInput');
+    if (!inputEl) return;
+    const entered = inputEl.value.trim();
+    if (String(entered) === String(this._moneyOTP)) {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(isSw ? '✅ OTP imethibitishwa.' : '✅ OTP verified.', 'user');
+      this.showMoneyPINStep();
+    } else {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(
+        isSw
+          ? '❌ Namba si sahihi. Tafadhali jaribu tena.'
+          : '❌ Incorrect code. Please try again.',
+        'bot'
+      );
+      inputEl.value = '';
+      inputEl.focus();
+    }
+  },
+
+  /* STEP C5 – PIN entry (masked dots, in-chat keypad) */
+  showMoneyPINStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.MONEY_PIN_COLLECT;
+      this._moneyPIN = '';
+      const isSw = ChatbotMemory.lang === 'sw';
+
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--g8);">
+          <div class="rcard-title">🔒 ${isSw ? 'Weka PIN Yako' : 'Enter Your PIN'}</div>
+          <div style="font-size:12.5px;margin-bottom:12px;">
+            ${isSw
+              ? 'Weka PIN yako ya siri ya SemaTel Wallet (tarakimu 4) kuthibitisha muamala:'
+              : 'Enter your 4-digit SemaTel Wallet PIN to authorise this transaction:'}
+          </div>
+          <!-- Masked PIN display: dots grow as user presses digits -->
+          <div id="moneyPINDots" style="
+            display:flex;justify-content:center;gap:16px;
+            margin-bottom:16px;padding:10px;
+            background:var(--g0);border-radius:10px;">
+            <span id="moneyPINDot0" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="moneyPINDot1" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="moneyPINDot2" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="moneyPINDot3" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+          </div>
+          <!-- In-chat numeric keypad -->
+          <div class="pin-grid" id="moneyPINGrid">
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('1')">1</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('2')">2</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('3')">3</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('4')">4</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('5')">5</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('6')">6</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('7')">7</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('8')">8</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('9')">9</div>
+            <div class="pin-btn" style="background:var(--r1);color:var(--r6);font-size:14px;"
+                 onclick="Engine.deleteMoneyPIN()">⌫</div>
+            <div class="pin-btn" onclick="Engine.pressMoneyPIN('0')">0</div>
+            <div class="pin-btn" style="background:var(--g1);color:var(--g8);font-size:14px;"
+                 onclick="Engine.submitMoneyPIN()">✓</div>
+          </div>
+          <div id="moneyPINError" style="font-size:11.5px;color:var(--r6);text-align:center;margin-top:8px;min-height:16px;"></div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 500);
+  },
+
+  pressMoneyPIN: function(digit) {
+    if (this._moneyPIN.length >= 4) return;
+    this._moneyPIN += digit;
+    this._updateMoneyPINDots();
+    /* Auto-submit once 4 digits reached */
+    if (this._moneyPIN.length === 4) {
+      setTimeout(() => this.submitMoneyPIN(), 250);
+    }
+  },
+
+  deleteMoneyPIN: function() {
+    if (this._moneyPIN.length > 0) {
+      this._moneyPIN = this._moneyPIN.slice(0, -1);
+      this._updateMoneyPINDots();
+    }
+  },
+
+  _updateMoneyPINDots: function() {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('moneyPINDot' + i);
+      if (dot) {
+        dot.style.background = i < this._moneyPIN.length ? 'var(--g8)' : 'transparent';
+      }
+    }
+  },
+
+  submitMoneyPIN: function() {
+    if (this._moneyPIN.length < 4) {
+      const errEl = document.getElementById('moneyPINError');
+      if (errEl) errEl.textContent = ChatbotMemory.lang === 'sw'
+        ? 'Tafadhali weka tarakimu 4.'
+        : 'Please enter 4 digits.';
+      return;
+    }
+    /* Disable the grid to prevent double submission */
+    const grid = document.getElementById('moneyPINGrid');
+    if (grid) grid.style.pointerEvents = 'none';
+
+    /* Show masked confirmation as user bubble */
+    this.addMessage('●●●●', 'user');
+
+    /* Build transaction details and move to confirm */
+    this.currentTx.details = `Tuma Tsh ${Number(this.currentTx.amount).toLocaleString()} → ${this.currentTx.recipientName || this.currentTx.recipient} via ${this.currentTx.paymentMethod}`;
+    this.showMoneyConfirmStep();
+  },
+
+  /* STEP C6 – Summary card + final confirm/process */
+  showMoneyConfirmStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const isSw = ChatbotMemory.lang === 'sw';
+      if (!FraudGuard.check(this.currentTx)) {
+        this.addMessage(this.translate('fraud_block'), 'bot');
+        return;
+      }
+      this.currentState = ConversationState.CONFIRM_TX;
+
+      const rec = this.currentTx.recipientName
+        ? `${this.currentTx.recipientName} (${this.currentTx.recipient})`
+        : this.currentTx.recipient;
+
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">📋 ${isSw ? 'THIBITISHA MUAMALA' : 'CONFIRM TRANSACTION'}</div>
+          <div style="font-size:12px;color:var(--mut);margin-bottom:8px;">
+            ${isSw ? 'Angalia taarifa zifuatazo kisha thibitisha:' : 'Review the details below then confirm:'}
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Mtandao / Network' : 'Network'}</span>
+            <span>${this.currentTx.paymentMethod}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Mpokeaji' : 'Recipient'}</span>
+            <span>${rec}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Kiasi' : 'Amount'}</span>
+            <span style="font-weight:700;color:var(--g8);">Tsh ${Number(this.currentTx.amount).toLocaleString()}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Salio Baada' : 'Balance After'}</span>
+            <span>Tsh ${(ChatbotMemory.walletBalance - this.currentTx.amount).toLocaleString()}</span>
+          </div>
+          <button class="btn-block" style="margin-top:12px;" onclick="Engine.finaliseMoneyTransfer()">
+            ${isSw ? '✅ Tuma Pesa' : '✅ Send Money'}
+          </button>
+          <button class="btn-sub" style="width:100%;margin-top:6px;" onclick="Engine.cancelTransaction()">
+            ${isSw ? 'Ghairi' : 'Cancel'}
+          </button>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  finaliseMoneyTransfer: function() {
+    this.processTransaction();
+  },
+
+  /* ---- Legacy helpers kept for backward compatibility ---- */
+  showMoneyPaymentMethodStep: function() { this.showMoneyProviderStep(); },
+  selectMoneyPayMethod: function(method) { this.selectMoneyProvider(method); },
+  showMoneyRecipientStep: function() { this.showMoneyPhoneStep(); },
+  selectMoneyRecipient: function(rec) {
+    this.currentTx.recipient = rec;
+    this.showMoneyAmountStep();
+  },
+  setCustomRecipient: function() {
+    this.currentState = 'MONEY_CUSTOM_REC';
+    this.addMessage('Tafadhali andika namba ya simu ya mpokeaji:', 'bot');
+  },
+  promptMoneyAmount: function() { this.showMoneyAmountStep(); },
+  handleMoneyRecipient: function(text) {
+    this.currentTx.recipient = text;
+    this.showMoneyAmountStep();
+  },
+  handleMoneyPhoneInput: function(text) {
+    const phone = text.replace(/\D/g, '');
+    if (phone.length >= 9) {
+      this.currentTx.recipient = phone;
+      this.showMoneyAmountStep();
+    } else {
+      this.addMessage('Namba ya simu haijakamilika. Tafadhali weka namba halali (mfano: 0712345678)', 'bot');
+    }
+  },
+  handleMoneyAmount: function(text) {
+    const amt = parseInt(text.replace(/\D/g, ''));
+    if (amt > 0) {
+      this.currentTx.amount = amt;
+      this.showMoneyOTPStep();
+    } else {
+      this.addMessage('Weka kiasi cha kuanzia Tsh 100.', 'bot');
+    }
+  },
+
+
+  /* ==========================================
+     L. BUY LUKU (PREPAID ELECTRICITY) FLOW
+     Sequential 4-step workflow:
+       L1 → Mobile money network selection
+       L2 → Meter number (namba ya meita)
+       L3 → Amount (kiasi cha umeme)
+       L4 → PIN (masked dots, in-chat keypad)
+       L5 → Summary confirm → process
+     ========================================== */
+
+  /* STEP L1 – Select mobile money network */
+  showLukuProviderStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_FLOW;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'Nunua LUKU / Umeme' : 'Buy LUKU / Electricity Token'}</div>
+          <div style="font-size:12.5px;color:var(--mut);margin-bottom:10px;">
+            ${isSw ? 'L1. Chagua mtandao wa malipo:' : 'L1. Select your mobile money network:'}
+          </div>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;"
+              onclick="Engine.selectLukuProvider('M-Pesa')">
+            <span style="font-size:18px;">🟢</span>
+            <span style="text-align:left;"><strong>M-Pesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Vodacom</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('Tigo Pesa')">
+            <span style="font-size:18px;">🔵</span>
+            <span style="text-align:left;"><strong>Tigo Pesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Tigo</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('HaloPesa')">
+            <span style="font-size:18px;">🟡</span>
+            <span style="text-align:left;"><strong>HaloPesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">TTCL Halotel</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('SelcomPay')">
+            <span style="font-size:18px;">🟠</span>
+            <span style="text-align:left;"><strong>SelcomPay</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Selcom</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('AzamPesa')">
+            <span style="font-size:18px;">🔴</span>
+            <span style="text-align:left;"><strong>AzamPesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Azam</span></span>
+          </button>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectLukuProvider: function(provider) {
+    this.currentTx.paymentMethod = provider;
+    this.addMessage(provider, 'user');
+    this.showLukuMeterStep();
+  },
+
+  /* STEP L2 – Collect meter number */
+  showLukuMeterStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_METER_COLLECT;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'Namba ya Meita' : 'Meter Number'}</div>
+          <div style="font-size:12.5px;margin-bottom:8px;">
+            ${isSw
+              ? 'L2. Weka <strong>namba ya meita</strong> yako ya umeme:'
+              : 'L2. Enter your electricity <strong>meter number</strong>:'}
+          </div>
+          <div style="font-size:11.5px;color:var(--mut);margin-bottom:6px;">
+            ${isSw
+              ? 'Namba za tarakimu 11 hadi 13 (inapatikana kwenye meita yako au ankara)'
+              : '11–13 digit number (found on your meter or electricity bill)'}
+          </div>
+          <div style="font-size:11.5px;color:var(--mut);">
+            ${isSw ? 'Andika namba 👇' : 'Type the number below 👇'}
+          </div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  handleLukuMeterCollect: function(text) {
+    const digits = text.replace(/\D/g, '');
+    if (digits.length >= 11 && digits.length <= 13) {
+      this.currentTx.meterNumber = digits;
+      this.addMessage(digits, 'user');
+      this.showLukuAmountStep();
+    } else {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(
+        isSw
+          ? '⚠️ Namba ya meita si sahihi. Weka tarakimu 11 hadi 13 (mfano: 12345678901).'
+          : '⚠️ Invalid meter number. Enter 11–13 digits (e.g. 12345678901).',
+        'bot'
+      );
+    }
+  },
+
+  /* STEP L3 – Collect amount */
+  showLukuAmountStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_AMOUNT_COLLECT;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'Kiasi cha Umeme' : 'Electricity Amount'}</div>
+          <div style="font-size:12.5px;margin-bottom:10px;">
+            ${isSw
+              ? 'L3. Chagua au weka <strong>kiasi</strong> cha umeme unachotaka kununua:'
+              : 'L3. Choose or enter the <strong>amount</strong> of electricity to buy:'}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(1000)">Tsh 1,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(2000)">Tsh 2,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(5000)">Tsh 5,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(10000)">Tsh 10,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(20000)">Tsh 20,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(50000)">Tsh 50,000</button>
+          </div>
+          <div style="font-size:11.5px;color:var(--mut);">
+            ${isSw ? 'Au andika kiasi chochote kuanzia Tsh 500 👇' : 'Or type any amount from Tsh 500 👇'}
+          </div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectLukuAmount: function(amt) {
+    this.currentTx.amount = amt;
+    this.addMessage('Tsh ' + amt.toLocaleString(), 'user');
+    this.showLukuPINStep();
+  },
+
+  handleLukuAmountCollect: function(text) {
+    /* Also handle inline-intent like "luku ya 5000" — strip non-numeric prefix */
+    const digits = text.replace(/[^0-9]/g, '');
+    const amt = parseInt(digits, 10);
+    if (amt >= 500) {
+      this.currentTx.amount = amt;
+      this.showLukuPINStep();
+    } else {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(
+        isSw
+          ? '⚠️ Weka kiasi cha kuanzia Tsh 500.'
+          : '⚠️ Please enter an amount of at least Tsh 500.',
+        'bot'
+      );
+    }
+  },
+
+  /* STEP L4 – PIN entry (masked dots, in-chat keypad) */
+  showLukuPINStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_PIN_COLLECT;
+      this._lukuPIN = '';
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--g8);">
+          <div class="rcard-title">🔒 ${isSw ? 'Weka PIN Yako' : 'Enter Your PIN'}</div>
+          <div style="font-size:12.5px;margin-bottom:12px;">
+            ${isSw
+              ? 'L4. Weka PIN yako ya siri (tarakimu 4) kuthibitisha ununuzi wa LUKU:'
+              : 'L4. Enter your 4-digit PIN to authorise this LUKU purchase:'}
+          </div>
+          <div id="lukuPINDots" style="
+              display:flex;justify-content:center;gap:16px;
+              margin-bottom:16px;padding:10px;
+              background:var(--g0);border-radius:10px;">
+            <span id="lukuPINDot0" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="lukuPINDot1" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="lukuPINDot2" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="lukuPINDot3" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+          </div>
+          <div class="pin-grid" id="lukuPINGrid">
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('1')">1</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('2')">2</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('3')">3</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('4')">4</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('5')">5</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('6')">6</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('7')">7</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('8')">8</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('9')">9</div>
+            <div class="pin-btn" style="background:var(--r1);color:var(--r6);font-size:14px;"
+                 onclick="Engine.deleteLukuPIN()">⌫</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('0')">0</div>
+            <div class="pin-btn" style="background:var(--g1);color:var(--g8);font-size:14px;"
+                 onclick="Engine.submitLukuPIN()">✓</div>
+          </div>
+          <div id="lukuPINError" style="font-size:11.5px;color:var(--r6);text-align:center;
+               margin-top:8px;min-height:16px;"></div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 500);
+  },
+
+  pressLukuPIN: function(digit) {
+    if (this._lukuPIN.length >= 4) return;
+    this._lukuPIN += digit;
+    this._updateLukuPINDots();
+    if (this._lukuPIN.length === 4) {
+      setTimeout(() => this.submitLukuPIN(), 250);
+    }
+  },
+
+  deleteLukuPIN: function() {
+    if (this._lukuPIN.length > 0) {
+      this._lukuPIN = this._lukuPIN.slice(0, -1);
+      this._updateLukuPINDots();
+    }
+  },
+
+  _updateLukuPINDots: function() {
+    for (var i = 0; i < 4; i++) {
+      var dot = document.getElementById('lukuPINDot' + i);
+      if (dot) dot.style.background = i < this._lukuPIN.length ? 'var(--g8)' : 'transparent';
+    }
+  },
+
+  submitLukuPIN: function() {
+    if (this._lukuPIN.length < 4) {
+      var errEl = document.getElementById('lukuPINError');
+      if (errEl) errEl.textContent = ChatbotMemory.lang === 'sw'
+        ? 'Tafadhali weka tarakimu 4.' : 'Please enter 4 digits.';
+      return;
+    }
+    var grid = document.getElementById('lukuPINGrid');
+    if (grid) grid.style.pointerEvents = 'none';
+    this.addMessage('●●●●', 'user');
+    this.currentTx.details = 'LUKU Meita ' + this.currentTx.meterNumber
+      + ' – Tsh ' + Number(this.currentTx.amount).toLocaleString()
+      + ' via ' + this.currentTx.paymentMethod;
+    this.showLukuConfirmStep();
+  },
+
+  /* STEP L5 – Summary confirm card */
+  showLukuConfirmStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      if (!FraudGuard.check(this.currentTx)) {
+        this.addMessage(this.translate('fraud_block'), 'bot');
+        return;
+      }
+      this.currentState = ConversationState.CONFIRM_TX;
+      const isSw = ChatbotMemory.lang === 'sw';
+
+      /* Estimate units (rough TANESCO rate: ~Tsh 210/kWh for domestic ≤50kWh) */
+      const approxUnits = (this.currentTx.amount / 210).toFixed(1);
+
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'THIBITISHA UNUNUZI WA LUKU' : 'CONFIRM LUKU PURCHASE'}</div>
+          <div style="font-size:12px;color:var(--mut);margin-bottom:8px;">
+            ${isSw ? 'Angalia taarifa zifuatazo kisha thibitisha:' : 'Review the details below then confirm:'}
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Mtandao' : 'Network'}</span>
+            <span>${this.currentTx.paymentMethod}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Namba ya Meita' : 'Meter Number'}</span>
+            <span style="font-family:monospace;letter-spacing:1px;">${this.currentTx.meterNumber}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Kiasi' : 'Amount'}</span>
+            <span style="font-weight:700;color:var(--g8);">Tsh ${Number(this.currentTx.amount).toLocaleString()}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Wastani wa Vitengo' : 'Est. Units'}</span>
+            <span>~${approxUnits} kWh</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Salio Baada' : 'Balance After'}</span>
+            <span>Tsh ${(ChatbotMemory.walletBalance - this.currentTx.amount).toLocaleString()}</span>
+          </div>
+          <button class="btn-block" style="margin-top:12px;background:var(--y7);"
+              onclick="Engine.finaliseLukuPurchase()">
+            ⚡ ${isSw ? 'Nunua LUKU' : 'Buy LUKU'}
+          </button>
+          <button class="btn-sub" style="width:100%;margin-top:6px;"
+              onclick="Engine.cancelTransaction()">
+            ${isSw ? 'Ghairi' : 'Cancel'}
+          </button>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  finaliseLukuPurchase: function() {
+    this.processTransaction();
+  },
+
+  showBalanceOptions: function() {
+    this.currentState = ConversationState.BALANCE_SELECTION;
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div style="font-weight:600;margin-bottom:6px;">D1. Chagua Salio Unayotaka Kuangalia:</div>
+        <button class="btn-block" onclick="Engine.selectBalanceType('AIRTIME')">Airtime Balance</button>
+        <button class="btn-block" onclick="Engine.selectBalanceType('DATA')">Data Remaining</button>
+        <button class="btn-block" onclick="Engine.selectBalanceType('WALLET')">M-Money Balance</button>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectBalanceType: function(type) {
+    this.currentTx.balanceType = type;
+    this.currentState = ConversationState.BALANCE_FLOW;
+    this.addMessage(this.translate('balance_fetch'), 'bot');
+    TelecomAPI.fetchBalance(type)
+      .then((res) => {
+        const html = `
+          <div class="rcard">
+            <div class="rcard-title">📋 ${res.label}</div>
+            <div class="rcard-row"><span>${res.value}</span></div>
+            <div style="font-size:10px;color:var(--mut);margin-top:6px;">${ChatbotMemory.network} • ${new Date().toLocaleTimeString()}</div>
+          </div>`;
+        this.addMessage(null, 'bot', html);
+        this.askMoreHelp();
+      })
+      .catch((err) => {
+        this.addMessage(
+          `❌ ${err.reason || 'Failed to fetch balance'}. ${this.translate('retry')}?`,
+          'bot'
+        );
+        this.setChips([this.translate('retry'), this.translate('home')]);
+      });
+  },
+
+  /* ==========================================
+     D. BALANCE DISPLAY MODULE
+     ========================================== */
+  showBalanceDashboard: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      const html = `
+        <div class="rcard">
+          <div class="rcard-title">📋 Dashboard ya Salio</div>
+          <div class="rcard-row"><span>Airtime Balance:</span><span>Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}</span></div>
+          <div class="rcard-row"><span>Data Remaining:</span><span>${ChatbotMemory.dataBalance}</span></div>
+          <div class="rcard-row"><span>SemaTel Wallet:</span><span>Tsh ${ChatbotMemory.walletBalance.toLocaleString()}</span></div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+      this.askMoreHelp();
+    }, 500);
+  },
+
+  /* ==========================================
+     E. REDEEM VOUCHER SUB-MODULE
+     ========================================== */
+  showVoucherTypeSelection: function() {
+    this.currentState = ConversationState.VOUCHER_TYPE_SELECTION;
+    this.addMessage("E1. Chagua aina ya vocha unayotaka kuingiza:", "bot");
+    const html = `
+      <div class="qa-grid">
+        <div class="qa-tile" onclick="Engine.selectVoucherType('AIRTIME')">Airtime Voucher</div>
+        <div class="qa-tile" onclick="Engine.selectVoucherType('DATA')">Data Voucher</div>
+      </div>
+    `;
+    this.addMessage(null, 'bot', html);
+  },
+
+  selectVoucherType: function(type) {
+    this.currentTx.voucherType = type;
+    this.currentState = ConversationState.VOUCHER_CODE_INPUT;
+    const demo = type === 'AIRTIME' ? 'STAIR1000, DEMO12345' : 'STDATA1GB, DEMO54321';
+    this.addMessage(
+      `E2. Ingiza namba ya vocha (${type.toLowerCase()}).\nDemo: ${demo}`,
+      'bot'
+    );
+  },
+
+  /* ==========================================
+     F. MY ACCOUNT ACCOUNT DASHBOARD WIDGETS
+     ========================================== */
+  showAccountDashboard: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      let recentHTML = '';
+      ChatbotMemory.recentTransactions.slice(0, 2).forEach(t => {
+        recentHTML += `<div style="font-size:11px;border-bottom:1px solid var(--bdr);padding:3px 0;">• ${t.details} - Tsh ${t.amt} (${t.date})</div>`;
+      });
+      
+      const html = `
+        <div class="rcard">
+          <div class="rcard-title">👤 Akaunti Yangu</div>
+          <div class="rcard-row"><span>Namba:</span><span>${ChatbotMemory.phoneNumber}</span></div>
+          <div class="rcard-row"><span>Mtandao:</span><span>${ChatbotMemory.network}</span></div>
+          <div class="rcard-row"><span>Wallet:</span><span>Tsh ${ChatbotMemory.walletBalance.toLocaleString()}</span></div>
+          <div style="margin-top:8px;font-weight:600;font-size:11.5px;color:var(--g8);">Miamala ya Hivi Karibuni:</div>
+          ${recentHTML}
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+      this.askMoreHelp();
+    }, 500);
+  },
+
+  /* ==========================================
+     G. HELP CENTER
+     ========================================== */
+  showHelpCenter: function() {
+    const html = `
+      <div class="rcard">
+        <div class="rcard-title">💡 Msaada & Huduma</div>
+        <button class="btn-block" style="font-size:11px;padding:6px;" onclick="alert('FAQs under system updates')">Maswali Yanayoulizwa Sana (FAQs)</button>
+        <button class="btn-block" style="font-size:11px;padding:6px;" onclick="alert('Connecting to live agent Adapter...')">Ongea na Muhudumu</button>
+        <button class="btn-block" style="font-size:11px;padding:6px;" onclick="Engine.resetToHome()">Rudi Mwanzo</button>
+      </div>
+    `;
+    this.addMessage(null, 'bot', html);
+  },
+
+  /* ==========================================
+     H. HIGHLY CONFIGURABLE SECURITY GATE (OTP/PIN)
+     ========================================== */
+  buildTxSummaryLines: function() {
+    const tx = this.currentTx;
+    const lines = [];
+    if (tx.details) lines.push(['Huduma / Service', tx.details]);
+    if (tx.recipient) lines.push(['Mpokeaji / Recipient', tx.recipient]);
+    if (tx.amount) lines.push(['Kiasi / Amount', `Tsh ${Number(tx.amount).toLocaleString()}`]);
+    if (tx.price) lines.push(['Kiasi / Amount', `Tsh ${Number(tx.price).toLocaleString()}`]);
+    if (tx.paymentMethod) lines.push(['Malipo / Payment', tx.paymentMethod]);
+    return lines;
+  },
+
+  showTransactionConfirm: function() {
+    if (!FraudGuard.check(this.currentTx)) {
+      this.addMessage(this.translate('fraud_block'), 'bot');
+      return;
+    }
+    this.currentState = ConversationState.CONFIRM_TX;
+    const rows = this.buildTxSummaryLines().map(([k, v]) =>
+      `<div class="rcard-row"><span>${k}</span><span>${v}</span></div>`
+    ).join('');
+    const html = `
+      <div class="rcard">
+        <div class="rcard-title">${this.translate('confirm_title')}</div>
+        <div style="font-size:12px;margin-bottom:8px;">${this.translate('confirm_summary')}</div>
+        ${rows}
+        <button class="btn-block" style="margin-top:10px;" onclick="Engine.confirmTransaction()">${this.translate('confirm')}</button>
+        <button class="btn-sub" style="width:100%;margin-top:6px;" onclick="Engine.cancelTransaction()">${this.translate('cancel')}</button>
+      </div>`;
+    this.addMessage(null, 'bot', html);
+  },
+
+  confirmTransaction: function() {
+    const secType = this.currentTx.type === 'VOUCHER' ? 'VOUCHER' : (this.currentTx.type || 'TX');
+    this.triggerSecurityGate(secType);
+  },
+
+  cancelTransaction: function() {
+    this.addMessage(ChatbotMemory.lang === 'sw' ? 'Muamala umeghairiwa.' : 'Transaction cancelled.', 'bot');
+    this.resetToHome();
+  },
+
+  triggerSecurityGate: function(type) {
+    this.currentState = ConversationState.SECURITY_AUTH;
+    const modal = document.getElementById('securityModal');
+    const content = document.getElementById('securityModalContent');
+
+    // Generating cryptographic random security code
+    const generatedOTP = Math.floor(100000 + Math.random() * 899999);
+    
+    content.innerHTML = `
+      <div style="text-align:center;">
+        <div>${this.translate('otp_msg')}</div>
+        <div style="font-size:24px; font-weight:800; background:var(--g0); padding:10px; margin:12px 0; border-radius:12px; letter-spacing:4px; color:var(--g9);">${generatedOTP}</div>
+        <input type="number" id="otpVal" class="btn-block" style="background:var(--bg);color:var(--txt);text-align:center;font-size:18px;" placeholder="******">
+        <button class="btn-block" onclick="Engine.verifyOTPCode(${generatedOTP})">${this.translate('confirm')}</button>
+        <button class="btn-sub" style="width:100%;margin-top:6px;" onclick="Engine.closeSecurityDialog()">${this.translate('cancel') || 'Cancel'}</button>
+      </div>
+    `;
+    modal.classList.add('show');
+  },
+
+  verifyOTPCode: function(correctOTP) {
+    const entered = document.getElementById('otpVal').value.trim();
+    if (entered == correctOTP) {
+      // Elevate security verification clear into secure PIN request mapping
+      this.promptWalletSecurePIN();
+    } else {
+      alert("Verification Code is Incorrect! Please authorize properly.");
+    }
+  },
+
+  promptWalletSecurePIN: function() {
+    const content = document.getElementById('securityModalContent');
+    content.innerHTML = `
+      <div style="text-align:center;">
+        <div>${this.translate('pin_msg')}</div>
+        <div style="font-size:24px; font-weight:800; margin:8px 0; letter-spacing:6px;" id="pinStars">****</div>
+        <input type="password" id="pinVal" maxlength="4" readonly style="display:none;">
+        <div class="pin-grid">
+          <div class="pin-btn" onclick="Engine.pressPIN(1)">1</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(2)">2</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(3)">3</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(4)">4</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(5)">5</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(6)">6</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(7)">7</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(8)">8</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(9)">9</div>
+          <div class="pin-btn" style="background:var(--r1);color:var(--r6);" onclick="Engine.closeSecurityDialog()">X</div>
+          <div class="pin-btn" onclick="Engine.pressPIN(0)">0</div>
+          <div class="pin-btn" style="background:var(--g1);color:var(--g8);" onclick="Engine.submitSecurePIN()">✓</div>
+        </div>
+      </div>
+    `;
+    this.enteredPIN = "";
+  },
+
+  pressPIN: function(num) {
+    if (this.enteredPIN.length < 4) {
+      this.enteredPIN += num;
+      document.getElementById('pinStars').textContent = "●".repeat(this.enteredPIN.length) + "*".repeat(4 - this.enteredPIN.length);
+    }
+  },
+
+  submitSecurePIN: function() {
+    if (this.enteredPIN.length === 4) {
+      this.closeSecurityDialog();
+      this.executeCentralizedEngine();
+    }
+  },
+
+  closeSecurityDialog: function() {
+    document.getElementById('securityModal').classList.remove('show');
+    if (this.currentState === ConversationState.SECURITY_AUTH) {
+      this.currentState = ConversationState.CONFIRM_TX;
+      this.addMessage(
+        ChatbotMemory.lang === 'sw' ? 'Uthibitisho umeghairiwa.' : 'Verification cancelled.',
+        'bot'
+      );
+    }
+  },
+
+  /* ==========================================
+     I. ENGINE ACTION HANDLING & SCREEN GENERATION
+     ========================================== */
+   processTransaction: function() {
+     this.currentState = ConversationState.PROCESSING;
+     const shimID = 'shim-' + Date.now();
+     const shimHTML = `
+       <div class="rcard" id="${shimID}">
+         <div class="rcard-title">⚙️ ${this.translate('processing')}</div>
+         <div class="shimmer" style="height:12px; margin-top:8px; border-radius:6px; width:100%;"></div>
+         <div class="shimmer" style="height:12px; margin-top:4px; border-radius:6px; width:75%;"></div>
+       </div>`;
+     this.addMessage(null, 'bot', shimHTML);
+
+     TransactionEngine.process(this.currentTx)
+       .then((res) => this.renderTransactionResult(shimID, res, null))
+       .catch((error) => this.renderTransactionResult(shimID, null, error));
+   },
+
+   renderTransactionResult: function(shimID, res, error) {
+     const container = document.getElementById(shimID);
+     if (container && container.parentElement && container.parentElement.parentElement) {
+       container.parentElement.parentElement.remove();
+     }
+     this.currentState = ConversationState.RESULT_SCREEN;
+     if (res && res.status === 'SUCCESS') {
+       const successHTML = `
+         <div class="rcard" style="border-left: 4px solid var(--g5);">
+           <div style="color:var(--g8);font-weight:700;font-size:14px;margin-bottom:6px;">${this.translate('success')}</div>
+           <div class="rcard-row"><span>Ref Number:</span><span>${res.ref}</span></div>
+           <div class="rcard-row"><span>Date/Time:</span><span>${res.date} | ${res.time}</span></div>
+           <div class="rcard-row"><span>Transaction:</span><span>${this.currentTx.details}</span></div>
+         </div>`;
+       this.addMessage(null, 'bot', successHTML);
+     } else {
+       const reason = (error && error.reason) || (res && res.reason) || 'System Error';
+       const queued = error && error.queued;
+       const failedHTML = `
+         <div class="rcard" style="border-left: 4px solid var(--r6); background: var(--r1);">
+           <div style="color:var(--r6);font-weight:700;font-size:14px;margin-bottom:4px;">${this.translate('failed')}</div>
+           <div style="font-size:12px;color:var(--txt);">Sababu: ${reason}</div>
+           ${queued ? '<div style="font-size:11px;margin-top:4px;">Itasawazishwa ukiwa mtandaoni.</div>' : ''}
+           <button class="btn-block" style="background:var(--r6);margin-top:8px;" onclick="Engine.retryTransaction()">🔄 ${this.translate('retry')}</button>
+         </div>`;
+       this.addMessage(null, 'bot', failedHTML);
+     }
+     this.askMoreHelp();
+   },
+
+   executeCentralizedEngine: function() {
+     this.processTransaction();
+   },
+
+  retryTransaction: function() {
+    this.showTransactionConfirm();
+  },
+
+  askMoreHelp: function() {
+    setTimeout(() => {
+      this.addMessage(this.translate('more_help'), 'bot');
+      this.currentState = ConversationState.AWAIT_MORE_HELP;
+      this.setChips(ChatbotMemory.lang === 'sw' ? ['NDIYO', 'HAPANA, ASANTE'] : ['YES', 'NO, THANK YOU']);
+    }, 800);
+  }
+};
+
+/* Mobile layout: viewport height + keyboard (WhatsApp-style shell) */
+const LayoutManager = {
+  app: null,
+  chatBox: null,
+  init() {
+    this.app = document.getElementById('appShell');
+    this.chatBox = document.getElementById('chatBox');
+    this.updateViewport();
+    window.addEventListener('resize', () => this.updateViewport());
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => this.updateViewport(), 150);
+    });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => this.updateViewport());
+      window.visualViewport.addEventListener('scroll', () => this.updateViewport());
+    }
+    const input = document.getElementById('userInput');
+    if (input) this.autoResizeTextarea(input);
+  },
+  updateViewport() {
+    if (!this.app) return;
+    const vv = window.visualViewport;
+    const mobileLayout = window.matchMedia('(max-width: 520px), (pointer: coarse)').matches;
+    if (vv && mobileLayout) {
+      this.app.style.height = Math.round(vv.height) + 'px';
+      this.app.style.marginTop = Math.round(vv.offsetTop) + 'px';
+    } else {
+      this.app.style.height = '';
+      this.app.style.marginTop = '';
+    }
+    this.scrollChatToEnd();
+  },
+  autoResizeTextarea(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    this.scrollChatToEnd();
+  },
+  scrollChatToEnd() {
+    if (!this.chatBox) return;
+    requestAnimationFrame(() => {
+      this.chatBox.scrollTop = this.chatBox.scrollHeight;
+    });
+  }
+};
+
+// Expose globals for dynamic in-chat buttons (onclick in bot HTML)
+window.Engine = Engine;
+window.LayoutManager = LayoutManager;
+
+function bootSemaTel() {
+  if (bootSemaTel.done) return;
+  bootSemaTel.done = true;
+  try {
+    Engine.init();
+  } catch (err) {
+    console.error('SemaTel init failed:', err);
+    const box = document.getElementById('chatBox');
+    if (box) {
+      box.insertAdjacentHTML('beforeend',
+        '<div class="mrow"><div class="bub bot">Hitilafu katika kuanzisha programu. Pakia upya ukurasa (Ctrl+Shift+R).</div></div>');
+    }
+  }
+}
+bootSemaTel.done = false;
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootSemaTel);
+} else {
+  bootSemaTel();
+}
+</script>
+</body>
+</html>
