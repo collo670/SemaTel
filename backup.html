@@ -1509,173 +1509,37 @@ init: function() {
     }
   },
 
-/*
-   * processUserInput(input)
-   *
-   * Accepts either a single string or an array of strings.
-   *
-   * • Single string  → processes one message and returns its response descriptor
-   *   (same behaviour as before; all existing callers are unaffected).
-   *
-   * • Array of strings → iterates every element in order, processes each one
-   *   through the same state-machine pipeline, and returns an array of response
-   *   descriptors that mirrors the input order exactly.
-   *
-   * Response descriptor shape:
-   *   {
-   *     input     : string,          // the original input text
-   *     intent    : string|null,     // resolved intent key, or null for system commands
-   *     confidence: number|null,     // NLP confidence [0-1], or null for system commands
-   *     state     : string,          // ConversationState at the time this item was processed
-   *     handled   : boolean          // true when a recognised handler ran
-   *   }
-   */
-  processUserInput: function(input) {
-    /* ── Batch branch ── */
-    if (Array.isArray(input)) {
-      return input.map(function(item) { return Engine._processSingle(item); });
-    }
-
-    /* ── Single-string branch (all existing callers unchanged) ── */
-    this._processSingle(input);
-  },
-
-  /* _processSingle(text)
-   *
-   * The single source of truth for processing one user message.
-   * Handles two orthogonal concerns:
-   *
-   * 1. INTENT ESCAPE — whenever the user types a recognisable intent keyword
-   *    (confidence ≥ 0.80) while the bot is mid-flow, the current flow is
-   *    abandoned and the new intent is routed immediately.  This is what lets
-   *    the conversation keep moving regardless of which flow state is active.
-   *    States that must never be interrupted (active OTP / PIN / confirm screens,
-   *    ongoing processing) are explicitly excluded from the escape hatch.
-   *
-   * 2. FLOW-SPECIFIC TEXT INPUT — states that genuinely need typed text
-   *    (phone numbers, amounts, voucher codes, etc.) receive it normally via
-   *    their STATE_HANDLERS entry; the intent-escape check runs first and only
-   *    fires when the text matches a different service, so legitimate in-flow
-   *    text is never hijacked.
-   */
-  _processSingle: function(text) {
-    const t = (text || '').trim();
-
-    /* ── System-command shortcuts ── */
-    if (t === this.translate('retry') || /^jaribu tena$/i.test(t) || t === '🔄 ' + this.translate('retry')) {
-      this.retryTransaction();
-      return { input: t, intent: 'SYSTEM_RETRY', confidence: null, state: this.currentState, handled: true };
-    }
-    if (t === this.translate('home') || /^mwanzo$/i.test(t) || /^home$/i.test(t)) {
-      this.resetToHome();
-      return { input: t, intent: 'SYSTEM_HOME', confidence: null, state: this.currentState, handled: true };
-    }
-
-    /* ── Snapshot the state before any handler mutates it ── */
-    const stateAtEntry = this.currentState;
-
-    /* ── States where we must NEVER interrupt mid-transaction ── */
-    const lockedStates = [
-      ConversationState.SECURITY_AUTH,
-      ConversationState.PROCESSING,
-      ConversationState.RESULT_SCREEN,
-      ConversationState.MONEY_OTP_VERIFY,
-      ConversationState.MONEY_PIN_COLLECT,
-      ConversationState.CONFIRM_TX
-    ];
-
-    /* ── States where the user is expected to type meaningful text (phone,
-       amount, voucher code, etc.) — intent-escape should NOT fire here
-       unless the input clearly has zero numeric / code content ── */
-    const textInputStates = [
-      ConversationState.MONEY_PHONE_COLLECT,
-      ConversationState.MONEY_AMOUNT_COLLECT,
-      ConversationState.VOUCHER_CODE_INPUT,
-      'MONEY_CUSTOM_REC',
-      'MONEY_PHONE_INPUT',
-      'MONEY_CUSTOM_AMT',
-      'AIRTIME_CUSTOM_AMT'
-    ];
-
-    /* ── Intent-escape: try to parse a fresh intent from whatever the user typed.
-       Fire if:
-         • We are NOT in a locked or text-input state, AND
-         • The recognised intent is different from the intent that owns the
-           current flow, AND
-         • Confidence is high enough (≥ 0.80).
-       When it fires, reset currentTx and route the new intent so the
-       conversation continues naturally instead of hitting a dead end. ── */
-    const isLocked    = lockedStates.indexOf(stateAtEntry) !== -1;
-    const isTextInput = textInputStates.indexOf(stateAtEntry) !== -1;
-    const isHomelike  = stateAtEntry === ConversationState.HOME ||
-                        stateAtEntry === ConversationState.CLARIFICATION ||
-                        stateAtEntry === ConversationState.AWAIT_MORE_HELP ||
-                        stateAtEntry === ConversationState.END_CHAT;
-
-    if (!isLocked && !isTextInput && !isHomelike) {
-      const evaluation = AIIntentEngine.parse(t);
-      if (evaluation.confidence >= 0.80 && evaluation.intent !== 'UNKNOWN') {
-        /* Wire any pre-detected entities so the new flow can use them */
-        this.currentTx = { type: evaluation.intent };
-        if (evaluation.entities.amount)        this.currentTx.amount        = evaluation.entities.amount;
-        if (evaluation.entities.recipient)     this.currentTx.recipient     = evaluation.entities.recipient;
-        if (evaluation.entities.recipientPhone) this.currentTx.recipient    = evaluation.entities.recipientPhone;
-        if (evaluation.entities.provider)      this.currentTx.paymentMethod = evaluation.entities.provider;
-
-        this.currentState = ConversationState.HOME;   /* allow routeIntent to set its own state */
-        this.routeIntent(evaluation.intent);
-        return { input: t, intent: evaluation.intent, confidence: evaluation.confidence, state: stateAtEntry, handled: true };
-      }
-    }
-
-    /* ── Standard state-machine routing (unchanged from original) ── */
-    if (stateAtEntry === ConversationState.END_CHAT) {
-      this.handleEndChatInput(text);
-      return { input: t, intent: null, confidence: null, state: stateAtEntry, handled: true };
-    }
-
-    if (stateAtEntry === ConversationState.HOME ||
-        stateAtEntry === ConversationState.CLARIFICATION) {
-      const evaluation = AIIntentEngine.parse(t);
-      this.handleHomeState(text);
-      return {
-        input     : t,
-        intent    : evaluation.intent,
-        confidence: evaluation.confidence,
-        state     : stateAtEntry,
-        handled   : true
-      };
-    }
-
-    if (stateAtEntry === ConversationState.AWAIT_MORE_HELP) {
-      const evaluation = AIIntentEngine.parse(t);
-      this.handleMoreHelpResponse(text);
-      return {
-        input     : t,
-        intent    : evaluation.intent,
-        confidence: evaluation.confidence,
-        state     : stateAtEntry,
-        handled   : true
-      };
-    }
-
-    const handler = this.STATE_HANDLERS[stateAtEntry];
-    if (handler) {
-      const evaluation = AIIntentEngine.parse(t);
-      handler(text);
-      return {
-        input     : t,
-        intent    : evaluation.intent,
-        confidence: evaluation.confidence,
-        state     : stateAtEntry,
-        handled   : true
-      };
-    }
-
-    /* ── True passive states: should never reach here in normal use ── */
-    this.handlePassiveFlowInput(text);
-    return { input: t, intent: null, confidence: null, state: stateAtEntry, handled: false };
-  },
+processUserInput: function(text) {
+     const t = (text || '').trim();
+     if (t === this.translate('retry') || /^jaribu tena$/i.test(t) || t === '🔄 ' + this.translate('retry')) {
+       this.retryTransaction();
+       return;
+     }
+     if (t === this.translate('home') || /^mwanzo$/i.test(t) || /^home$/i.test(t)) {
+       this.resetToHome();
+       return;
+     }
+     if (this.currentState === ConversationState.END_CHAT) {
+       this.handleEndChatInput(text);
+       return;
+     }
+     if (this.currentState === ConversationState.HOME ||
+         this.currentState === ConversationState.CLARIFICATION) {
+       this.handleHomeState(text);
+       return;
+     }
+     const handler = this.STATE_HANDLERS[this.currentState];
+     if (handler) {
+       handler(text);
+     } else if (this.currentState === ConversationState.CONFIRM_TX ||
+                this.currentState === ConversationState.SECURITY_AUTH ||
+                this.currentState === ConversationState.PROCESSING ||
+                this.currentState === ConversationState.RESULT_SCREEN) {
+       this.handlePassiveFlowInput(text);
+     } else {
+       this.handlePassiveFlowInput(text);
+     }
+   },
 
   routeIntent: function(intent) {
     if (intent === 'BUY_AIRTIME' || intent === 'BUY_MINUTE_BUNDLES') {

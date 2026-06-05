@@ -1,0 +1,29 @@
+﻿powershell : At line:1 char:158
+At C:\Users\USER\AppData\Local\Temp\ps-script-e603fb93-2a2a-4fb3-94cb-85354492f3be.ps1:7 char:1
++ powershell -NoProfile -Command "$zip = 'c:\Users\USER\Documents\SemaT ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (At line:1 char:158:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
++ ... ion.FileSystem;  = [System.IO.Compression.ZipFile]::OpenRead();  = .G ...
++                                                                  ~
+An expression was expected after '('.
+At line:1 char:239
++ ... d/document.xml');  = New-Object System.IO.StreamReader(.Open());  = . ...
++                                                                  ~
+An expression was expected after '('.
+At line:1 char:257
++ ...  = New-Object System.IO.StreamReader(.Open());  = .ReadToEnd(); .Clos ...
++                                                                  ~
+An expression was expected after '('.
+At line:1 char:267
++ ... ect System.IO.StreamReader(.Open());  = .ReadToEnd(); .Close(); .Disp ...
++                                                                  ~
+An expression was expected after '('.
+At line:1 char:279
++ ... O.StreamReader(.Open());  = .ReadToEnd(); .Close(); .Dispose();  -rep ...
++                                                                  ~
+An expression was expected after '('.
+    + CategoryInfo          : ParserError: (:) [], ParentContainsErrorRecordException
+    + FullyQualifiedErrorId : ExpectedExpression
+ 
