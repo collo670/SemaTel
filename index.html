@@ -401,7 +401,11 @@ const ConversationState = {
   AWAIT_MORE_HELP: 'AWAIT_MORE_HELP',
   END_CHAT: 'END_CHAT',
   PROCESSING: 'PROCESSING',
-  RESULT_SCREEN: 'RESULT_SCREEN'
+  RESULT_SCREEN: 'RESULT_SCREEN',
+  LUKU_FLOW: 'LUKU_FLOW',
+  LUKU_AMOUNT_COLLECT: 'LUKU_AMOUNT_COLLECT',
+  LUKU_METER_COLLECT: 'LUKU_METER_COLLECT',
+  LUKU_PIN_COLLECT: 'LUKU_PIN_COLLECT'
 };
 
 const CHIP_INTENT_MAP = {
@@ -423,7 +427,12 @@ const CHIP_INTENT_MAP = {
   'Niongezee Data': 'BUY_DATA_BUNDLE',
   'Angalia Bando': 'CHECK_BALANCE',
   'Nunua Vocha': 'BUY_AIRTIME',
-  'Kata Bando': 'BUY_DATA_BUNDLE'
+  'Kata Bando': 'BUY_DATA_BUNDLE',
+  'LUKU': 'BUY_LUKU',
+  'Nunua LUKU': 'BUY_LUKU',
+  'Umeme': 'BUY_LUKU',
+  'Nunua Umeme': 'BUY_LUKU',
+  'Buy LUKU': 'BUY_LUKU'
 };
 
 /* Swahili/English telecom vocabulary from maneno.docx — each phrase maps to one intent */
@@ -489,6 +498,14 @@ const MANENO_LEXICON = {
   MY_ACCOUNT: [
     'akaunti', 'akaunti yangu', 'profile', 'wasifu', 'taarifa', 'mimi', 'dashboard',
     'settings', 'mipangilio', 'taarifa zangu'
+  ],
+  BUY_LUKU: [
+    'luku', 'nunua luku', 'umeme', 'nunua umeme', 'lipa umeme', 'token ya umeme',
+    'umeme wa nyumbani', 'weka umeme', 'niongezee umeme', 'nipigie luku',
+    'nataka luku', 'nipe luku', 'nahitaji luku', 'naomba luku',
+    'luku ya', 'umeme wa', 'buy luku', 'electricity', 'electricity token',
+    'power token', 'prepaid electricity', 'tanesco', 'zesco', 'dawasco',
+    'token', 'meita', 'meter', 'namba ya meita', 'meter number'
   ],
   GET_HELP: [
     'kifurushi kinaisha lini', 'data inaisha lini', 'muda wa matumizi', 'expiry date',
@@ -1116,6 +1133,10 @@ init: function() {
        BALANCE_SELECTION: this.handleBalanceSelection.bind(this),
        VOUCHER_TYPE_SELECTION: this.handleVoucherTypeSelection.bind(this),
        VOUCHER_CODE_INPUT: this.handleVoucherCodeInput.bind(this),
+       LUKU_FLOW: this.handlePassiveFlowInput.bind(this),
+       LUKU_AMOUNT_COLLECT: this.handleLukuAmountCollect.bind(this),
+       LUKU_METER_COLLECT: this.handleLukuMeterCollect.bind(this),
+       LUKU_PIN_COLLECT: this.handlePassiveFlowInput.bind(this),
        AWAIT_MORE_HELP: this.handleMoreHelpResponse.bind(this),
        END_CHAT: this.handleEndChatInput.bind(this)
      };
@@ -1186,6 +1207,7 @@ init: function() {
          <div class="qa-tile" data-intent="CHECK_BALANCE" role="button" tabindex="0"><div class="qa-icon">💰</div>Balance</div>
          <div class="qa-tile" data-intent="REDEEM_VOUCHER" role="button" tabindex="0"><div class="qa-icon">🎫</div>Voucher</div>
          <div class="qa-tile" data-intent="MY_ACCOUNT" role="button" tabindex="0"><div class="qa-icon">👤</div>Account</div>
+         <div class="qa-tile" data-intent="BUY_LUKU" role="button" tabindex="0"><div class="qa-icon">⚡</div>LUKU</div>
          <div class="qa-tile" data-intent="GET_HELP" role="button" tabindex="0"><div class="qa-icon">💡</div>Help</div>
        </div>`;
      this.addMessage(null, 'bot', gridHTML);
@@ -1482,6 +1504,7 @@ init: function() {
           <div class="qa-tile" data-intent="CHECK_BALANCE" role="button" tabindex="0"><div class="qa-icon">💰</div>Balance</div>
           <div class="qa-tile" data-intent="REDEEM_VOUCHER" role="button" tabindex="0"><div class="qa-icon">🎫</div>Voucher</div>
           <div class="qa-tile" data-intent="MY_ACCOUNT" role="button" tabindex="0"><div class="qa-icon">👤</div>Account</div>
+          <div class="qa-tile" data-intent="BUY_LUKU" role="button" tabindex="0"><div class="qa-icon">⚡</div>LUKU</div>
           <div class="qa-tile" data-intent="GET_HELP" role="button" tabindex="0"><div class="qa-icon">💡</div>Help</div>
         </div>
       `;
@@ -1581,6 +1604,7 @@ init: function() {
       ConversationState.RESULT_SCREEN,
       ConversationState.MONEY_OTP_VERIFY,
       ConversationState.MONEY_PIN_COLLECT,
+      ConversationState.LUKU_PIN_COLLECT,
       ConversationState.CONFIRM_TX
     ];
 
@@ -1594,7 +1618,9 @@ init: function() {
       'MONEY_CUSTOM_REC',
       'MONEY_PHONE_INPUT',
       'MONEY_CUSTOM_AMT',
-      'AIRTIME_CUSTOM_AMT'
+      'AIRTIME_CUSTOM_AMT',
+      ConversationState.LUKU_AMOUNT_COLLECT,
+      ConversationState.LUKU_METER_COLLECT
     ];
 
     /* ── Intent-escape: try to parse a fresh intent from whatever the user typed.
@@ -1686,6 +1712,8 @@ init: function() {
       this.currentTx.type = 'DATA';
     } else if (intent === 'SEND_MONEY') {
       this.currentTx.type = 'MONEY';
+    } else if (intent === 'BUY_LUKU') {
+      this.currentTx.type = 'LUKU';
     } else {
       this.currentTx.type = intent;
     }
@@ -1723,6 +1751,11 @@ init: function() {
       case 'MY_ACCOUNT':
         this.currentState = ConversationState.ACCOUNT_FLOW;
         this.showAccountDashboard();
+        break;
+      case 'BUY_LUKU':
+        this.currentState = ConversationState.LUKU_FLOW;
+        this.currentTx = { type: 'LUKU' };
+        this.showLukuProviderStep();
         break;
       case 'GET_HELP':
         this.showHelpCenter();
@@ -2334,6 +2367,329 @@ init: function() {
     } else {
       this.addMessage('Weka kiasi cha kuanzia Tsh 100.', 'bot');
     }
+  },
+
+
+  /* ==========================================
+     L. BUY LUKU (PREPAID ELECTRICITY) FLOW
+     Sequential 4-step workflow:
+       L1 → Mobile money network selection
+       L2 → Meter number (namba ya meita)
+       L3 → Amount (kiasi cha umeme)
+       L4 → PIN (masked dots, in-chat keypad)
+       L5 → Summary confirm → process
+     ========================================== */
+
+  /* STEP L1 – Select mobile money network */
+  showLukuProviderStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_FLOW;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'Nunua LUKU / Umeme' : 'Buy LUKU / Electricity Token'}</div>
+          <div style="font-size:12.5px;color:var(--mut);margin-bottom:10px;">
+            ${isSw ? 'L1. Chagua mtandao wa malipo:' : 'L1. Select your mobile money network:'}
+          </div>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;"
+              onclick="Engine.selectLukuProvider('M-Pesa')">
+            <span style="font-size:18px;">🟢</span>
+            <span style="text-align:left;"><strong>M-Pesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Vodacom</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('Tigo Pesa')">
+            <span style="font-size:18px;">🔵</span>
+            <span style="text-align:left;"><strong>Tigo Pesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Tigo</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('HaloPesa')">
+            <span style="font-size:18px;">🟡</span>
+            <span style="text-align:left;"><strong>HaloPesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">TTCL Halotel</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('SelcomPay')">
+            <span style="font-size:18px;">🟠</span>
+            <span style="text-align:left;"><strong>SelcomPay</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Selcom</span></span>
+          </button>
+          <button class="btn-block" style="display:flex;align-items:center;gap:10px;margin-top:6px;"
+              onclick="Engine.selectLukuProvider('AzamPesa')">
+            <span style="font-size:18px;">🔴</span>
+            <span style="text-align:left;"><strong>AzamPesa</strong><br>
+              <span style="font-size:11px;font-weight:400;opacity:.7;">Azam</span></span>
+          </button>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectLukuProvider: function(provider) {
+    this.currentTx.paymentMethod = provider;
+    this.addMessage(provider, 'user');
+    this.showLukuMeterStep();
+  },
+
+  /* STEP L2 – Collect meter number */
+  showLukuMeterStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_METER_COLLECT;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'Namba ya Meita' : 'Meter Number'}</div>
+          <div style="font-size:12.5px;margin-bottom:8px;">
+            ${isSw
+              ? 'L2. Weka <strong>namba ya meita</strong> yako ya umeme:'
+              : 'L2. Enter your electricity <strong>meter number</strong>:'}
+          </div>
+          <div style="font-size:11.5px;color:var(--mut);margin-bottom:6px;">
+            ${isSw
+              ? 'Namba za tarakimu 11 hadi 13 (inapatikana kwenye meita yako au ankara)'
+              : '11–13 digit number (found on your meter or electricity bill)'}
+          </div>
+          <div style="font-size:11.5px;color:var(--mut);">
+            ${isSw ? 'Andika namba 👇' : 'Type the number below 👇'}
+          </div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  handleLukuMeterCollect: function(text) {
+    const digits = text.replace(/\D/g, '');
+    if (digits.length >= 11 && digits.length <= 13) {
+      this.currentTx.meterNumber = digits;
+      this.addMessage(digits, 'user');
+      this.showLukuAmountStep();
+    } else {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(
+        isSw
+          ? '⚠️ Namba ya meita si sahihi. Weka tarakimu 11 hadi 13 (mfano: 12345678901).'
+          : '⚠️ Invalid meter number. Enter 11–13 digits (e.g. 12345678901).',
+        'bot'
+      );
+    }
+  },
+
+  /* STEP L3 – Collect amount */
+  showLukuAmountStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_AMOUNT_COLLECT;
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'Kiasi cha Umeme' : 'Electricity Amount'}</div>
+          <div style="font-size:12.5px;margin-bottom:10px;">
+            ${isSw
+              ? 'L3. Chagua au weka <strong>kiasi</strong> cha umeme unachotaka kununua:'
+              : 'L3. Choose or enter the <strong>amount</strong> of electricity to buy:'}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(1000)">Tsh 1,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(2000)">Tsh 2,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(5000)">Tsh 5,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(10000)">Tsh 10,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(20000)">Tsh 20,000</button>
+            <button class="btn-sub" onclick="Engine.selectLukuAmount(50000)">Tsh 50,000</button>
+          </div>
+          <div style="font-size:11.5px;color:var(--mut);">
+            ${isSw ? 'Au andika kiasi chochote kuanzia Tsh 500 👇' : 'Or type any amount from Tsh 500 👇'}
+          </div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  selectLukuAmount: function(amt) {
+    this.currentTx.amount = amt;
+    this.addMessage('Tsh ' + amt.toLocaleString(), 'user');
+    this.showLukuPINStep();
+  },
+
+  handleLukuAmountCollect: function(text) {
+    /* Also handle inline-intent like "luku ya 5000" — strip non-numeric prefix */
+    const digits = text.replace(/[^0-9]/g, '');
+    const amt = parseInt(digits, 10);
+    if (amt >= 500) {
+      this.currentTx.amount = amt;
+      this.showLukuPINStep();
+    } else {
+      const isSw = ChatbotMemory.lang === 'sw';
+      this.addMessage(
+        isSw
+          ? '⚠️ Weka kiasi cha kuanzia Tsh 500.'
+          : '⚠️ Please enter an amount of at least Tsh 500.',
+        'bot'
+      );
+    }
+  },
+
+  /* STEP L4 – PIN entry (masked dots, in-chat keypad) */
+  showLukuPINStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      this.currentState = ConversationState.LUKU_PIN_COLLECT;
+      this._lukuPIN = '';
+      const isSw = ChatbotMemory.lang === 'sw';
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--g8);">
+          <div class="rcard-title">🔒 ${isSw ? 'Weka PIN Yako' : 'Enter Your PIN'}</div>
+          <div style="font-size:12.5px;margin-bottom:12px;">
+            ${isSw
+              ? 'L4. Weka PIN yako ya siri (tarakimu 4) kuthibitisha ununuzi wa LUKU:'
+              : 'L4. Enter your 4-digit PIN to authorise this LUKU purchase:'}
+          </div>
+          <div id="lukuPINDots" style="
+              display:flex;justify-content:center;gap:16px;
+              margin-bottom:16px;padding:10px;
+              background:var(--g0);border-radius:10px;">
+            <span id="lukuPINDot0" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="lukuPINDot1" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="lukuPINDot2" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+            <span id="lukuPINDot3" style="width:18px;height:18px;border-radius:50%;
+              border:2px solid var(--g8);background:transparent;display:inline-block;
+              transition:background .15s;"></span>
+          </div>
+          <div class="pin-grid" id="lukuPINGrid">
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('1')">1</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('2')">2</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('3')">3</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('4')">4</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('5')">5</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('6')">6</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('7')">7</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('8')">8</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('9')">9</div>
+            <div class="pin-btn" style="background:var(--r1);color:var(--r6);font-size:14px;"
+                 onclick="Engine.deleteLukuPIN()">⌫</div>
+            <div class="pin-btn" onclick="Engine.pressLukuPIN('0')">0</div>
+            <div class="pin-btn" style="background:var(--g1);color:var(--g8);font-size:14px;"
+                 onclick="Engine.submitLukuPIN()">✓</div>
+          </div>
+          <div id="lukuPINError" style="font-size:11.5px;color:var(--r6);text-align:center;
+               margin-top:8px;min-height:16px;"></div>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 500);
+  },
+
+  pressLukuPIN: function(digit) {
+    if (this._lukuPIN.length >= 4) return;
+    this._lukuPIN += digit;
+    this._updateLukuPINDots();
+    if (this._lukuPIN.length === 4) {
+      setTimeout(() => this.submitLukuPIN(), 250);
+    }
+  },
+
+  deleteLukuPIN: function() {
+    if (this._lukuPIN.length > 0) {
+      this._lukuPIN = this._lukuPIN.slice(0, -1);
+      this._updateLukuPINDots();
+    }
+  },
+
+  _updateLukuPINDots: function() {
+    for (var i = 0; i < 4; i++) {
+      var dot = document.getElementById('lukuPINDot' + i);
+      if (dot) dot.style.background = i < this._lukuPIN.length ? 'var(--g8)' : 'transparent';
+    }
+  },
+
+  submitLukuPIN: function() {
+    if (this._lukuPIN.length < 4) {
+      var errEl = document.getElementById('lukuPINError');
+      if (errEl) errEl.textContent = ChatbotMemory.lang === 'sw'
+        ? 'Tafadhali weka tarakimu 4.' : 'Please enter 4 digits.';
+      return;
+    }
+    var grid = document.getElementById('lukuPINGrid');
+    if (grid) grid.style.pointerEvents = 'none';
+    this.addMessage('●●●●', 'user');
+    this.currentTx.details = 'LUKU Meita ' + this.currentTx.meterNumber
+      + ' – Tsh ' + Number(this.currentTx.amount).toLocaleString()
+      + ' via ' + this.currentTx.paymentMethod;
+    this.showLukuConfirmStep();
+  },
+
+  /* STEP L5 – Summary confirm card */
+  showLukuConfirmStep: function() {
+    this.showTyping(true);
+    setTimeout(() => {
+      this.showTyping(false);
+      if (!FraudGuard.check(this.currentTx)) {
+        this.addMessage(this.translate('fraud_block'), 'bot');
+        return;
+      }
+      this.currentState = ConversationState.CONFIRM_TX;
+      const isSw = ChatbotMemory.lang === 'sw';
+
+      /* Estimate units (rough TANESCO rate: ~Tsh 210/kWh for domestic ≤50kWh) */
+      const approxUnits = (this.currentTx.amount / 210).toFixed(1);
+
+      const html = `
+        <div class="rcard" style="border-left:4px solid var(--y7);">
+          <div class="rcard-title">⚡ ${isSw ? 'THIBITISHA UNUNUZI WA LUKU' : 'CONFIRM LUKU PURCHASE'}</div>
+          <div style="font-size:12px;color:var(--mut);margin-bottom:8px;">
+            ${isSw ? 'Angalia taarifa zifuatazo kisha thibitisha:' : 'Review the details below then confirm:'}
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Mtandao' : 'Network'}</span>
+            <span>${this.currentTx.paymentMethod}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Namba ya Meita' : 'Meter Number'}</span>
+            <span style="font-family:monospace;letter-spacing:1px;">${this.currentTx.meterNumber}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Kiasi' : 'Amount'}</span>
+            <span style="font-weight:700;color:var(--g8);">Tsh ${Number(this.currentTx.amount).toLocaleString()}</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Wastani wa Vitengo' : 'Est. Units'}</span>
+            <span>~${approxUnits} kWh</span>
+          </div>
+          <div class="rcard-row">
+            <span>${isSw ? 'Salio Baada' : 'Balance After'}</span>
+            <span>Tsh ${(ChatbotMemory.walletBalance - this.currentTx.amount).toLocaleString()}</span>
+          </div>
+          <button class="btn-block" style="margin-top:12px;background:var(--y7);"
+              onclick="Engine.finaliseLukuPurchase()">
+            ⚡ ${isSw ? 'Nunua LUKU' : 'Buy LUKU'}
+          </button>
+          <button class="btn-sub" style="width:100%;margin-top:6px;"
+              onclick="Engine.cancelTransaction()">
+            ${isSw ? 'Ghairi' : 'Cancel'}
+          </button>
+        </div>
+      `;
+      this.addMessage(null, 'bot', html);
+    }, 400);
+  },
+
+  finaliseLukuPurchase: function() {
+    this.processTransaction();
   },
 
   showBalanceOptions: function() {
