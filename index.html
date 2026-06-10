@@ -810,8 +810,8 @@ const Engine={
 
   setLang(lang){
     ChatbotMemory.lang=lang;StorageManager.save();
-    document.getElementById('langSW').classList.toggle('active',lang==='sw');
-    document.getElementById('langEN').classList.toggle('active',lang==='en');
+    const swEl=document.getElementById('langSW');if(swEl)swEl.classList.toggle('active',lang==='sw');
+    const enEl=document.getElementById('langEN');if(enEl)enEl.classList.toggle('active',lang==='en');
     if(this.recognition)this.recognition.lang=lang==='en'?'en-TZ':'sw-TZ';
     this.setGreeting();
   },
@@ -830,7 +830,7 @@ const Engine={
     if(dataEl)dataEl.textContent=h?'• GB':ChatbotMemory.dataBalance;
     if(phoneEl)phoneEl.textContent=ChatbotMemory.phoneNumber.slice(0,10)+'...';
     if(netEl)netEl.textContent=networkWallet(ChatbotMemory.network);
-    document.getElementById('eyeBtn').textContent=h?'🙈':'👁';
+    const eyeEl=document.getElementById('eyeBtn');if(eyeEl)eyeEl.textContent=h?'🙈':'👁';
   },
 
   toggleBalance(){
@@ -1411,6 +1411,8 @@ const Engine={
   },
   cancelPIN(){resetTx();this.askMoreHelp();},
   executePIN(){
+    const isSw=ChatbotMemory.lang==='sw';
+    this.addMessage('🔒 ••••','user');
     this.addMessage(this.translate('processing'),'bot');
     TransactionEngine.process(currentTx).then(res=>{
       const isSw=ChatbotMemory.lang==='sw';
@@ -1423,6 +1425,8 @@ const Engine={
       </div>`;
       this.addMessage(null,'bot',html);
       this.showSuccessAnimation(res.ref);
+      const successTxt=isSw?`✅ Muamala umefanikiwa! Ref: ${res.ref}`:`✅ Transaction successful! Ref: ${res.ref}`;
+      setTimeout(()=>this.addMessage(successTxt,'bot'),500);
       resetTx();this.askMoreHelp();
     }).catch(err=>{
       const isSw=ChatbotMemory.lang==='sw';const reason=err.reason||(isSw?'Hitilafu ya mtandao':'Network error');
