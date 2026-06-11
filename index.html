@@ -716,8 +716,6 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
     <div class="channel-badge" id="channelBadge"></div>
   </header>
 
-
-
   <!-- CHAT -->
   <div class="chat-wrap">
     <div class="msgs" id="chatBox" role="log" aria-live="polite">
@@ -1475,7 +1473,7 @@ const TransactionEngine={
     else if(['DATA','MONEY','SMS','MINUTES','LUKU','BILLS','GOVT','SCHOOL','PAYBILL','BULK','INTL'].includes(type)){ChatbotMemory.walletBalance-=cost;}
     else if(type==='VOUCHER'){if(txData.voucherType==='DATA'){const cur=parseFloat(String(ChatbotMemory.dataBalance))||0;ChatbotMemory.dataBalance=(cur+1).toFixed(1)+' GB';}else{ChatbotMemory.airtimeBalance+=cost;}}
     ChatbotMemory.recentTransactions.unshift({type:txData.type,details:txData.details||type+' Transaction',amt:cost,date:new Date().toISOString().split('T')[0]});
-    StorageManager.save();Engine.updateHeroBalance();
+    StorageManager.save();
   },
   process(txData){
     return new Promise((resolve,reject)=>{
@@ -1512,9 +1510,7 @@ const Engine={
     LayoutManager.init();
     this.initSpeech();
     this.detectChannel();
-    this.updateHeroBalance();
     this.updateNetLabel();
-    this.setGreeting();
     SessionManager.init();
     this.initPWAInstall();
     this.requestStoragePersist();
@@ -1591,45 +1587,10 @@ const Engine={
     return ch;
   },
 
-  setGreeting(){
-    const h=new Date().getHours();
-    const el=document.getElementById('heroGreeting');if(!el)return;
-    const isSw=ChatbotMemory.lang==='sw';
-    if(h<12)el.textContent=isSw?'Habari za asubuhi 👋':'Good morning 👋';
-    else if(h<17)el.textContent=isSw?'Habari za mchana 👋':'Good afternoon 👋';
-    else el.textContent=isSw?'Habari za jioni 👋':'Good evening 👋';
-  },
-
   setLang(lang){
     ChatbotMemory.lang=lang;StorageManager.save();
-    const swEl=document.getElementById('langSW');if(swEl)swEl.classList.toggle('active',lang==='sw');
-    const enEl=document.getElementById('langEN');if(enEl)enEl.classList.toggle('active',lang==='en');
     if(this.recognition)this.recognition.lang=lang==='en'?'en-TZ':'sw-TZ';
-    this.setGreeting();
-  },
-
-  updateHeroBalance(){
-    const fmt=n=>n.toLocaleString();
-    const hidden='••••••';
-    const h=this._balHidden;
-    const walEl=document.getElementById('heroBalAmt');
-    const airEl=document.getElementById('heroAirtime');
-    const dataEl=document.getElementById('heroData');
-    const phoneEl=document.getElementById('heroPhone');
-    const netEl=document.getElementById('heroNet');
-    if(walEl)walEl.textContent=h?hidden:fmt(ChatbotMemory.walletBalance);
-    if(airEl)airEl.textContent=h?'••••':fmt(ChatbotMemory.airtimeBalance);
-    if(dataEl)dataEl.textContent=h?'• GB':ChatbotMemory.dataBalance;
-    if(phoneEl)phoneEl.textContent=ChatbotMemory.phoneNumber.slice(0,10)+'...';
-    if(netEl)netEl.textContent=networkWallet(ChatbotMemory.network);
-    const eyeEl=document.getElementById('eyeBtn');if(eyeEl)eyeEl.textContent=h?'🙈':'👁';
-  },
-
-  toggleBalance(){
-    this._balHidden=!this._balHidden;
-    ChatbotMemory.balanceHidden=this._balHidden;
-    StorageManager.save();
-    this.updateHeroBalance();
+    this.renderWelcome();
   },
 
   updateNetLabel(){
@@ -1983,7 +1944,7 @@ const Engine={
         }
         // Show QR scan button if camera available
         if(PermissionManager.isSupported('camera')){
-          html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.openQRScanner()">
+          html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanRecipientQR()">
             <span style="font-size:18px">📷</span>
             <span>${isSw?'Skanii QR Code':'Scan QR Code'}</span>
           </button>`;
@@ -2074,6 +2035,31 @@ const Engine={
     if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
     this.proceedMoneyC3();
   },
+  /* Scan QR for recipient phone number (Send Money flow) */
+  async scanRecipientQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        const digits=value.replace(/[^\d]/g,'');
+        let phone=digits;
+        if(digits.startsWith('255')&&digits.length>=12)phone='0'+digits.slice(3);
+        else if(digits.startsWith('0')&&digits.length>=10)phone=digits;
+        else if(digits.length>=9)phone='0'+digits;
+        this.addMessage(`📷 QR: ${phone}`,'user');
+        currentTx.phone=phone;
+        currentTx.provider=detectNetwork(phone);
+        currentTx.wallet=networkWallet(currentTx.provider);
+        awaitingSlot=null;
+        if(currentTx.provider){
+          this.addMessage(`<span class="net-detect">📡 ${currentTx.provider} / ${currentTx.wallet} ${this.translate('network_detected')}</span>`,'bot');
+        }
+        if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
+        this.proceedMoneyC3();
+      }else{
+        this.addMessage(isSw?'Weka namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇','bot');
+      }
+    });
+  },
   fillPhoneSlot(t){
     const phone=extractPhone(t)||(t.replace(/\D/g,'').length>=9?t.replace(/\s/g,''):null);
     if(phone&&InputSanitizer.isValidPhone(phone)){awaitingSlot=null;currentTx.phone=phone;const net=detectNetwork(phone);if(net){currentTx.provider=net;currentTx.wallet=networkWallet(net);this.addMessage(`<span class="net-detect">📡 ${net} / ${networkWallet(net)} ${this.translate('network_detected')}</span>`,'bot');}
@@ -2142,8 +2128,16 @@ const Engine={
   flowBills(){
     currentTx.type='BILLS';awaitingSlot='bill_provider';
     const isSw=ChatbotMemory.lang==='sw';
-    const html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🧾 ${isSw?'Lipa Bili - Chagua:':'Pay Bills - Choose:'}</div>
-      <div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🧾 ${isSw?'Lipa Bili - Chagua:':'Pay Bills - Choose:'}</div>`;
+    // Offer Scan QR option if camera is available
+    if(PermissionManager.isSupported('camera')){
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanBillQR()">
+        <span style="font-size:18px">📷</span>
+        <span>${isSw?'Skanii QR Code ya Bili':'Scan Bill QR Code'}</span>
+      </button>
+      <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px;text-align:center">${isSw?'au chagua mtoa huduma':'or choose provider'}</div>`;
+    }
+    html+=`<div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
         <div class="qa-tile" onclick="Engine.pickBillProvider('DAWASCO','💧','Maji')"><div class="qa-icon">💧</div>DAWASCO<div style="font-size:9px;color:var(--muted)">Maji</div></div>
         <div class="qa-tile" onclick="Engine.pickBillProvider('TANESCO','⚡','Umeme')"><div class="qa-icon">⚡</div>TANESCO<div style="font-size:9px;color:var(--muted)">Umeme</div></div>
         <div class="qa-tile" onclick="Engine.pickBillProvider('DSTV','📡','TV')"><div class="qa-icon">📡</div>DStv<div style="font-size:9px;color:var(--muted)">TV</div></div>
@@ -2153,6 +2147,54 @@ const Engine={
       </div>`;
     this.addMessage(null,'bot',html);
   },
+  /* Scan QR for bill (from initial Bills screen) */
+  async scanBillQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        const digits=value.replace(/[^\d]/g,'');
+        const accountNum=digits.length>=4?digits:value;
+        this.addMessage(`📷 QR: ${accountNum}`,'user');
+        // Try to detect provider from QR content
+        const upper=value.toUpperCase();
+        let provider='UNKNOWN',icon='🧾',label=isSw?'Mtoa Huduma':'Provider';
+        if(upper.includes('DAWASCO')||upper.includes('MAJI')){provider='DAWASCO';icon='💧';label='DAWASCO';}
+        else if(upper.includes('TANESCO')||upper.includes('UMEME')||upper.includes('LUKU')){provider='TANESCO';icon='⚡';label='TANESCO';}
+        else if(upper.includes('DSTV')){provider='DSTV';icon='📡';label='DStv';}
+        else if(upper.includes('AZAM')){provider='AZAM';icon='🔵';label='Azam TV';}
+        else if(upper.includes('STARTIMES')){provider='STARTIMES';icon='⭐';label='Startimes';}
+        else if(upper.includes('TANAPA')){provider='TANAPA';icon='🦁';label='TANAPA';}
+        if(provider!=='UNKNOWN'){
+          currentTx.billProvider=provider;currentTx.billIcon=icon;currentTx.billLabel=label;
+          awaitingSlot='bill_account';
+          this.fillBillAccountSlot(accountNum);
+        }else{
+          // Provider not detected from QR — ask user to pick provider, then auto-fill account
+          this.addMessage(isSw?`📷 Namba ${accountNum} imepatikana. Chagua mtoa huduma:`:`📷 Found number ${accountNum}. Choose provider:`,'bot');
+          awaitingSlot='bill_account';
+          currentTx.billAccount=accountNum;
+          // Show provider selection
+          const html2=`<div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('DAWASCO','💧','Maji')"><div class="qa-icon">💧</div>DAWASCO<div style="font-size:9px;color:var(--muted)">Maji</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('TANESCO','⚡','Umeme')"><div class="qa-icon">⚡</div>TANESCO<div style="font-size:9px;color:var(--muted)">Umeme</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('DSTV','📡','TV')"><div class="qa-icon">📡</div>DStv<div style="font-size:9px;color:var(--muted)">TV</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('AZAM','🔵','TV')"><div class="qa-icon">🔵</div>Azam TV<div style="font-size:9px;color:var(--muted)">TV</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('STARTIMES','⭐','TV')"><div class="qa-icon">⭐</div>Startimes<div style="font-size:9px;color:var(--muted)">TV</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('TANAPA','🦁','Park Fee')"><div class="qa-icon">🦁</div>TANAPA<div style="font-size:9px;color:var(--muted)">Park Fees</div></div>
+          </div>`;
+          this.addMessage(null,'bot',html2);
+        }
+      }else{
+        // Manual input needed (BarcodeDetector not available)
+        this.addMessage(isSw?'🧾 Chagua mtoa huduma au weka namba hapa chini 👇':'🧾 Choose provider or enter details below 👇','bot');
+      }
+    });
+  },
+  _fillScannedBillProvider(code,icon,label){
+    currentTx.billProvider=code;currentTx.billIcon=icon;currentTx.billLabel=label;
+    this.addMessage(icon+' '+label,'user');
+    this.fillBillAccountSlot(currentTx.billAccount);
+  },
   pickBillProvider(code,icon,label){
     awaitingSlot='bill_account';currentTx.billProvider=code;currentTx.billIcon=icon;currentTx.billLabel=label;
     this.addMessage(icon+' '+label,'user');
@@ -2160,7 +2202,32 @@ const Engine={
     const prompt=code==='DAWASCO'?(isSw?'Weka namba ya akaunti ya maji:':'Enter water account number:')
       :code==='TANESCO'?(isSw?'Weka namba ya meita:':'Enter meter number:')
       :(isSw?'Weka namba ya mteja au subscription ID:':'Enter customer/subscription number:');
-    this.addMessage(prompt,'bot');
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">${icon} ${prompt}</div>`;
+    // Offer Scan QR option if camera is available
+    if(PermissionManager.isSupported('camera')){
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanBillAccountQR()">
+        <span style="font-size:18px">📷</span>
+        <span>${isSw?'Skanii QR Code ya Bili':'Scan Bill QR Code'}</span>
+      </button>`;
+    }
+    html+=`<div style="font-size:11px;color:var(--muted);margin-top:6px">${isSw?'Au weka namba hapa chini 👇':'Or enter the number below 👇'}</div>`;
+    this.addMessage(null,'bot',html);
+  },
+  /* Scan QR for bill account number */
+  async scanBillAccountQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        // Extract digits from QR value
+        const digits=value.replace(/[^\d]/g,'');
+        const accountNum=digits.length>=4?digits:value;
+        this.addMessage(`📷 QR: ${accountNum}`,'user');
+        this.fillBillAccountSlot(accountNum);
+      }else{
+        // Manual input needed (BarcodeDetector not available)
+        this.addMessage(isSw?'📷 Weka namba ya akaunti hapa chini 👇':'📷 Enter account number below 👇','bot');
+      }
+    });
   },
   fillBillProviderSlot(t){this.pickBillProvider(t,'🧾',t);},
   fillBillAccountSlot(t){
@@ -2300,7 +2367,32 @@ const Engine={
   flowPaybill(){
     currentTx.type='PAYBILL';awaitingSlot='paybill_number';
     const isSw=ChatbotMemory.lang==='sw';
-    this.addMessage(isSw?'🔢 Weka Paybill/Lipa Namba:':'🔢 Enter Paybill / Lipa Number:','bot');
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🔢 ${isSw?'Weka Paybill / Lipa Namba:':'Enter Paybill / Lipa Number:'}</div>`;
+    // Offer Scan QR option if camera is available
+    if(PermissionManager.isSupported('camera')){
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanPaybillQR()">
+        <span style="font-size:18px">📷</span>
+        <span>${isSw?'Skanii QR Code ya Paybill':'Scan Paybill QR Code'}</span>
+      </button>`;
+    }
+    html+=`<div style="font-size:11px;color:var(--muted);margin-top:6px">${isSw?'Au weka namba ya paybill hapa chini 👇':'Or enter paybill number below 👇'}</div>`;
+    this.addMessage(null,'bot',html);
+  },
+  /* Scan QR for paybill number */
+  async scanPaybillQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        // Extract digits from QR value
+        const digits=value.replace(/[^\d]/g,'');
+        const paybillNum=digits.length>=4?digits:value;
+        this.addMessage(`📷 QR: ${paybillNum}`,'user');
+        this.fillPaybillNumberSlot(paybillNum);
+      }else{
+        // Manual input needed (BarcodeDetector not available)
+        this.addMessage(isSw?'📷 Weka namba ya paybill hapa chini 👇':'📷 Enter paybill number below 👇','bot');
+      }
+    });
   },
   fillPaybillNumberSlot(t){
     awaitingSlot=null;currentTx.paybillNum=t;
@@ -2824,27 +2916,94 @@ const Engine={
     }
   },
   /* ---- QR SCANNER ---- */
-  async openQRScanner(){
+  _qrCallback:null,
+  _qrScanInterval:null,
+  async openQRScanner(callback){
     if(!PermissionManager.isGranted('camera')){
       const proceed=await this.showRationale('camera');
       if(!proceed)return;
       const granted=await PermissionManager.requestCamera();
       if(!granted){this.toast(ChatbotMemory.lang==='sw'?'📷 Ruhusa ya kamera ilikataliwa':'📷 Camera permission denied');return;}
     }
+    // Store callback for when QR is scanned
+    if(callback)this._qrCallback=callback;
     const overlay=document.getElementById('qrOverlay');
     const video=document.getElementById('qrVideo');
+    const hint=document.getElementById('qrHint');
+    if(hint)hint.textContent=ChatbotMemory.lang==='sw'?'Elekeza kamera kwenye QR code':'Point camera at QR code';
     if(overlay)overlay.classList.add('show');
     try{
       const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
       this._qrStream=stream;
       if(video){video.srcObject=stream;video.play();}
-      this.toast(ChatbotMemory.lang==='sw'?'📷 Skani nambari ya QR':'📷 Scan QR code');
+      this.toast(ChatbotMemory.lang==='sw'?'📷 Skani QR code':'📷 Scan QR code');
+      // Start scanning for QR codes using BarcodeDetector or canvas polling
+      this._startQRDetection(video);
     }catch(e){
       this.toast(ChatbotMemory.lang==='sw'?'📷 Kamera haipatikani':'📷 Camera unavailable');
       this.closeQRScanner();
     }
   },
+  _startQRDetection(video){
+    if(this._qrScanInterval){clearInterval(this._qrScanInterval);this._qrScanInterval=null;}
+    // Use BarcodeDetector API if available (Chrome Android, etc.)
+    if('BarcodeDetector'in window){
+      const detector=new BarcodeDetector({formats:['qr_code','ean_13','ean_8','code_128','code_39']});
+      this._qrScanInterval=setInterval(async()=>{
+        try{
+          if(!video||video.readyState<2)return;
+          const barcodes=await detector.detect(video);
+          if(barcodes&&barcodes.length>0){
+            const value=barcodes[0].rawValue;
+            if(value){
+              this._onQRScanned(value);
+            }
+          }
+        }catch(e){}
+      },500);
+    }else{
+      // Fallback: Use canvas + jsQR-like manual detection hint
+      // Since we can't decode without a library, show manual input prompt after a few seconds
+      let attempts=0;
+      this._qrScanInterval=setInterval(()=>{
+        attempts++;
+        if(attempts>=12){ // ~6 seconds of scanning
+          // QR decode not available without library - prompt manual entry
+          const isSw=ChatbotMemory.lang==='sw';
+          this.toast(isSw?'📷 Weka namba kwa mkono':'📷 Enter number manually');
+          this.closeQRScanner();
+          // If there's a callback, ask for manual input
+          if(this._qrCallback){
+            const cb=this._qrCallback;
+            this._qrCallback=null;
+            cb(null); // null signals "manual input needed"
+          }
+        }
+      },500);
+    }
+  },
+  _onQRScanned(value){
+    // Stop scanning and close overlay
+    if(this._qrScanInterval){clearInterval(this._qrScanInterval);this._qrScanInterval=null;}
+    this.vibrate(100);
+    this.closeQRScanner();
+    // Extract digits from QR value (many bill QR codes contain numbers)
+    const digits=value.replace(/[^\d]/g,'');
+    const isSw=ChatbotMemory.lang==='sw';
+    if(digits.length>=4){
+      this.toast(isSw?`📷 QR imeskanwa: ${digits}`:`📷 QR scanned: ${digits}`);
+    }else{
+      this.toast(isSw?`📷 QR imeskanwa`:`📷 QR scanned`);
+    }
+    // Route to callback
+    if(this._qrCallback){
+      const cb=this._qrCallback;
+      this._qrCallback=null;
+      cb(value);
+    }
+  },
   closeQRScanner(){
+    if(this._qrScanInterval){clearInterval(this._qrScanInterval);this._qrScanInterval=null;}
     const overlay=document.getElementById('qrOverlay');
     const video=document.getElementById('qrVideo');
     if(overlay)overlay.classList.remove('show');
@@ -2929,7 +3088,7 @@ const Engine={
     if(permId==='storage'){await this.requestStoragePersist();}
     else if(permId==='notifications'){await this.requestNotifications();}
     else if(permId==='geolocation'){await this.requestLocation();}
-    else if(permId==='camera'){await this.openQRScanner();}
+    else if(permId==='camera'){await this.openQRScanner((value)=>{if(value)this.toast(ChatbotMemory.lang==='sw'?'📷 Kamera imeruhusiwa na QR imeskanwa':'📷 Camera enabled & QR scanned');});}
     else if(permId==='microphone'){
       const proceed=await this.showRationale('microphone');
       if(proceed){const g=await PermissionManager.requestMicrophone();if(g)this.initSpeech();}

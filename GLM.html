@@ -11,13 +11,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU2VtYVRlbCAtIEFJIFN1cGVyIEFwcCIsInNob3J0X25hbWUiOiJTZW1hVGVsIiwiZGVzY3JpcHRpb24iOiJUYW56YW5pYXMgcHJlbWl1bSBBSS1wb3dlcmVkIGZpbmFuY2lhbCAmIHRlbGVjb20gc3VwZXItYXBwIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTVjMzYiLCJ0aGVtZV9jb2xvciI6IiMwYTVjMzYiLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyMwYTVjMzYnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyNmNWMyNDInIGZvbnQtd2VpZ2h0PSdib2xkJz5TPC90ZXh0Pjwvc3ZnPiIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ=="/>
 <title>SemaTel – AI Chatbot</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   /* Tanzania brand palette */
   --kili-peak:#0a5c36;
-  --savanna-deep:#162b20;
+  --savanna-deep:#1a7a48;
   --emerald:#22a05a;
   --leaf:#2ec278;
   --gold-deep:#b8860b;
@@ -558,6 +559,135 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
 .perm-status.denied{background:rgba(220,38,38,.1);color:#dc2626}
 .perm-status.prompt{background:rgba(212,160,23,.12);color:var(--gold-deep)}
 
+/* ========== PERMISSION RATIONALE DIALOG ========== */
+.perm-rationale-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  z-index:250;display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+.perm-rationale-overlay.show{display:flex}
+.perm-rationale-card{
+  background:var(--white);border-radius:20px;padding:24px;
+  max-width:340px;width:100%;text-align:center;
+  box-shadow:0 12px 48px rgba(0,0,0,.3);animation:fu .25s ease-out;
+}
+.perm-rationale-icon{font-size:48px;margin-bottom:12px;line-height:1}
+.perm-rationale-title{font-family:var(--fd);font-weight:700;font-size:17px;color:var(--charcoal);margin-bottom:6px}
+.perm-rationale-text{font-size:13px;color:var(--slate);line-height:1.5;margin-bottom:18px}
+.perm-rationale-btns{display:flex;gap:8px}
+.perm-rationale-allow{
+  flex:1;padding:12px;border-radius:12px;border:none;
+  background:var(--grad-card);color:#fff;font-weight:700;font-size:14px;
+  cursor:pointer;min-height:44px;font-family:var(--fb);
+  box-shadow:0 3px 12px rgba(10,92,54,.3);transition:all .15s;
+}
+.perm-rationale-allow:active{transform:scale(.97)}
+.perm-rationale-deny{
+  flex:1;padding:12px;border-radius:12px;border:1.5px solid rgba(0,0,0,.1);
+  background:var(--light);color:var(--slate);font-weight:700;font-size:14px;
+  cursor:pointer;min-height:44px;font-family:var(--fb);transition:all .15s;
+}
+.perm-rationale-deny:active{background:rgba(0,0,0,.05)}
+
+/* ========== SETTINGS / PERMISSION STATUS OVERLAY ========== */
+.settings-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  z-index:220;display:none;align-items:flex-end;justify-content:center;
+  padding:max(12px,var(--sal)) max(12px,var(--sar)) max(12px,var(--sab));
+}
+.settings-overlay.show{display:flex}
+@media(min-width:520px){.settings-overlay{align-items:center}}
+.settings-content{
+  background:var(--white);border-radius:20px 20px 0 0;
+  padding:22px;width:100%;max-width:var(--app-max);
+  max-height:min(85dvh,560px);overflow-y:auto;
+  box-shadow:0 -8px 40px rgba(0,0,0,.25);animation:fu .2s ease-out;
+}
+@media(min-width:520px){.settings-content{border-radius:20px;max-width:380px}}
+.settings-title{font-family:var(--fd);font-weight:700;font-size:18px;color:var(--charcoal);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.settings-subtitle{font-size:12px;color:var(--muted);margin-bottom:16px}
+.settings-section{margin-bottom:16px}
+.settings-section-title{font-weight:700;font-size:12px;color:var(--savanna-deep);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;padding-bottom:4px;border-bottom:2px solid rgba(34,160,90,.15)}
+.settings-perm-row{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;
+  border-radius:12px;background:var(--light);margin-bottom:6px;
+}
+.settings-perm-icon{font-size:22px;flex-shrink:0}
+.settings-perm-info{flex:1;min-width:0}
+.settings-perm-name{font-weight:700;font-size:13px;color:var(--charcoal)}
+.settings-perm-desc{font-size:11px;color:var(--muted);margin-top:1px}
+.settings-perm-action{
+  padding:6px 12px;border-radius:8px;border:none;
+  font-weight:700;font-size:11px;cursor:pointer;
+  font-family:var(--fb);transition:all .15s;min-height:32px;
+}
+.settings-perm-action.granted{background:rgba(34,160,90,.12);color:var(--savanna-deep);cursor:default}
+.settings-perm-action.denied{background:rgba(220,38,38,.1);color:#dc2626}
+.settings-perm-action.prompt{background:var(--grad-card);color:#fff;box-shadow:0 2px 8px rgba(10,92,54,.2)}
+.settings-perm-action.prompt:active{transform:scale(.97)}
+.settings-close{
+  width:100%;padding:12px;border-radius:12px;border:none;
+  background:var(--light);color:var(--slate);font-weight:700;font-size:13px;
+  cursor:pointer;min-height:44px;margin-top:8px;transition:all .15s;
+}
+.settings-close:active{background:rgba(0,0,0,.08)}
+
+/* ========== QR SCANNER ========== */
+.qr-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.9);
+  z-index:260;display:none;flex-direction:column;align-items:center;justify-content:center;
+}
+.qr-overlay.show{display:flex}
+.qr-viewfinder{
+  width:min(280px,70vw);height:min(280px,70vw);
+  border:3px solid var(--emerald);border-radius:20px;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.5);
+}
+.qr-viewfinder video{width:100%;height:100%;object-fit:cover}
+.qr-scan-line{
+  position:absolute;left:10%;right:10%;height:2px;
+  background:var(--emerald);box-shadow:0 0 8px var(--emerald);
+  animation:qrScan 2s ease-in-out infinite;
+}
+@keyframes qrScan{0%,100%{top:10%}50%{top:85%}}
+.qr-hint{color:rgba(255,255,255,.8);font-size:13px;font-weight:600;margin-top:16px}
+.qr-close{
+  margin-top:20px;padding:10px 24px;border-radius:12px;border:none;
+  background:rgba(255,255,255,.15);color:#fff;font-weight:700;font-size:14px;
+  cursor:pointer;font-family:var(--fb);
+}
+.qr-close:active{background:rgba(255,255,255,.25)}
+
+/* ========== PWA INSTALL BANNER ========== */
+.install-banner{
+  position:absolute;top:0;left:0;right:0;
+  background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep));
+  color:#fff;padding:12px 16px;display:none;align-items:center;gap:10px;
+  z-index:30;animation:slideDown .3s ease-out;
+  box-shadow:0 4px 16px rgba(10,92,54,.4);
+}
+.install-banner.show{display:flex}
+.install-banner-icon{font-size:28px;flex-shrink:0}
+.install-banner-text{flex:1;font-size:12px;font-weight:600;line-height:1.4}
+.install-banner-btn{
+  padding:8px 16px;border-radius:10px;border:none;
+  background:var(--grad-gold);color:var(--onyx);font-weight:800;
+  font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--fb);
+}
+.install-banner-btn:active{transform:scale(.97)}
+.install-banner-dismiss{
+  width:28px;height:28px;border-radius:8px;border:none;
+  background:rgba(255,255,255,.15);color:#fff;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+
+/* Mic button unsupported state */
+.mic-btn.unsupported{opacity:.35;cursor:not-allowed;background:rgba(0,0,0,.05)}
+.mic-btn.unsupported:active{background:rgba(0,0,0,.05)}
+
 </style>
 <base target="_blank">
 </head>
@@ -581,11 +711,10 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
         <span class="net-dot" id="netDot"></span>
         <span id="netLabel"></span>
       </div>
+      <!-- Settings icon removed from taskbar; permissions managed via chat screen -->
     </div>
     <div class="channel-badge" id="channelBadge"></div>
   </header>
-
-
 
   <!-- CHAT -->
   <div class="chat-wrap">
@@ -613,6 +742,14 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
 
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
+
+  <!-- PWA INSTALL BANNER -->
+  <div class="install-banner" id="installBanner">
+    <span class="install-banner-icon">📱</span>
+    <span class="install-banner-text" id="installBannerText">Install SemaTel for the best experience</span>
+    <button class="install-banner-btn" id="installBannerBtn">Install</button>
+    <button class="install-banner-dismiss" id="installBannerDismiss">✕</button>
+  </div>
 </div>
 
 <!-- MODALS -->
@@ -765,6 +902,7 @@ const MANENO_LEXICON = {
   REDEEM_VOUCHER:['ingiza vocha','voucher code','namba ya vocha','redeem voucher','use voucher','vocha'],
   SEND_MONEY:['tuma pesa','tumia','peleka','hamisha','tuma shilingi','send money','lipa','pesa','hela'],
   MY_ACCOUNT:['akaunti','akaunti yangu','profile','taarifa','dashboard','settings'],
+  PERMISSIONS:['ruhusa','permissions','permission settings','ruhusa za programu','app permissions','manage permissions','mpangilio wa ruhusa','permission status'],
   BUY_LUKU:['luku','nunua luku','umeme','nunua umeme','lipa umeme','token ya umeme','buy luku','electricity','tanesco','token','meita'],
   PAY_BILLS:['lipa bili','bili ya maji','dawasco','bili ya umeme','dstv','azam tv','startimes','tanapa','tv licence','water bill','pay bills','bili'],
   INTL_TRANSFER:['tuma pesa nje','international transfer','tuma kenya','tuma uganda','tuma zambia','pesa nje ya nchi','international money','tuma nje'],
@@ -933,22 +1071,75 @@ const StorageManager = {
 let ChatbotMemory=StorageManager.load();
 
 
-/* ========== PERMISSION MANAGER ========== */
+/* ========== PERMISSION MANAGER (v2 - robust, all devices) ========== */
+const PERM_META={
+  microphone:{icon:'🎙️',titleSW:'Ruhusa ya Mikrofoni',titleEN:'Microphone Permission',
+    descSW:'Tunahitaji kufikia mikrofoni yako ili uweze kutumia maingizo ya sauti.',
+    descEN:'We need access to your microphone so you can use voice input.',
+    apiCheck:()=>!!(window.SpeechRecognition||window.webkitSpeechRecognition)},
+  contacts:{icon:'📇',titleSW:'Mawasiliano ya Simu',titleEN:'Phone Contacts',
+    descSW:'Tunahitaji kufikia mawasiliano yako ili uchague mpokeaji kwa urahisi.',
+    descEN:'We need access to your contacts so you can easily pick a recipient.',
+    apiCheck:()=>'contacts'in navigator&&'ContactsManager'in window},
+  geolocation:{icon:'📍',titleSW:'Eneo la Sasa',titleEN:'Current Location',
+    descSW:'Tunahitaji eneo lako ili kupata wakala karibu na kutoa huduma za eneo.',
+    descEN:'We need your location to find nearby agents and provide location-based services.',
+    apiCheck:()=>'geolocation'in navigator},
+  notifications:{icon:'🔔',titleSW:'Arifa',titleEN:'Notifications',
+    descSW:'Ruhusu arifa ili upokee uthibitisho wa malipo na vikumbusho.',
+    descEN:'Allow notifications to receive payment confirmations and reminders.',
+    apiCheck:()=>'Notification'in window},
+  camera:{icon:'📷',titleSW:'Kamera',titleEN:'Camera',
+    descSW:'Tunahitaji kamera yako ili kuskanii nambari ya QR na kodi za vocha.',
+    descEN:'We need your camera to scan QR codes and voucher codes.',
+    apiCheck:()=>!!navigator.mediaDevices&&!!navigator.mediaDevices.getUserMedia},
+  clipboard:{icon:'📋',titleSW:'Clipboard',titleEN:'Clipboard',
+    descSW:'Kusoma nambari uliyonakili ili kuiweka kwa haraka.',
+    descEN:'Read a number you copied to paste it quickly.',
+    apiCheck:()=>!!navigator.clipboard&&!!navigator.clipboard.readText},
+  storage:{icon:'💾',titleSW:'Hifadhi ya Kudumu',titleEN:'Persistent Storage',
+    descSW:'Hifadhi data yako salama hata ukifunga programu ili kwenye nchi ya nje.',
+    descEN:'Keep your data safe even when you close the app or are offline.',
+    apiCheck:()=>!!navigator.storage&&!!navigator.storage.persist}
+};
+
 const PermissionManager={
-  KEY:'sematel_permissions_v1',
-  perms:{contacts:'prompt',microphone:'prompt'},
+  KEY:'sematel_permissions_v2',
+  perms:{contacts:'prompt',microphone:'prompt',geolocation:'prompt',notifications:'prompt',camera:'prompt',clipboard:'prompt',storage:'prompt'},
+  _deniedTimestamps:{},
+  DENIED_RETRY_MS:300000, // 5 minutes before allowing retry of denied perm
+
   init(){this.load();},
-  load(){try{const d=JSON.parse(localStorage.getItem(this.KEY)||'{}');this.perms={...this.perms,...d};}catch(e){}},
-  save(){try{localStorage.setItem(this.KEY,JSON.stringify(this.perms));}catch(e){}},
-  set(perm,state){this.perms[perm]=state;this.save();},
+  load(){try{const d=JSON.parse(localStorage.getItem(this.KEY)||'{}');this.perms={...this.perms,...d.perms||{}};this._deniedTimestamps=d._deniedTimestamps||{};}catch(e){}},
+  save(){try{localStorage.setItem(this.KEY,JSON.stringify({perms:this.perms,_deniedTimestamps:this._deniedTimestamps}));}catch(e){}},
+  set(perm,state){this.perms[perm]=state;if(state==='denied')this._deniedTimestamps[perm]=Date.now();this.save();},
   get(perm){return this.perms[perm]||'prompt';},
   isGranted(perm){return this.perms[perm]==='granted';},
-  isDenied(perm){return this.perms[perm]==='denied';},
+  isDenied(perm){if(this.perms[perm]!=='denied')return false;const ts=this._deniedTimestamps[perm];if(ts&&Date.now()-ts>this.DENIED_RETRY_MS){this.perms[perm]='prompt';delete this._deniedTimestamps[perm];this.save();return false;}return true;},
+  isSupported(perm){const m=PERM_META[perm];return m?m.apiCheck():false;},
 
-  /* Request microphone permission via getUserMedia */
+  /* Check actual browser permission state (recovers from stale cached state) */
+  async checkBrowserState(perm){
+    if(!navigator.permissions||!navigator.permissions.query)return null;
+    const permNameMap={microphone:'microphone',geolocation:'geolocation',notifications:'notifications',camera:'camera'};
+    const name=permNameMap[perm];
+    if(!name)return null;
+    try{
+      const result=await navigator.permissions.query({name});
+      if(result.state==='granted'&&this.perms[perm]!=='granted'){this.perms[perm]='granted';this.save();return'granted';}
+      if(result.state==='prompt'&&this.perms[perm]==='denied'){this.perms[perm]='prompt';delete this._deniedTimestamps[perm];this.save();return'prompt';}
+      return result.state;
+    }catch(e){return null;}
+  },
+
+  /* Request microphone permission via getUserMedia with isSecureContext check */
   async requestMicrophone(){
+    if(!window.isSecureContext&&location.protocol!=='https:'&&location.hostname!=='localhost'){console.warn('Microphone requires HTTPS');return false;}
     if(this.perms.microphone==='granted')return true;
-    if(this.perms.microphone==='denied')return false;
+    if(this.isDenied('microphone'))return false;
+    // Check browser state first (user may have re-granted in settings)
+    const browserState=await this.checkBrowserState('microphone');
+    if(browserState==='granted')return true;
     try{
       const stream=await navigator.mediaDevices.getUserMedia({audio:true});
       stream.getTracks().forEach(t=>t.stop());
@@ -961,30 +1152,78 @@ const PermissionManager={
     }
   },
 
-  /* Request contacts permission via Contact Picker API or fallback */
+  /* Request contacts — lightweight check only, no getProperties() or select() */
   async requestContacts(){
     if(this.perms.contacts==='granted')return true;
-    if(this.perms.contacts==='denied')return false;
-    // Try Contact Picker API (Chrome Android)
+    if(this.isDenied('contacts'))return false;
+    // Check if Contact Picker API is available (Chrome Android only)
     if('contacts'in navigator&&'ContactsManager'in window){
-      try{
-        const props=['name','tel'];
-        const supported=await navigator.contacts.getProperties();
-        if(supported.includes('name')&&supported.includes('tel')){
-          this.set('contacts','granted');
-          return true;
-        }
-      }catch(e){console.warn('Contact Picker API not available:',e);}
+      // Don't call getProperties() or select() here — just mark as available
+      // The actual select() is deferred to when user presses the button
+      return 'available';
     }
-    // Fallback: try permissions.query for contacts
-    if(navigator.permissions&&navigator.permissions.query){
-      try{
-        const result=await navigator.permissions.query({name:'contacts'});
-        if(result.state==='granted'){this.set('contacts','granted');return true;}
-        if(result.state==='denied'){this.set('contacts','denied');return false;}
-      }catch(e){}
-    }
-    return 'prompt';
+    // No Contact Picker API — contacts not available on this device
+    return 'unavailable';
+  },
+
+  /* Request geolocation */
+  async requestGeolocation(){
+    if(!('geolocation'in navigator))return false;
+    if(this.perms.geolocation==='granted')return true;
+    if(this.isDenied('geolocation'))return false;
+    const browserState=await this.checkBrowserState('geolocation');
+    if(browserState==='granted')return true;
+    return new Promise(resolve=>{
+      navigator.geolocation.getCurrentPosition(
+        ()=>{this.set('geolocation','granted');resolve(true);},
+        (e)=>{console.warn('Geolocation denied:',e);this.set('geolocation','denied');resolve(false);},
+        {timeout:10000,enableHighAccuracy:false}
+      );
+    });
+  },
+
+  /* Request notifications */
+  async requestNotifications(){
+    if(!('Notification'in window))return false;
+    if(this.perms.notifications==='granted'||Notification.permission==='granted'){this.set('notifications','granted');return true;}
+    if(Notification.permission==='denied'){this.set('notifications','denied');return false;}
+    const result=await Notification.requestPermission();
+    if(result==='granted'){this.set('notifications','granted');return true;}
+    this.set('notifications','denied');return false;
+  },
+
+  /* Request camera for QR scanning */
+  async requestCamera(){
+    if(!window.isSecureContext&&location.protocol!=='https:'&&location.hostname!=='localhost')return false;
+    if(this.perms.camera==='granted')return true;
+    if(this.isDenied('camera'))return false;
+    const browserState=await this.checkBrowserState('camera');
+    if(browserState==='granted')return true;
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      stream.getTracks().forEach(t=>t.stop());
+      this.set('camera','granted');
+      return true;
+    }catch(e){console.warn('Camera denied:',e);this.set('camera','denied');return false;}
+  },
+
+  /* Request clipboard read */
+  async requestClipboardRead(){
+    if(!navigator.clipboard||!navigator.clipboard.readText)return false;
+    try{
+      const text=await navigator.clipboard.readText();
+      return text||false;
+    }catch(e){return false;}
+  },
+
+  /* Request persistent storage */
+  async requestPersistentStorage(){
+    if(!navigator.storage||!navigator.storage.persist)return false;
+    try{
+      const granted=await navigator.storage.persist();
+      this.set('storage',granted?'granted':'denied');
+      return granted;
+    }catch(e){return false;}
   }
 };
 
@@ -993,7 +1232,7 @@ const ContactsManager={
   deviceContacts:[],
   async loadDeviceContacts(){
     this.deviceContacts=[];
-    // Try Contact Picker API first
+    // Contact Picker API: open the selector UI (only when user explicitly taps "Select from Contacts")
     if('contacts'in navigator&&'ContactsManager'in window){
       try{
         const props=['name','tel'];
@@ -1003,10 +1242,15 @@ const ContactsManager={
           phone:Array.isArray(c.tel)?c.tel[0]:c.tel||'',
           provider:this.detectNetwork(Array.isArray(c.tel)?c.tel[0]:c.tel||'')
         })).filter(c=>c.phone);
+        PermissionManager.set('contacts','granted');
         return this.deviceContacts;
-      }catch(e){console.warn('Contact Picker select failed:',e);}
+      }catch(e){
+        // User cancelled the picker or error
+        if(e.name!=='AbortError')console.warn('Contact Picker select failed:',e);
+        return [];
+      }
     }
-    // Fallback to frequent contacts from storage
+    // Fallback to frequent contacts from storage (iOS / non-Chrome)
     this.deviceContacts=ChatbotMemory.frequentContacts||[];
     return this.deviceContacts;
   },
@@ -1229,7 +1473,7 @@ const TransactionEngine={
     else if(['DATA','MONEY','SMS','MINUTES','LUKU','BILLS','GOVT','SCHOOL','PAYBILL','BULK','INTL'].includes(type)){ChatbotMemory.walletBalance-=cost;}
     else if(type==='VOUCHER'){if(txData.voucherType==='DATA'){const cur=parseFloat(String(ChatbotMemory.dataBalance))||0;ChatbotMemory.dataBalance=(cur+1).toFixed(1)+' GB';}else{ChatbotMemory.airtimeBalance+=cost;}}
     ChatbotMemory.recentTransactions.unshift({type:txData.type,details:txData.details||type+' Transaction',amt:cost,date:new Date().toISOString().split('T')[0]});
-    StorageManager.save();Engine.updateHeroBalance();
+    StorageManager.save();
   },
   process(txData){
     return new Promise((resolve,reject)=>{
@@ -1266,23 +1510,39 @@ const Engine={
     LayoutManager.init();
     this.initSpeech();
     this.detectChannel();
-    this.updateHeroBalance();
     this.updateNetLabel();
-    this.setGreeting();
     SessionManager.init();
+    this.initPWAInstall();
+    this.requestStoragePersist();
     document.getElementById('lblToday').textContent=new Date().toLocaleDateString(ChatbotMemory.lang==='sw'?'sw-TZ':'en-TZ',{weekday:'long',day:'numeric',month:'long'});
     this.renderWelcome();
     window.addEventListener('online',()=>this.flushPending());
-    // No auto-request of contacts; contacts permission is requested when user initiates money transfer
+    // No auto-request of contacts or mic; requested on-demand when user needs them
   },
   /* ---- REQUEST CONTACTS PERMISSION ON-DEMAND (only when sending money) ---- */
   async requestContactsForTransfer(){
-    const contactsResult=await PermissionManager.requestContacts();
-    if(contactsResult===true){
-      await ContactsManager.loadDeviceContacts();
-      return true;
-    }
-    return false;
+    const result=await PermissionManager.requestContacts();
+    // 'available' = Contact Picker API present, 'true' = already granted, 'unavailable' = no API, false = denied
+    return result===true||result==='available';
+  },
+  /* ---- SHOW PERMISSION RATIONALE DIALOG (before browser pop-up) ---- */
+  _rationaleResolve:null,
+  showRationale(perm){
+    const meta=PERM_META[perm];if(!meta)return Promise.resolve(true);
+    const isSw=ChatbotMemory.lang==='sw';
+    const overlay=document.getElementById('permRationaleOverlay');
+    document.getElementById('permRationaleIcon').textContent=meta.icon;
+    document.getElementById('permRationaleTitle').textContent=isSw?meta.titleSW:meta.titleEN;
+    document.getElementById('permRationaleText').textContent=isSw?meta.descSW:meta.descEN;
+    document.getElementById('permRationaleDeny').textContent=isSw?'Sio Sasa':'Not Now';
+    document.getElementById('permRationaleAllow').textContent=isSw?'Ruhusu':'Allow';
+    if(overlay)overlay.classList.add('show');
+    return new Promise(resolve=>{this._rationaleResolve=resolve;});
+  },
+  handleRationale(allow){
+    const overlay=document.getElementById('permRationaleOverlay');
+    if(overlay)overlay.classList.remove('show');
+    if(this._rationaleResolve){this._rationaleResolve(allow);this._rationaleResolve=null;}
   },
   /* ---- SHOW PERMISSION PROMPT IN CHAT ---- */
   showPermissionPrompt(permType){
@@ -1327,45 +1587,10 @@ const Engine={
     return ch;
   },
 
-  setGreeting(){
-    const h=new Date().getHours();
-    const el=document.getElementById('heroGreeting');if(!el)return;
-    const isSw=ChatbotMemory.lang==='sw';
-    if(h<12)el.textContent=isSw?'Habari za asubuhi 👋':'Good morning 👋';
-    else if(h<17)el.textContent=isSw?'Habari za mchana 👋':'Good afternoon 👋';
-    else el.textContent=isSw?'Habari za jioni 👋':'Good evening 👋';
-  },
-
   setLang(lang){
     ChatbotMemory.lang=lang;StorageManager.save();
-    const swEl=document.getElementById('langSW');if(swEl)swEl.classList.toggle('active',lang==='sw');
-    const enEl=document.getElementById('langEN');if(enEl)enEl.classList.toggle('active',lang==='en');
     if(this.recognition)this.recognition.lang=lang==='en'?'en-TZ':'sw-TZ';
-    this.setGreeting();
-  },
-
-  updateHeroBalance(){
-    const fmt=n=>n.toLocaleString();
-    const hidden='••••••';
-    const h=this._balHidden;
-    const walEl=document.getElementById('heroBalAmt');
-    const airEl=document.getElementById('heroAirtime');
-    const dataEl=document.getElementById('heroData');
-    const phoneEl=document.getElementById('heroPhone');
-    const netEl=document.getElementById('heroNet');
-    if(walEl)walEl.textContent=h?hidden:fmt(ChatbotMemory.walletBalance);
-    if(airEl)airEl.textContent=h?'••••':fmt(ChatbotMemory.airtimeBalance);
-    if(dataEl)dataEl.textContent=h?'• GB':ChatbotMemory.dataBalance;
-    if(phoneEl)phoneEl.textContent=ChatbotMemory.phoneNumber.slice(0,10)+'...';
-    if(netEl)netEl.textContent=networkWallet(ChatbotMemory.network);
-    const eyeEl=document.getElementById('eyeBtn');if(eyeEl)eyeEl.textContent=h?'🙈':'👁';
-  },
-
-  toggleBalance(){
-    this._balHidden=!this._balHidden;
-    ChatbotMemory.balanceHidden=this._balHidden;
-    StorageManager.save();
-    this.updateHeroBalance();
+    this.renderWelcome();
   },
 
   updateNetLabel(){
@@ -1487,6 +1712,7 @@ const Engine={
       case'CHECK_BALANCE':return this.flowBalance();
       case'REDEEM_VOUCHER':return this.flowVoucher();
       case'MY_ACCOUNT':return this.showAccount();
+      case'PERMISSIONS':return this.showPermissionsInChat();
       case'BUY_LUKU':return this.flowLuku();
       case'PAY_BILLS':return this.flowBills();
       case'INTL_TRANSFER':return this.flowIntlTransfer();
@@ -1709,15 +1935,25 @@ const Engine={
         // Try to get contacts permission on-demand
         const hasContacts=PermissionManager.isGranted('contacts')||await this.requestContactsForTransfer();
         let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">💸 ${this.translate('ask_recipient_phone')}</div>`;
-        // Show "Select from Contacts" button if permission granted
+        // Show "Select from Contacts" button if Contact Picker API available
         if(hasContacts||PermissionManager.isGranted('contacts')){
           html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
             <span style="font-size:18px">📇</span>
             <span>${this.translate('select_from_contacts')}</span>
           </button>`;
         }
+        // Show QR scan button if camera available
+        if(PermissionManager.isSupported('camera')){
+          html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanRecipientQR()">
+            <span style="font-size:18px">📷</span>
+            <span>${isSw?'Skanii QR Code':'Scan QR Code'}</span>
+          </button>`;
+        }
         html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">${isSw?'Weka namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇'}</div>`;
-        this.addMessage(null,'bot',html);return;
+        this.addMessage(null,'bot',html);
+        // Suggest clipboard paste if a phone number was copied
+        this.suggestClipboardPaste();
+        return;
       }
       // Step 2: Ask for amount
       if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
@@ -1799,6 +2035,31 @@ const Engine={
     if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
     this.proceedMoneyC3();
   },
+  /* Scan QR for recipient phone number (Send Money flow) */
+  async scanRecipientQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        const digits=value.replace(/[^\d]/g,'');
+        let phone=digits;
+        if(digits.startsWith('255')&&digits.length>=12)phone='0'+digits.slice(3);
+        else if(digits.startsWith('0')&&digits.length>=10)phone=digits;
+        else if(digits.length>=9)phone='0'+digits;
+        this.addMessage(`📷 QR: ${phone}`,'user');
+        currentTx.phone=phone;
+        currentTx.provider=detectNetwork(phone);
+        currentTx.wallet=networkWallet(currentTx.provider);
+        awaitingSlot=null;
+        if(currentTx.provider){
+          this.addMessage(`<span class="net-detect">📡 ${currentTx.provider} / ${currentTx.wallet} ${this.translate('network_detected')}</span>`,'bot');
+        }
+        if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
+        this.proceedMoneyC3();
+      }else{
+        this.addMessage(isSw?'Weka namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇','bot');
+      }
+    });
+  },
   fillPhoneSlot(t){
     const phone=extractPhone(t)||(t.replace(/\D/g,'').length>=9?t.replace(/\s/g,''):null);
     if(phone&&InputSanitizer.isValidPhone(phone)){awaitingSlot=null;currentTx.phone=phone;const net=detectNetwork(phone);if(net){currentTx.provider=net;currentTx.wallet=networkWallet(net);this.addMessage(`<span class="net-detect">📡 ${net} / ${networkWallet(net)} ${this.translate('network_detected')}</span>`,'bot');}
@@ -1867,8 +2128,16 @@ const Engine={
   flowBills(){
     currentTx.type='BILLS';awaitingSlot='bill_provider';
     const isSw=ChatbotMemory.lang==='sw';
-    const html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🧾 ${isSw?'Lipa Bili - Chagua:':'Pay Bills - Choose:'}</div>
-      <div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🧾 ${isSw?'Lipa Bili - Chagua:':'Pay Bills - Choose:'}</div>`;
+    // Offer Scan QR option if camera is available
+    if(PermissionManager.isSupported('camera')){
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanBillQR()">
+        <span style="font-size:18px">📷</span>
+        <span>${isSw?'Skanii QR Code ya Bili':'Scan Bill QR Code'}</span>
+      </button>
+      <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px;text-align:center">${isSw?'au chagua mtoa huduma':'or choose provider'}</div>`;
+    }
+    html+=`<div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
         <div class="qa-tile" onclick="Engine.pickBillProvider('DAWASCO','💧','Maji')"><div class="qa-icon">💧</div>DAWASCO<div style="font-size:9px;color:var(--muted)">Maji</div></div>
         <div class="qa-tile" onclick="Engine.pickBillProvider('TANESCO','⚡','Umeme')"><div class="qa-icon">⚡</div>TANESCO<div style="font-size:9px;color:var(--muted)">Umeme</div></div>
         <div class="qa-tile" onclick="Engine.pickBillProvider('DSTV','📡','TV')"><div class="qa-icon">📡</div>DStv<div style="font-size:9px;color:var(--muted)">TV</div></div>
@@ -1878,6 +2147,54 @@ const Engine={
       </div>`;
     this.addMessage(null,'bot',html);
   },
+  /* Scan QR for bill (from initial Bills screen) */
+  async scanBillQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        const digits=value.replace(/[^\d]/g,'');
+        const accountNum=digits.length>=4?digits:value;
+        this.addMessage(`📷 QR: ${accountNum}`,'user');
+        // Try to detect provider from QR content
+        const upper=value.toUpperCase();
+        let provider='UNKNOWN',icon='🧾',label=isSw?'Mtoa Huduma':'Provider';
+        if(upper.includes('DAWASCO')||upper.includes('MAJI')){provider='DAWASCO';icon='💧';label='DAWASCO';}
+        else if(upper.includes('TANESCO')||upper.includes('UMEME')||upper.includes('LUKU')){provider='TANESCO';icon='⚡';label='TANESCO';}
+        else if(upper.includes('DSTV')){provider='DSTV';icon='📡';label='DStv';}
+        else if(upper.includes('AZAM')){provider='AZAM';icon='🔵';label='Azam TV';}
+        else if(upper.includes('STARTIMES')){provider='STARTIMES';icon='⭐';label='Startimes';}
+        else if(upper.includes('TANAPA')){provider='TANAPA';icon='🦁';label='TANAPA';}
+        if(provider!=='UNKNOWN'){
+          currentTx.billProvider=provider;currentTx.billIcon=icon;currentTx.billLabel=label;
+          awaitingSlot='bill_account';
+          this.fillBillAccountSlot(accountNum);
+        }else{
+          // Provider not detected from QR — ask user to pick provider, then auto-fill account
+          this.addMessage(isSw?`📷 Namba ${accountNum} imepatikana. Chagua mtoa huduma:`:`📷 Found number ${accountNum}. Choose provider:`,'bot');
+          awaitingSlot='bill_account';
+          currentTx.billAccount=accountNum;
+          // Show provider selection
+          const html2=`<div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('DAWASCO','💧','Maji')"><div class="qa-icon">💧</div>DAWASCO<div style="font-size:9px;color:var(--muted)">Maji</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('TANESCO','⚡','Umeme')"><div class="qa-icon">⚡</div>TANESCO<div style="font-size:9px;color:var(--muted)">Umeme</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('DSTV','📡','TV')"><div class="qa-icon">📡</div>DStv<div style="font-size:9px;color:var(--muted)">TV</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('AZAM','🔵','TV')"><div class="qa-icon">🔵</div>Azam TV<div style="font-size:9px;color:var(--muted)">TV</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('STARTIMES','⭐','TV')"><div class="qa-icon">⭐</div>Startimes<div style="font-size:9px;color:var(--muted)">TV</div></div>
+            <div class="qa-tile" onclick="Engine._fillScannedBillProvider('TANAPA','🦁','Park Fee')"><div class="qa-icon">🦁</div>TANAPA<div style="font-size:9px;color:var(--muted)">Park Fees</div></div>
+          </div>`;
+          this.addMessage(null,'bot',html2);
+        }
+      }else{
+        // Manual input needed (BarcodeDetector not available)
+        this.addMessage(isSw?'🧾 Chagua mtoa huduma au weka namba hapa chini 👇':'🧾 Choose provider or enter details below 👇','bot');
+      }
+    });
+  },
+  _fillScannedBillProvider(code,icon,label){
+    currentTx.billProvider=code;currentTx.billIcon=icon;currentTx.billLabel=label;
+    this.addMessage(icon+' '+label,'user');
+    this.fillBillAccountSlot(currentTx.billAccount);
+  },
   pickBillProvider(code,icon,label){
     awaitingSlot='bill_account';currentTx.billProvider=code;currentTx.billIcon=icon;currentTx.billLabel=label;
     this.addMessage(icon+' '+label,'user');
@@ -1885,7 +2202,32 @@ const Engine={
     const prompt=code==='DAWASCO'?(isSw?'Weka namba ya akaunti ya maji:':'Enter water account number:')
       :code==='TANESCO'?(isSw?'Weka namba ya meita:':'Enter meter number:')
       :(isSw?'Weka namba ya mteja au subscription ID:':'Enter customer/subscription number:');
-    this.addMessage(prompt,'bot');
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">${icon} ${prompt}</div>`;
+    // Offer Scan QR option if camera is available
+    if(PermissionManager.isSupported('camera')){
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanBillAccountQR()">
+        <span style="font-size:18px">📷</span>
+        <span>${isSw?'Skanii QR Code ya Bili':'Scan Bill QR Code'}</span>
+      </button>`;
+    }
+    html+=`<div style="font-size:11px;color:var(--muted);margin-top:6px">${isSw?'Au weka namba hapa chini 👇':'Or enter the number below 👇'}</div>`;
+    this.addMessage(null,'bot',html);
+  },
+  /* Scan QR for bill account number */
+  async scanBillAccountQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        // Extract digits from QR value
+        const digits=value.replace(/[^\d]/g,'');
+        const accountNum=digits.length>=4?digits:value;
+        this.addMessage(`📷 QR: ${accountNum}`,'user');
+        this.fillBillAccountSlot(accountNum);
+      }else{
+        // Manual input needed (BarcodeDetector not available)
+        this.addMessage(isSw?'📷 Weka namba ya akaunti hapa chini 👇':'📷 Enter account number below 👇','bot');
+      }
+    });
   },
   fillBillProviderSlot(t){this.pickBillProvider(t,'🧾',t);},
   fillBillAccountSlot(t){
@@ -2025,7 +2367,32 @@ const Engine={
   flowPaybill(){
     currentTx.type='PAYBILL';awaitingSlot='paybill_number';
     const isSw=ChatbotMemory.lang==='sw';
-    this.addMessage(isSw?'🔢 Weka Paybill/Lipa Namba:':'🔢 Enter Paybill / Lipa Number:','bot');
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🔢 ${isSw?'Weka Paybill / Lipa Namba:':'Enter Paybill / Lipa Number:'}</div>`;
+    // Offer Scan QR option if camera is available
+    if(PermissionManager.isSupported('camera')){
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanPaybillQR()">
+        <span style="font-size:18px">📷</span>
+        <span>${isSw?'Skanii QR Code ya Paybill':'Scan Paybill QR Code'}</span>
+      </button>`;
+    }
+    html+=`<div style="font-size:11px;color:var(--muted);margin-top:6px">${isSw?'Au weka namba ya paybill hapa chini 👇':'Or enter paybill number below 👇'}</div>`;
+    this.addMessage(null,'bot',html);
+  },
+  /* Scan QR for paybill number */
+  async scanPaybillQR(){
+    const isSw=ChatbotMemory.lang==='sw';
+    await this.openQRScanner((value)=>{
+      if(value){
+        // Extract digits from QR value
+        const digits=value.replace(/[^\d]/g,'');
+        const paybillNum=digits.length>=4?digits:value;
+        this.addMessage(`📷 QR: ${paybillNum}`,'user');
+        this.fillPaybillNumberSlot(paybillNum);
+      }else{
+        // Manual input needed (BarcodeDetector not available)
+        this.addMessage(isSw?'📷 Weka namba ya paybill hapa chini 👇':'📷 Enter paybill number below 👇','bot');
+      }
+    });
   },
   fillPaybillNumberSlot(t){
     awaitingSlot=null;currentTx.paybillNum=t;
@@ -2177,9 +2544,85 @@ const Engine={
         <div class="rcard-row"><span>Airtime</span><span style="font-weight:800;color:var(--gold-deep)">Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}</span></div>
         <div style="margin-top:10px;font-weight:700;font-size:11.5px;color:var(--savanna-deep)">${isSw?'Miamala ya Hivi Karibuni:':'Recent Transactions:'}</div>
         ${recentHTML||'<div style="font-size:11px;color:var(--muted)">Hakuna miamala.</div>'}
+        <button class="btn-block" style="margin-top:12px;display:flex;align-items:center;gap:6px;font-size:12.5px" onclick="Engine.showPermissionsInChat()">⚙️ ${isSw?'Ruhusa za Programu':'App Permissions'}</button>
       </div>`;
       this.addMessage(null,'bot',html);this.askMoreHelp();
     },500);
+  },
+
+  /* ---- PERMISSIONS IN CHAT (replaces taskbar settings icon) ---- */
+  showPermissionsInChat(){
+    this.showTyping(true);
+    setTimeout(()=>{
+      this.showTyping(false);
+      const isSw=ChatbotMemory.lang==='sw';
+      const perms=[
+        {id:'microphone',name:isSw?'Mikrofoni':'Microphone',desc:isSw?'Kwa maingizo ya sauti':'For voice input'},
+        {id:'contacts',name:isSw?'Mawasiliano':'Contacts',desc:isSw?'Kuchagua mpokeaji kutoka simu':'Pick recipients from phone'},
+        {id:'geolocation',name:isSw?'Eneo':'Location',desc:isSw?'Kupata wakala karibu na huduma za eneo':'Find nearby agents & location services'},
+        {id:'notifications',name:isSw?'Arifa':'Notifications',desc:isSw?'Uthibitisho wa malipo na vikumbusho':'Payment confirmations & reminders'},
+        {id:'camera',name:isSw?'Kamera':'Camera',desc:isSw?'Kuskanii QR code na kodi za vocha':'Scan QR codes & voucher codes'},
+        {id:'clipboard',name:isSw?'Clipboard':'Clipboard',desc:isSw?'Kunakili na kuweka namba haraka':'Copy & paste numbers quickly'},
+        {id:'storage',name:isSw?'Hifadhi':'Storage',desc:isSw?'Kuhifadhi data nje ya mtandao':'Store data offline reliably'}
+      ];
+      let rows='';
+      perms.forEach(p=>{
+        const supported=PermissionManager.isSupported(p.id);
+        const state=supported?(PermissionManager.isGranted(p.id)?'granted':PermissionManager.isDenied(p.id)?'denied':'prompt'):'unavailable';
+        const meta=PERM_META[p.id];
+        const icon=meta?meta.icon:'❓';
+        const stateLabel=state==='granted'?(isSw?'✅ Ruhusiwa':'✅ Granted'):state==='denied'?(isSw?'❌ Kataliwa':'❌ Denied'):state==='unavailable'?(isSw?'⬜ Hapatikani':'⬜ N/A'):(isSw?'🔘 Bado':'🔘 Ask');
+        const btnLabel=state==='granted'?(isSw?'Ruhusiwa':'Granted'):state==='denied'?(isSw?'Ruhusu Tena':'Re-allow'):state==='unavailable'?(isSw?'Hapatikani':'N/A'):(isSw?'Ruhusu':'Allow');
+        const btnStyle=state==='granted'?'background:rgba(34,160,90,.12);color:#1a7a48;cursor:default;':state==='denied'?'background:rgba(220,38,38,.1);color:#dc2626;':state==='unavailable'?'background:var(--light);color:var(--muted);cursor:default;':'background:var(--grad-card);color:#fff;box-shadow:0 2px 8px rgba(10,92,54,.2);';
+        const disabled=state==='granted'||state==='unavailable'?'disabled':'';
+        rows+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--light);margin-bottom:5px">
+          <span style="font-size:20px;flex-shrink:0">${icon}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:12.5px;color:var(--charcoal)">${p.name} <span style="font-size:11px;font-weight:400">${stateLabel}</span></div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:1px">${p.desc}</div>
+          </div>
+          <button onclick="Engine.requestPermFromChat('${p.id}')" style="padding:5px 10px;border-radius:8px;border:none;font-weight:700;font-size:10.5px;cursor:pointer;font-family:var(--fb);min-height:30px;${btnStyle}" ${disabled}>${btnLabel}</button>
+        </div>`;
+      });
+      const html=`<div class="rcard">
+        <div class="rcard-title">⚙️ ${isSw?'Ruhusa za Programu':'App Permissions'}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:10px">${isSw?'Dhibiti ruhusa zinazohitajika na SemaTel. Ruhusa zinaombwa moja kwa moja unapotumia kipengele husika.':'Manage permissions required by SemaTel. Permissions are requested automatically when you use a specific feature.'}</div>
+        ${rows}
+        <div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:rgba(10,92,54,.05);font-size:10.5px;color:var(--savanna-deep)">
+          ${isSw?'💡 Usiri: Ruhusa zinaombwa moja kwa moja unapotumia kipengele (mfano: eneo unapotafuta wakala, mawasiliano unapotuma pesa). Hii ni kwa usalama wako.':'💡 Tip: Permissions are requested automatically when you use a feature (e.g. location when finding agents, contacts when sending money). This is for your security.'}
+        </div>
+      </div>`;
+      this.addMessage(null,'bot',html);
+    },400);
+  },
+
+  /* Request a permission from inline chat card */
+  async requestPermFromChat(permId){
+    if(PermissionManager.isGranted(permId)){return;}
+    if(permId==='microphone'){
+      const proceed=await this.showRationale('microphone');
+      if(proceed){const g=await PermissionManager.requestMicrophone();if(g){this.initSpeech();this.toast(ChatbotMemory.lang==='sw'?'🎙️ Mikrofoni imeruhusiwa':'🎙️ Microphone enabled');}}
+    }else if(permId==='contacts'){
+      const result=await PermissionManager.requestContacts();
+      if(result==='available')this.toast(ChatbotMemory.lang==='sw'?'📇 Chagua mawasiliano unapotuma pesa':'📇 Pick contacts when sending money');
+      else if(result===true)this.toast(ChatbotMemory.lang==='sw'?'📇 Mawasiliano yameruhusiwa':'📇 Contacts enabled');
+    }else if(permId==='geolocation'){
+      const proceed=await this.showRationale('geolocation');
+      if(proceed){const g=await PermissionManager.requestGeolocation();if(g)this.toast(ChatbotMemory.lang==='sw'?'📍 Eneo limeruhusiwa':'📍 Location enabled');}
+    }else if(permId==='notifications'){
+      const proceed=await this.showRationale('notifications');
+      if(proceed){const g=await PermissionManager.requestNotifications();if(g)this.toast(ChatbotMemory.lang==='sw'?'🔔 Arifa zimeruhusiwa':'🔔 Notifications enabled');}
+    }else if(permId==='camera'){
+      const proceed=await this.showRationale('camera');
+      if(proceed){const g=await PermissionManager.requestCamera();if(g)this.toast(ChatbotMemory.lang==='sw'?'📷 Kamera imeruhusiwa':'📷 Camera enabled');}
+    }else if(permId==='clipboard'){
+      try{const text=await PermissionManager.requestClipboardRead();if(text)this.toast(ChatbotMemory.lang==='sw'?'📋 Nambari imenakiliwa':'📋 Number pasted');else this.toast(ChatbotMemory.lang==='sw'?'📋 Clipboard haina data':'📋 Clipboard empty');}catch(e){this.toast(ChatbotMemory.lang==='sw'?'📋 Clipboard haipatikani':'📋 Clipboard unavailable');}
+    }else if(permId==='storage'){
+      const g=await PermissionManager.requestPersistentStorage();
+      if(g)this.toast(ChatbotMemory.lang==='sw'?'💾 Hifadhi ya kudumu imeruhusiwa':'💾 Persistent storage enabled');
+    }
+    // Re-render the permissions card with updated states
+    this.showPermissionsInChat();
   },
 
   /* ---- HELP ---- */
@@ -2188,7 +2631,7 @@ const Engine={
     const html=`<div class="rcard">
       <div class="rcard-title">💡 ${isSw?'Msaada':'Help & Services'}</div>
       <div style="font-size:12px;color:var(--slate);margin-bottom:10px">${isSw?'Huduma zote zinazopatikana:':'All available services:'}</div>
-      ${[['📱','Airtime','BUY_AIRTIME'],['📶','Data Bundle','BUY_DATA'],['💬','SMS','BUY_SMS'],['📞','Dakika','BUY_MINUTES'],['⚡','LUKU','BUY_LUKU'],['💸','Tuma Pesa','SEND_MONEY'],['💰','Angalia Salio','CHECK_BALANCE'],['🎫','Vocha','REDEEM_VOUCHER'],['🧾','Lipa Bili','PAY_BILLS'],['🏛️','Serikali','GOVT_PAYMENT'],['🌍','Tuma Nje','INTL_TRANSFER'],['🎓','Karo/Ada','SCHOOL_FEES'],['🔢','Paybill','PAYBILL'],['👥','Bulk','BULK_PAYMENT'],['✈️','Safari','TRAVEL_BOOKING'],['🏦','Mobile Banking','MOBILE_BANKING']].map(([icon,label,intent])=>`<button class="btn-block" style="margin-top:4px;font-size:12px;padding:8px;display:flex;align-items:center;gap:6px" onclick="Engine.processIntent('${intent}',{})">${icon} ${label}</button>`).join('')}
+      ${[['📱','Airtime','BUY_AIRTIME'],['📶','Data Bundle','BUY_DATA'],['💬','SMS','BUY_SMS'],['📞','Dakika','BUY_MINUTES'],['⚡','LUKU','BUY_LUKU'],['💸','Tuma Pesa','SEND_MONEY'],['💰','Angalia Salio','CHECK_BALANCE'],['🎫','Vocha','REDEEM_VOUCHER'],['🧾','Lipa Bili','PAY_BILLS'],['🏛️','Serikali','GOVT_PAYMENT'],['🌍','Tuma Nje','INTL_TRANSFER'],['🎓','Karo/Ada','SCHOOL_FEES'],['🔢','Paybill','PAYBILL'],['👥','Bulk','BULK_PAYMENT'],['✈️','Safari','TRAVEL_BOOKING'],['🏦','Mobile Banking','MOBILE_BANKING'],['⚙️',isSw?'Ruhusa':'Permissions','PERMISSIONS']].map(([icon,label,intent])=>`<button class="btn-block" style="margin-top:4px;font-size:12px;padding:8px;display:flex;align-items:center;gap:6px" onclick="Engine.processIntent('${intent}',{})">${icon} ${label}</button>`).join('')}
     </div>`;
     this.addMessage(null,'bot',html);
   },
@@ -2303,6 +2746,9 @@ const Engine={
     if(title)title.textContent=ChatbotMemory.lang==='sw'?'Imefanikiwa! ✅':'Success! ✅';
     if(refEl)refEl.textContent='Ref: '+ref;
     ov.classList.add('show');
+    this.vibrate([100,50,100]);
+    // Suggest notifications after first successful transaction
+    this.requestNotifAfterTx();
     setTimeout(()=>{ov.classList.remove('show');},2800);
   },
 
@@ -2392,8 +2838,12 @@ const Engine={
   /* ---- VOICE ---- */
   initSpeech(){
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){return;}
-    // Mic button is always visible; permission requested on press
+    const micBtn=document.getElementById('micBtn');
+    if(!SR){
+      // Mark mic button as unsupported (greyed out, not hidden)
+      if(micBtn)micBtn.classList.add('unsupported');
+      return;
+    }
     if(!PermissionManager.isGranted('microphone')){
       return;
     }
@@ -2403,26 +2853,279 @@ const Engine={
     this._pendingVoice=false;
     this.recognition.onstart=()=>{this.isListening=true;document.getElementById('micBtn').classList.add('recording');document.getElementById('userInput').placeholder='🎙️ Listening...';};
     this.recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript;if(t){document.getElementById('userInput').value=t;this._pendingVoice=true;}};
-    this.recognition.onerror=()=>{this.addMessage('🎙️ Sikio halijasomeka. Jaribu tena.','bot');};
+    this.recognition.onerror=(e)=>{
+      const nonCritical=['no-speech','aborted','audio-capture'];
+      if(nonCritical.includes(e.error)){
+        this.toast(ChatbotMemory.lang==='sw'?'🎙️ Halikusikika sauti. Jaribu tena.':'🎙️ No speech detected. Try again.');
+      }else{
+        this.addMessage('🎙️ Sikio halijasomeka. Jaribu tena.','bot');
+      }
+    };
     this.recognition.onend=()=>{this.isListening=false;document.getElementById('micBtn').classList.remove('recording');document.getElementById('userInput').placeholder='Andika hapa / Type message...';if(this._pendingVoice){this._pendingVoice=false;this.sendMessage();}};
   },
   async toggleMic(){
-    // If mic permission not granted, request it first (triggers browser permission pop-up)
+    // If mic permission not granted, show rationale then request
     if(!PermissionManager.isGranted('microphone')){
+      const proceed=await this.showRationale('microphone');
+      if(!proceed)return;
       const granted=await PermissionManager.requestMicrophone();
       if(granted){
         this.initSpeech();
         this.toast(ChatbotMemory.lang==='sw'?'🎙️ Sasa unaweza kutumia sauti':'🎙️ Voice input enabled');
-        // Start listening immediately after granting
+        this.vibrate(50);
         setTimeout(()=>{if(this.recognition)this.recognition.start();},300);
       }else{
-        // Permission denied - show a brief toast instead of in-chat message
         this.toast(ChatbotMemory.lang==='sw'?'🎙️ Ruhusa ya mikrofoni ilikataliwa':'🎙️ Microphone permission denied');
       }
       return;
     }
-    if(!this.recognition){this.toast('🎙️ Voice input not supported.');return;}
+    if(!this.recognition){
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){this.toast(ChatbotMemory.lang==='sw'?'🎙️ Kipengele cha sauti hakitumiki kwenye kifaa hiki':'🎙️ Voice input not supported on this device');return;}
+      this.initSpeech();
+    }
     this.isListening?this.recognition.stop():this.recognition.start();
+  },
+  /* ---- VIBRATION (haptic feedback) ---- */
+  vibrate(ms){
+    try{if(navigator.vibrate)navigator.vibrate(ms||50);}catch(e){}
+  },
+  /* ---- GEOLOCATION ---- */
+  async requestLocation(){
+    if(!PermissionManager.isGranted('geolocation')){
+      const proceed=await this.showRationale('geolocation');
+      if(!proceed)return null;
+    }
+    const granted=await PermissionManager.requestGeolocation();
+    if(!granted){this.toast(ChatbotMemory.lang==='sw'?'📍 Ruhusa ya eneo ilikataliwa':'📍 Location permission denied');return null;}
+    return new Promise(resolve=>{
+      navigator.geolocation.getCurrentPosition(
+        pos=>resolve({lat:pos.coords.latitude,lng:pos.coords.longitude}),
+        ()=>resolve(null),{timeout:10000,enableHighAccuracy:false}
+      );
+    });
+  },
+  /* ---- NOTIFICATIONS ---- */
+  async requestNotifAfterTx(){
+    if(!PermissionManager.isGranted('notifications')&&PermissionManager.get('notifications')==='prompt'){
+      const proceed=await this.showRationale('notifications');
+      if(proceed){
+        const granted=await PermissionManager.requestNotifications();
+        if(granted)this.toast(ChatbotMemory.lang==='sw'?'🔔 Arifa zimewezeshwa':'🔔 Notifications enabled');
+      }
+    }
+  },
+  /* ---- QR SCANNER ---- */
+  _qrCallback:null,
+  _qrScanInterval:null,
+  async openQRScanner(callback){
+    if(!PermissionManager.isGranted('camera')){
+      const proceed=await this.showRationale('camera');
+      if(!proceed)return;
+      const granted=await PermissionManager.requestCamera();
+      if(!granted){this.toast(ChatbotMemory.lang==='sw'?'📷 Ruhusa ya kamera ilikataliwa':'📷 Camera permission denied');return;}
+    }
+    // Store callback for when QR is scanned
+    if(callback)this._qrCallback=callback;
+    const overlay=document.getElementById('qrOverlay');
+    const video=document.getElementById('qrVideo');
+    const hint=document.getElementById('qrHint');
+    if(hint)hint.textContent=ChatbotMemory.lang==='sw'?'Elekeza kamera kwenye QR code':'Point camera at QR code';
+    if(overlay)overlay.classList.add('show');
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      this._qrStream=stream;
+      if(video){video.srcObject=stream;video.play();}
+      this.toast(ChatbotMemory.lang==='sw'?'📷 Skani QR code':'📷 Scan QR code');
+      // Start scanning for QR codes using BarcodeDetector or canvas polling
+      this._startQRDetection(video);
+    }catch(e){
+      this.toast(ChatbotMemory.lang==='sw'?'📷 Kamera haipatikani':'📷 Camera unavailable');
+      this.closeQRScanner();
+    }
+  },
+  _startQRDetection(video){
+    if(this._qrScanInterval){clearInterval(this._qrScanInterval);this._qrScanInterval=null;}
+    // Use BarcodeDetector API if available (Chrome Android, etc.)
+    if('BarcodeDetector'in window){
+      const detector=new BarcodeDetector({formats:['qr_code','ean_13','ean_8','code_128','code_39']});
+      this._qrScanInterval=setInterval(async()=>{
+        try{
+          if(!video||video.readyState<2)return;
+          const barcodes=await detector.detect(video);
+          if(barcodes&&barcodes.length>0){
+            const value=barcodes[0].rawValue;
+            if(value){
+              this._onQRScanned(value);
+            }
+          }
+        }catch(e){}
+      },500);
+    }else{
+      // Fallback: Use canvas + jsQR-like manual detection hint
+      // Since we can't decode without a library, show manual input prompt after a few seconds
+      let attempts=0;
+      this._qrScanInterval=setInterval(()=>{
+        attempts++;
+        if(attempts>=12){ // ~6 seconds of scanning
+          // QR decode not available without library - prompt manual entry
+          const isSw=ChatbotMemory.lang==='sw';
+          this.toast(isSw?'📷 Weka namba kwa mkono':'📷 Enter number manually');
+          this.closeQRScanner();
+          // If there's a callback, ask for manual input
+          if(this._qrCallback){
+            const cb=this._qrCallback;
+            this._qrCallback=null;
+            cb(null); // null signals "manual input needed"
+          }
+        }
+      },500);
+    }
+  },
+  _onQRScanned(value){
+    // Stop scanning and close overlay
+    if(this._qrScanInterval){clearInterval(this._qrScanInterval);this._qrScanInterval=null;}
+    this.vibrate(100);
+    this.closeQRScanner();
+    // Extract digits from QR value (many bill QR codes contain numbers)
+    const digits=value.replace(/[^\d]/g,'');
+    const isSw=ChatbotMemory.lang==='sw';
+    if(digits.length>=4){
+      this.toast(isSw?`📷 QR imeskanwa: ${digits}`:`📷 QR scanned: ${digits}`);
+    }else{
+      this.toast(isSw?`📷 QR imeskanwa`:`📷 QR scanned`);
+    }
+    // Route to callback
+    if(this._qrCallback){
+      const cb=this._qrCallback;
+      this._qrCallback=null;
+      cb(value);
+    }
+  },
+  closeQRScanner(){
+    if(this._qrScanInterval){clearInterval(this._qrScanInterval);this._qrScanInterval=null;}
+    const overlay=document.getElementById('qrOverlay');
+    const video=document.getElementById('qrVideo');
+    if(overlay)overlay.classList.remove('show');
+    if(this._qrStream){this._qrStream.getTracks().forEach(t=>t.stop());this._qrStream=null;}
+    if(video)video.srcObject=null;
+  },
+  /* ---- CLIPBOARD PASTE SUGGESTION ---- */
+  async suggestClipboardPaste(){
+    const text=await PermissionManager.requestClipboardRead();
+    if(text&&/^\d{9,13}$/.test(text.replace(/\s/g,''))){
+      const isSw=ChatbotMemory.lang==='sw';
+      const phone=text.replace(/\s/g,'');
+      const html=`<div style="font-size:12px;color:var(--muted);margin-top:4px">${isSw?'📋 Umenakili namba:':'📋 You copied a number:'} <strong>${phone}</strong></div>
+        <button class="btn-block" style="margin-top:6px" onclick="Engine.useClipboardNumber('${phone}')">${isSw?'📞 Tumia namba hii':'📞 Use this number'}</button>`;
+      this.addMessage(null,'bot',html);
+    }
+  },
+  useClipboardNumber(phone){
+    this.addMessage(phone,'user');
+    currentTx.phone=phone;
+    const net=detectNetwork(phone);
+    if(net){currentTx.provider=net;currentTx.wallet=networkWallet(net);
+      this.addMessage(`<span class="net-detect">📡 ${net} / ${currentTx.wallet} ${this.translate('network_detected')}</span>`,'bot');
+    }
+    awaitingSlot=null;
+    if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
+    this.proceedMoneyC3();
+  },
+  /* ---- PERSISTENT STORAGE ---- */
+  async requestStoragePersist(){
+    if(!PermissionManager.isGranted('storage')){
+      const granted=await PermissionManager.requestPersistentStorage();
+      if(granted)this.toast(ChatbotMemory.lang==='sw'?'💾 Data yako imehifadhiwa kwa udumu':'💾 Your data is now persistently stored');
+    }
+  },
+  /* ---- SETTINGS / PERMISSION STATUS ---- */
+  openSettings(){
+    const isSw=ChatbotMemory.lang==='sw';
+    const listEl=document.getElementById('settingsPermList');
+    if(!listEl)return;
+    const perms=[
+      {id:'microphone',name:isSw?'Mikrofoni':'Microphone',desc:isSw?'Kwa maingizo ya sauti':'For voice input'},
+      {id:'contacts',name:isSw?'Mawasiliano':'Contacts',desc:isSw?'Kuchagua mpokeaji':'To pick recipients'},
+      {id:'geolocation',name:isSw?'Eneo':'Location',desc:isSw?'Kupata wakala karibu':'Find nearby agents'},
+      {id:'notifications',name:isSw?'Arifa':'Notifications',desc:isSw?'Uthibitisho wa malipo':'Payment confirmations'},
+      {id:'camera',name:isSw?'Kamera':'Camera',desc:isSw?'Kuskanii QR code':'Scan QR codes'},
+      {id:'storage',name:isSw?'Hifadhi':'Storage',desc:isSw?'Kuhifadhi data nje ya mtandao':'Store data offline'}
+    ];
+    let html='<div class="settings-section"><div class="settings-section-title">'+(isSw?'Ruhusa':'Permissions')+'</div>';
+    perms.forEach(p=>{
+      const supported=PermissionManager.isSupported(p.id);
+      const state=supported?(PermissionManager.isGranted(p.id)?'granted':PermissionManager.isDenied(p.id)?'denied':'prompt'):'unavailable';
+      const meta=PERM_META[p.id];
+      const icon=meta?meta.icon:'❓';
+      const stateLabel=state==='granted'?(isSw?'Ruhusiwa':'Granted'):state==='denied'?(isSw?'Kataliwa':'Denied'):state==='unavailable'?(isSw?'Hapatikani':'N/A'):(isSw?'Bado':'Ask');
+      const actionClass=state==='unavailable'?'denied':state;
+      html+=`<div class="settings-perm-row">
+        <span class="settings-perm-icon">${icon}</span>
+        <div class="settings-perm-info">
+          <div class="settings-perm-name">${p.name}</div>
+          <div class="settings-perm-desc">${p.desc}</div>
+        </div>
+        <button class="settings-perm-action ${actionClass}" onclick="Engine.requestPermFromSettings('${p.id}')">${stateLabel}</button>
+      </div>`;
+    });
+    html+='</div>';
+    // App info section
+    html+=`<div class="settings-section"><div class="settings-section-title">${isSw?'Maelezo ya Programu':'App Info'}</div>
+      <div class="settings-perm-row"><span class="settings-perm-icon">📦</span><div class="settings-perm-info"><div class="settings-perm-name">SemaTel v4</div><div class="settings-perm-desc">${isSw?'Programu ya fedha na simu - Tanzania':'Financial & telecom super-app - Tanzania'}</div></div></div>
+      <div class="settings-perm-row"><span class="settings-perm-icon">🌐</span><div class="settings-perm-info"><div class="settings-perm-name">${isSw?'Lugha':'Language'}</div><div class="settings-perm-desc">${ChatbotMemory.lang==='sw'?'Kiswahili':'English'}</div></div></div>
+    </div>`;
+    listEl.innerHTML=html;
+    const overlay=document.getElementById('settingsOverlay');
+    if(overlay)overlay.classList.add('show');
+  },
+  closeSettings(){
+    const overlay=document.getElementById('settingsOverlay');
+    if(overlay)overlay.classList.remove('show');
+  },
+  async requestPermFromSettings(permId){
+    if(PermissionManager.isGranted(permId)){return;}
+    if(permId==='storage'){await this.requestStoragePersist();}
+    else if(permId==='notifications'){await this.requestNotifications();}
+    else if(permId==='geolocation'){await this.requestLocation();}
+    else if(permId==='camera'){await this.openQRScanner((value)=>{if(value)this.toast(ChatbotMemory.lang==='sw'?'📷 Kamera imeruhusiwa na QR imeskanwa':'📷 Camera enabled & QR scanned');});}
+    else if(permId==='microphone'){
+      const proceed=await this.showRationale('microphone');
+      if(proceed){const g=await PermissionManager.requestMicrophone();if(g)this.initSpeech();}
+    }
+    else if(permId==='contacts'){
+      const result=await PermissionManager.requestContacts();
+      if(result==='available')this.toast(ChatbotMemory.lang==='sw'?'📇 Ruhusu mawasiliano unapotuma pesa':'📇 Allow contacts when sending money');
+    }
+    this.openSettings(); // refresh
+  },
+  /* ---- PWA INSTALL PROMPT ---- */
+  _deferredInstallPrompt:null,
+  initPWAInstall(){
+    window.addEventListener('beforeinstallprompt',(e)=>{
+      e.preventDefault();
+      this._deferredInstallPrompt=e;
+      const banner=document.getElementById('installBanner');
+      if(banner)setTimeout(()=>banner.classList.add('show'),3000);
+    });
+    window.addEventListener('appinstalled',()=>{
+      this._deferredInstallPrompt=null;
+      const banner=document.getElementById('installBanner');
+      if(banner)banner.classList.remove('show');
+      this.toast(ChatbotMemory.lang==='sw'?'✅ SemaTel imesakinishwa!':'✅ SemaTel installed!');
+    });
+  },
+  async installApp(){
+    if(!this._deferredInstallPrompt){this.toast('Open in browser menu → "Add to Home Screen"');return;}
+    this._deferredInstallPrompt.prompt();
+    const result=await this._deferredInstallPrompt.userChoice;
+    this._deferredInstallPrompt=null;
+    const banner=document.getElementById('installBanner');
+    if(banner)banner.classList.remove('show');
+  },
+  dismissInstall(){
+    const banner=document.getElementById('installBanner');
+    if(banner)banner.classList.remove('show');
   }
 };
 
@@ -2452,12 +3155,42 @@ window.Engine=Engine;window.LayoutManager=LayoutManager;
 
 function bootSemaTel(){
   if(bootSemaTel.done)return;bootSemaTel.done=true;
+  // Wire up UI buttons
+  // Settings button removed from taskbar; permissions accessible via chat (MY_ACCOUNT / "settings" / "ruhusa")
+  const installBtn=document.getElementById('installBannerBtn');
+  if(installBtn)installBtn.addEventListener('click',()=>Engine.installApp());
+  const installDismiss=document.getElementById('installBannerDismiss');
+  if(installDismiss)installDismiss.addEventListener('click',()=>Engine.dismissInstall());
+  const rationaleAllow=document.getElementById('permRationaleAllow');
+  if(rationaleAllow)rationaleAllow.addEventListener('click',()=>Engine.handleRationale(true));
+  const rationaleDeny=document.getElementById('permRationaleDeny');
+  if(rationaleDeny)rationaleDeny.addEventListener('click',()=>Engine.handleRationale(false));
   try{Engine.init();}
   catch(err){console.error('SemaTel init failed:',err);const box=document.getElementById('chatBox');if(box)box.insertAdjacentHTML('beforeend','<div class="mrow"><div class="bub bot">Hitilafu. Pakia upya ukurasa.</div></div>');}
 }
 bootSemaTel.done=false;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSemaTel);
 else bootSemaTel();
+
+/* ========== SERVICE WORKER REGISTRATION (PWA offline support) ========== */
+if('serviceWorker'in navigator){
+  const swCode=`
+    const CACHE='sematel-v4';
+    const URLS=['./'];
+    self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS)));self.skipWaiting();});
+    self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
+    self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res.status===200){const clone=res.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));}return res;}).catch(()=>caches.match('./'))));});
+    self.addEventListener('sync',e=>{if(e.tag==='sync-pending-tx'){e.waitUntil(clients.matchAll().then(cs=>cs.forEach(c=>c.postMessage({type:'FLUSH_PENDING'}))));}});
+  `;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob),{scope:'./'}).then(()=>{
+    console.log('SemaTel SW registered');
+  }).catch(e=>console.warn('SW registration failed:',e));
+  // Listen for sync messages from SW
+  navigator.serviceWorker.addEventListener('message',e=>{
+    if(e.data&&e.data.type==='FLUSH_PENDING')Engine.flushPending();
+  });
+}
 </script>
 
 <!-- CONTACT PICKER OVERLAY -->
@@ -2469,6 +3202,39 @@ else bootSemaTel();
     <div class="contact-list" id="contactList"></div>
     <button class="contact-permission-btn" style="background:var(--light);color:var(--slate);box-shadow:none;border:1px solid var(--bdr);margin-top:12px" onclick="Engine.closeContactPicker()" id="contactCancelBtn">Ghairi</button>
   </div>
+</div>
+
+<!-- PERMISSION RATIONALE DIALOG -->
+<div class="perm-rationale-overlay" id="permRationaleOverlay">
+  <div class="perm-rationale-card">
+    <div class="perm-rationale-icon" id="permRationaleIcon">🎙️</div>
+    <div class="perm-rationale-title" id="permRationaleTitle">Permission Needed</div>
+    <div class="perm-rationale-text" id="permRationaleText">This permission is needed for voice input.</div>
+    <div class="perm-rationale-btns">
+      <button class="perm-rationale-deny" id="permRationaleDeny">Not Now</button>
+      <button class="perm-rationale-allow" id="permRationaleAllow">Allow</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS / PERMISSION STATUS OVERLAY -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-content">
+    <div class="settings-title">⚙️ App Settings</div>
+    <div class="settings-subtitle">Manage permissions and preferences</div>
+    <div id="settingsPermList"></div>
+    <button class="settings-close" onclick="Engine.closeSettings()">Close</button>
+  </div>
+</div>
+
+<!-- QR SCANNER OVERLAY -->
+<div class="qr-overlay" id="qrOverlay">
+  <div class="qr-viewfinder">
+    <video id="qrVideo" autoplay playsinline muted></video>
+    <div class="qr-scan-line"></div>
+  </div>
+  <div class="qr-hint" id="qrHint">Point camera at QR code</div>
+  <button class="qr-close" onclick="Engine.closeQRScanner()">Cancel</button>
 </div>
 
 </body>
