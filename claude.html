@@ -237,29 +237,6 @@ body{
 }
 .btn-sub:active{background:rgba(34,160,90,.12)}
 
-/* Payment method selector */
-.pay-method-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
-.pay-method-btn{
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  padding:14px 8px;border-radius:14px;border:2px solid rgba(0,0,0,.08);
-  background:var(--white);cursor:pointer;transition:all .15s;font-family:var(--fb);
-}
-.pay-method-btn:hover{border-color:var(--emerald)}
-.pay-method-btn.selected{border-color:var(--emerald);background:rgba(34,160,90,.08);box-shadow:0 2px 12px rgba(10,92,54,.15)}
-.pay-method-btn .pay-icon{font-size:26px}
-.pay-method-btn .pay-label{font-size:11px;font-weight:700;color:var(--charcoal)}
-.pay-method-btn .pay-sublabel{font-size:9.5px;color:var(--muted);font-weight:500}
-
-/* OTP input style */
-.otp-grid{display:flex;justify-content:center;gap:12px;margin:14px 0}
-.otp-input{
-  width:48px;height:56px;border-radius:14px;border:2px solid rgba(0,0,0,.1);
-  text-align:center;font-size:22px;font-weight:800;font-family:var(--fd);
-  color:var(--onyx);background:var(--white);outline:none;
-  transition:border-color .15s;caret-color:var(--emerald);
-}
-.otp-input:focus{border-color:var(--emerald);box-shadow:0 0 0 3px rgba(34,160,90,.15)}
-
 /* Typing indicator */
 .trow{display:none;align-items:flex-end;gap:7px;padding:4px 0}
 .trow.show{display:flex}
@@ -325,8 +302,6 @@ textarea::placeholder{color:var(--silver)}
   background:rgba(10,92,54,.1);display:flex;align-items:center;justify-content:center;
   cursor:pointer;flex-shrink:0;margin-bottom:3px;transition:background .15s;
 }
-.mic-btn{display:none}
-.mic-btn.perm-granted{display:flex}
 .mic-btn:active{background:rgba(10,92,54,.18)}
 .rec-dot{width:11px;height:11px;border-radius:50%;background:var(--emerald);display:block}
 .mic-btn.recording .rec-dot{background:#dc2626;animation:pulse-dot 1s infinite}
@@ -411,45 +386,9 @@ textarea::placeholder{color:var(--silver)}
 }
 .lang-opt.active{background:rgba(255,255,255,.2);color:#fff}
 
-/* Channel badge */
-.channel-badge{
-  position:absolute;top:4px;right:8px;
-  background:rgba(255,255,255,.15);border-radius:6px;
-  padding:2px 6px;font-size:9px;font-weight:700;color:rgba(255,255,255,.7);
-  z-index:25;pointer-events:none;
-}
-
-/* Session timeout warning */
-.timeout-banner{
-  background:linear-gradient(135deg,#b8860b,#d4a017);
-  color:#fff;text-align:center;font-size:11px;font-weight:700;
-  padding:6px 12px;display:none;animation:slideDown .3s ease-out;
-}
-.timeout-banner.show{display:block}
-@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
-
-/* Receipt actions */
-.receipt-actions{display:flex;gap:8px;margin-top:10px}
-.receipt-btn{
-  flex:1;padding:8px;border-radius:10px;border:1px solid rgba(10,92,54,.15);
-  background:rgba(34,160,90,.06);color:var(--savanna-deep);
-  font-weight:700;font-size:11px;cursor:pointer;transition:all .15s;
-  display:flex;align-items:center;justify-content:center;gap:4px;
-}
-.receipt-btn:active{background:rgba(34,160,90,.12)}
-
-/* Toast notification */
-.toast{
-  position:absolute;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--charcoal);color:#fff;padding:10px 18px;border-radius:12px;
-  font-size:12px;font-weight:600;z-index:300;opacity:0;transition:all .3s ease-out;
-  pointer-events:none;white-space:nowrap;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
 /* Responsive */
 input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.qa-tile,.btn-block,.btn-sub,.chip,.hdr-back,.send,.mic-btn,.pin-btn,.svc-tile,.pay-method-btn{touch-action:manipulation}
+.qa-tile,.btn-block,.btn-sub,.chip,.hdr-back,.send,.mic-btn,.pin-btn,.svc-tile{touch-action:manipulation}
 @media(max-width:519px){
   :root{--hdr-h:72px}
   .hdr{padding:var(--sat) 12px 12px}
@@ -464,7 +403,6 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
   .svc-tile{min-height:60px;padding:8px 2px 7px}
   .svc-icon{font-size:19px}
   .bub{font-size:14px}
-  .pay-method-grid{grid-template-columns:1fr}
 }
 @media(max-width:320px){
   .svc-grid{grid-template-columns:repeat(3,1fr)}
@@ -476,97 +414,10 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
   .hdr{padding-bottom:4px}
 }
 @supports(height:100dvh){.app{height:100dvh}}
-
-/* ========== CONTACT PICKER ========== */
-.contact-picker-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.55);
-  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-  z-index:200;display:none;align-items:flex-end;justify-content:center;
-  padding:max(12px,var(--sal)) max(12px,var(--sar)) max(12px,var(--sab));
-}
-.contact-picker-overlay.show{display:flex}
-@media(min-width:520px){.contact-picker-overlay{align-items:center}}
-.contact-picker-content{
-  background:var(--white);border-radius:20px 20px 0 0;
-  padding:22px;width:100%;max-width:var(--app-max);
-  max-height:min(85dvh,520px);overflow-y:auto;
-  box-shadow:0 -8px 40px rgba(0,0,0,.25);
-  animation:fu .2s ease-out;
-}
-@media(min-width:520px){.contact-picker-content{border-radius:20px;max-width:380px}}
-.contact-picker-title{
-  font-family:var(--fd);font-weight:700;font-size:16px;
-  color:var(--charcoal);margin-bottom:4px;display:flex;
-  align-items:center;gap:8px;
-}
-.contact-picker-subtitle{font-size:12px;color:var(--muted);margin-bottom:14px}
-.contact-search{
-  width:100%;padding:10px 14px;border-radius:12px;
-  border:1.5px solid rgba(0,0,0,.1);background:var(--light);
-  font-family:var(--fb);font-size:14px;color:var(--onyx);
-  outline:none;margin-bottom:12px;transition:border-color .15s;
-}
-.contact-search:focus{border-color:var(--emerald)}
-.contact-list{display:flex;flex-direction:column;gap:6px}
-.contact-item{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 12px;border-radius:12px;
-  background:var(--light);cursor:pointer;transition:all .15s;
-  border:1.5px solid transparent;
-}
-.contact-item:active{background:rgba(10,92,54,.1)}
-.contact-item:hover{border-color:rgba(10,92,54,.15)}
-.contact-avatar{
-  width:38px;height:38px;border-radius:11px;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:14px;color:#fff;flex-shrink:0;
-  background:var(--grad-card);
-}
-.contact-info{flex:1;min-width:0}
-.contact-name{font-weight:700;font-size:13px;color:var(--charcoal);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.contact-number{font-size:11.5px;color:var(--muted);margin-top:1px}
-.contact-network-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(10,92,54,.1);color:var(--savanna-deep);white-space:nowrap}
-.contact-empty{text-align:center;padding:30px 20px;color:var(--muted);font-size:13px}
-.contact-permission-btn{
-  width:100%;padding:12px;border-radius:12px;border:none;
-  background:var(--grad-card);color:#fff;font-weight:700;font-size:13px;
-  margin-top:10px;cursor:pointer;min-height:44px;
-  box-shadow:0 3px 12px rgba(10,92,54,.3);transition:all .15s;
-}
-.contact-permission-btn:active{opacity:.9;transform:scale(.99)}
-
-/* ========== PERMISSION PROMPT ========== */
-.perm-prompt{
-  background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep));
-  border-radius:16px;padding:16px;margin-bottom:10px;
-  color:#fff;box-shadow:0 4px 20px rgba(10,92,54,.3);
-}
-.perm-prompt-title{font-family:var(--fd);font-weight:700;font-size:14px;margin-bottom:4px;display:flex;align-items:center;gap:6px}
-.perm-prompt-text{font-size:12px;opacity:.9;margin-bottom:10px;line-height:1.4}
-.perm-prompt-buttons{display:flex;gap:8px}
-.perm-prompt-btn{
-  flex:1;padding:8px 12px;border-radius:10px;border:none;
-  font-weight:700;font-size:12px;cursor:pointer;transition:all .15s;
-  font-family:var(--fb);
-}
-.perm-prompt-btn.allow{background:#fff;color:var(--kili-peak)}
-.perm-prompt-btn.deny{background:rgba(255,255,255,.15);color:#fff}
-.perm-prompt-btn:active{transform:scale(.97)}
-
-/* Permission status indicators */
-.perm-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:8px}
-.perm-status.granted{background:rgba(34,160,90,.12);color:var(--savanna-deep)}
-.perm-status.denied{background:rgba(220,38,38,.1);color:#dc2626}
-.perm-status.prompt{background:rgba(212,160,23,.12);color:var(--gold-deep)}
-
 </style>
-<base target="_blank">
 </head>
 <body>
 <div class="app" id="appShell">
-
-  <!-- SESSION TIMEOUT BANNER -->
-  <div class="timeout-banner" id="timeoutBanner"></div>
 
   <!-- HEADER -->
   <header class="hdr">
@@ -578,12 +429,8 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
       </div>
     </div>
     <div class="hdr-actions">
-      <div class="net-badge" id="netBadge" title="Network & Channel">
-        <span class="net-dot" id="netDot"></span>
-        <span id="netLabel"></span>
-      </div>
+      
     </div>
-    <div class="channel-badge" id="channelBadge"></div>
   </header>
 
 
@@ -614,9 +461,6 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
       <button type="button" class="send" id="btnSend" aria-label="Send">➤</button>
     </div>
   </footer>
-
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
 </div>
 
 <!-- MODALS -->
@@ -633,12 +477,11 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
 
 <script>
 /* ============================================================
-   SEMA TEL PREMIUM v4 — Tanzania Super App
-   Flowchart-aligned with Payment Methods, OTP, Balance Selection,
-   Channel Detection, Session Timeout, PIN Limiting, Receipt Export
-   Preserves all: Bills, Flights, Govt, Mobile Banking, Bulk, Intl Transfer,
-   School Fees, Paybill, Network Detection, Success Animations,
-   Voice Assistant, Service Grid, Hero Balance
+   SEMA TEL PREMIUM v3 — Tanzania Super App
+   Emerald+Gold Tanzanian brand identity
+   Added: Bills, Flights, Govt, Mobile Banking, Bulk, Intl Transfer,
+          School Fees, Paybill, Network Detection, Success Animations,
+          Voice Assistant, Story banners, Hero balance
 ============================================================ */
 
 /* ========== CONSTANTS ========== */
@@ -687,14 +530,6 @@ const NETWORK_COLOR = {
   'Vodacom':'#e00','Airtel':'#e53','Tigo':'#06c','Halotel':'#a0c','TTCL':'#c60'
 };
 
-const PAYMENT_METHODS = [
-  {id:'wallet',label:'M-Pesa Wallet',icon:'📱',sub:'Mobile Money',supported:['BUY_AIRTIME','BUY_DATA','BUY_SMS','BUY_MINUTES','SEND_MONEY','BUY_LUKU','PAY_BILLS','INTL_TRANSFER','GOVT_PAYMENT','SCHOOL_FEES','PAYBILL','BULK_PAYMENT']},
-  {id:'airtime_bal',label:'Airtime Balance',icon:'📲',sub:'Deduct Airtime',supported:['BUY_AIRTIME','BUY_DATA','BUY_SMS','BUY_MINUTES']},
-  {id:'tigo_pesa',label:'Tigo Pesa',icon:'🔵',sub:'Tigo Money',supported:['BUY_AIRTIME','BUY_DATA','SEND_MONEY','BUY_LUKU','PAY_BILLS']},
-  {id:'airtel_money',label:'Airtel Money',icon:'🔴',sub:'Airtel Transfer',supported:['BUY_AIRTIME','BUY_DATA','SEND_MONEY','BUY_LUKU','PAY_BILLS']},
-  {id:'card',label:'Card / Bank',icon:'💳',sub:'Visa / Mastercard',supported:['BUY_AIRTIME','BUY_DATA','SEND_MONEY','BUY_LUKU','PAY_BILLS','INTL_TRANSFER','SCHOOL_FEES']}
-];
-
 const SMS_CATALOGUE=[{name:'100 SMS',count:100,price:500},{name:'200 SMS',count:200,price:1000},{name:'500 SMS',count:500,price:2000}];
 const MINUTE_CATALOGUE=[{name:'100 Dakika',minutes:100,price:1000},{name:'250 Dakika',minutes:250,price:2000},{name:'500 Dakika',minutes:500,price:4000}];
 const DATA_CATALOGUE={
@@ -731,14 +566,6 @@ const GOVT_SERVICES=[
   {name:'NSSF – Mchango',icon:'🛡️',code:'NSSF',desc:'Social security'}
 ];
 
-// Channel configurations per flowchart
-const CHANNEL_CONFIG = {
-  whatsapp:{name:'WhatsApp',icon:'💬',inputType:'text'},
-  app:{name:'Mobile App',icon:'📱',inputType:'full'},
-  sms:{name:'SMS',icon:'✉️',inputType:'shortcode'},
-  telegram:{name:'Telegram',icon:'✈️',inputType:'text'}
-};
-
 const CHIP_INTENT_MAP = {
   'Buy Airtime':'BUY_AIRTIME','Buy Data':'BUY_DATA','Send Money':'SEND_MONEY',
   'Check Balance':'CHECK_BALANCE','Redeem Voucher':'REDEEM_VOUCHER','My Account':'MY_ACCOUNT',
@@ -753,11 +580,7 @@ const CHIP_INTENT_MAP = {
   'Bulk':'BULK_PAYMENT','Ndege/Basi':'TRAVEL_BOOKING','Travel':'TRAVEL_BOOKING',
   'Mobile Banking':'MOBILE_BANKING',
   'NDIYO':'YES_CONFIRM','HAPANA, ASANTE':'NO_THANKS',
-  'YES':'YES_CONFIRM','NO, THANK YOU':'NO_THANKS',
-  'Wallet':'PAY_WALLET','Airtime Bal':'PAY_AIRTIME_BAL',
-  'Tigo Pesa':'PAY_TIGO_PESA','Airtel Money':'PAY_AIRTEL_MONEY',
-  'Card':'PAY_CARD','M-Pesa':'PAY_WALLET',
-  'Airtime':'BAL_AIRTIME','Data Bal':'BAL_DATA','M-Money':'BAL_WALLET'
+  'YES':'YES_CONFIRM','NO, THANK YOU':'NO_THANKS'
 };
 
 const MANENO_LEXICON = {
@@ -784,22 +607,16 @@ const MANENO_LEXICON = {
 const LANGUAGES = {
   sw:{
     welcome:"Karibu SemaTel 👋\nHuduma yako ya fedha na simu Tanzania.\nChagua huduma au andika unachotaka.",
-    clarify:"⚠️ Samahani, sijakuelewa. Tafadhali jaribu tena au chagua chaguo.",
+    clarify:"⚠️ Samahani, sijakuelewa. Unachotaka ni nini?",
     more_help:"❓ Je, unahitaji msaada zaidi?",
     confirm_title:"THIBITISHA MUAMALA",
     cancel:"Ghairi",confirm:"Thibitisha",yes:"NDIYO",no:"HAPANA",
     processing:"⚙️ Inatuma...",
     success:"✅ IMEFANIKIWA",failed:"❌ IMESHINDIKANA",
     pin_msg:"🔒 Weka PIN yako (tarakimu 4):",
-    pin_blocked:"🚫 PIN imezuiwa. Tafadhali jaribu tena baada ya dakika 5.",
-    pin_last_attempt:"⚠️ Hatua ya mwisho! PIN isiyofanana itazia akaunti kwa muda.",
-    otp_msg:"🔢 Tuma nambari ya kuthibitisha (OTP):",
-    otp_sent:"📲 OTP imetumwa kwenda namba yako ya simu.",
-    otp_invalid:"❌ OTP si sahihi. Tafadhali jaribu tena.",
     retry:"Jaribu Tena",home:"Mwanzo",
     goodbye:"Asante kwa kutumia SemaTel! Kwaheri 👋",
     balance_fetch:"⏳ Inapata salio...",
-    balance_which:"💰 Chagua salio unalotaka kuangalia:",
     invalid_voucher:"❌ Namba ya vocha si sahihi.",
     fraud_block:"⚠️ Muamala umezuiwa kwa usalama.",
     insufficient:"⚠️ Salio halitatosha.",
@@ -808,47 +625,20 @@ const LANGUAGES = {
     ask_missing_meter:"Weka namba ya meita (tarakimu 11–13):",
     ask_missing_voucher:"Weka namba ya vocha:",
     ask_bundle_choice:"Chagua kifurushi:",
-    ask_payment_method:"💳 Chagua njia ya malipo:",
-    network_detected:"Mtandao umegunduliwa",
-    session_timeout:"⏰ Session imekwisha kutokana na kutofanya kazi. Anza upya.",
-    timeout_warning:"⏰ Session itakwisha kwa sekunde 30...",
-    receipt_saved:"🧾 Risiti imehifadhiwa!",
-    receipt_shared:"🧾 Risiti imeshirikiwa!",
-    channel_detected:"Kituo kilichogunduliwa",
-    perm_contacts_title:"📇 Ruhusa ya Mawasiliano",
-    perm_contacts_text:"Tunahitaji kufikia mawasiliano yako ili uweze kuchagua mpokeaji kwa urahisi kutoka kwa orodha yako ya simu.",
-    perm_microphone_title:"🎙️ Ruhusa ya Mikrofoni",
-    perm_microphone_text:"Tunahitaji kufikia mikrofoni yako ili uweze kutumia maingizo ya sauti.",
-    perm_allow:"Ruhusu",
-    perm_deny:"Kataa",
-    perm_granted:"✅ Ruhusa imetolewa",
-    perm_denied:"❌ Ruhusa imekataliwa",
-    select_from_contacts:"📇 Chagua Kutoka Mawasiliano",
-    enter_phone_manual:"✏️ Weka Namba kwa Mikono",
-    search_contacts:"Tafuta mawasiliano...",
-    select_recipient:"👥 Chagua Mpokeaji",
-    no_contacts_found:"Hakuna mawasiliano yaliyopatikana",
-    contacts_permission_needed:"Ruhusa ya mawasiliano inahitajika ili kuona orodha ya mawasiliano.",
-    ask_recipient_phone:"📱 Weka namba ya mpokeaji:"
+    network_detected:"Mtandao umegunduliwa"
   },
   en:{
     welcome:"Welcome to SemaTel 👋\nTanzania's premium financial super-app.\nChoose a service or type what you need.",
-    clarify:"⚠️ Sorry, I didn't understand. Please try again or choose an option below.",
+    clarify:"⚠️ Sorry, I didn't understand. What would you like to do?",
     more_help:"❓ Do you need any further help?",
     confirm_title:"CONFIRM TRANSACTION",
     cancel:"Cancel",confirm:"Confirm",yes:"YES",no:"NO",
     processing:"⚙️ Processing...",
     success:"✅ TRANSACTION SUCCESSFUL",failed:"❌ TRANSACTION FAILED",
     pin_msg:"🔒 Enter your 4-digit PIN:",
-    pin_blocked:"🚫 PIN blocked. Please try again after 5 minutes.",
-    pin_last_attempt:"⚠️ Last attempt! Wrong PIN will temporarily lock your account.",
-    otp_msg:"🔢 Enter the One-Time Password (OTP):",
-    otp_sent:"📲 OTP has been sent to your phone number.",
-    otp_invalid:"❌ Invalid OTP. Please try again.",
     retry:"Retry",home:"Home",
     goodbye:"Thank you for using SemaTel! Goodbye 👋",
     balance_fetch:"⏳ Fetching balance...",
-    balance_which:"💰 Which balance would you like to check?",
     invalid_voucher:"❌ Invalid voucher code.",
     fraud_block:"⚠️ Transaction blocked for security.",
     insufficient:"⚠️ Insufficient balance.",
@@ -857,37 +647,13 @@ const LANGUAGES = {
     ask_missing_meter:"Enter your meter number (11–13 digits):",
     ask_missing_voucher:"Enter your voucher code:",
     ask_bundle_choice:"Choose a bundle:",
-    ask_payment_method:"💳 Choose a payment method:",
-    network_detected:"Network detected",
-    session_timeout:"⏰ Session expired due to inactivity. Please start again.",
-    timeout_warning:"⏰ Session will expire in 30 seconds...",
-    receipt_saved:"🧾 Receipt saved!",
-    receipt_shared:"🧾 Receipt shared!",
-    channel_detected:"Channel detected",
-    perm_contacts_title:"📇 Contacts Permission",
-    perm_contacts_text:"We need access to your contacts so you can easily select a recipient from your phonebook.",
-    perm_microphone_title:"🎙️ Microphone Permission",
-    perm_microphone_text:"We need access to your microphone so you can use voice input.",
-    perm_allow:"Allow",
-    perm_deny:"Deny",
-    perm_granted:"✅ Permission granted",
-    perm_denied:"❌ Permission denied",
-    select_from_contacts:"📇 Select from Contacts",
-    enter_phone_manual:"✏️ Enter Number Manually",
-    search_contacts:"Search contacts...",
-    select_recipient:"👥 Select Recipient",
-    no_contacts_found:"No contacts found",
-    contacts_permission_needed:"Contacts permission is needed to view your contacts list.",
-    ask_recipient_phone:"📱 Enter recipient's phone number:"
+    network_detected:"Network detected"
   }
 };
 
 /* ========== STORAGE ========== */
 const StorageManager = {
-  KEY:'sematel_v4',
-  PIN_KEY:'sematel_pin_v4',
-  SESSION_KEY:'sematel_session_v4',
-  ANALYTICS_KEY:'sematel_analytics_v4',
+  KEY:'sematel_v3',
   defaults(){
     return {
       lang:'sw',
@@ -902,156 +668,23 @@ const StorageManager = {
         {name:'Baba Juma',phone:'0765987321',provider:'Tigo'},
         {name:'Kaka Ali',phone:'0784111222',provider:'Airtel'}
       ],
-      lastTxTimes:[],
-      settings:{notifications:true,biometric:false,sounds:true},
-      onboardingDone:true
+      lastTxTimes:[]
     };
   },
   load(){try{const r=localStorage.getItem(this.KEY);return r?{...this.defaults(),...JSON.parse(r)}:this.defaults()}catch(e){return this.defaults()}},
-  save(){try{localStorage.setItem(this.KEY,JSON.stringify(ChatbotMemory))}catch(e){}},
-  // PIN attempt tracking
-  pinAttempts:0,
-  pinLockUntil:0,
-  loadPinState(){try{const s=localStorage.getItem(this.PIN_KEY);if(s){const d=JSON.parse(s);this.pinAttempts=d.attempts||0;this.pinLockUntil=d.lockUntil||0;}}catch(e){}},
-  savePinState(){try{localStorage.setItem(this.PIN_KEY,JSON.stringify({attempts:this.pinAttempts,lockUntil:this.pinLockUntil}));}catch(e){}},
-  resetPinState(){this.pinAttempts=0;this.pinLockUntil=0;this.savePinState();},
-  isPinLocked(){this.loadPinState();return Date.now()<this.pinLockUntil;},
-  recordPinFail(){this.loadPinState();this.pinAttempts++;if(this.pinAttempts>=3){this.pinLockUntil=Date.now()+5*60*1000;}this.savePinState();return this.pinAttempts;},
-  // Session tracking
-  loadSession(){try{return JSON.parse(localStorage.getItem(this.SESSION_KEY)||'{}')}catch(e){return{}}},
-  saveSession(s){try{localStorage.setItem(this.SESSION_KEY,JSON.stringify(s))}catch(e){}},
-  // Analytics
-  analytics:{
-    intents:{},errors:0,successTx:0,failedTx:0,pinFails:0,otpSents:0,
-    logIntent(intent){this.load();this.intents[intent]=(this.intents[intent]||0)+1;this.save();},
-    logError(){this.load();this.errors++;this.save();},
-    logSuccess(){this.load();this.successTx++;this.save();},
-    logFail(){this.load();this.failedTx++;this.save();},
-    logPinFail(){this.load();this.pinFails++;this.save();},
-    logOtp(){this.load();this.otpSents++;this.save();},
-    load(){try{const d=JSON.parse(localStorage.getItem(StorageManager.ANALYTICS_KEY)||'{}');this.intents=d.intents||{};this.errors=d.errors||0;this.successTx=d.successTx||0;this.failedTx=d.failedTx||0;this.pinFails=d.pinFails||0;this.otpSents=d.otpSents||0;}catch(e){}},
-    save(){try{localStorage.setItem(StorageManager.ANALYTICS_KEY,JSON.stringify({intents:this.intents,errors:this.errors,successTx:this.successTx,failedTx:this.failedTx,pinFails:this.pinFails,otpSents:this.otpSents}));}catch(e){}},
-    reset(){this.intents={};this.errors=0;this.successTx=0;this.failedTx=0;this.pinFails=0;this.otpSents=0;this.save();}
-  }
+  save(){try{localStorage.setItem(this.KEY,JSON.stringify(ChatbotMemory))}catch(e){}}
 };
 let ChatbotMemory=StorageManager.load();
 
-
-/* ========== PERMISSION MANAGER ========== */
-const PermissionManager={
-  KEY:'sematel_permissions_v1',
-  perms:{contacts:'prompt',microphone:'prompt'},
-  init(){this.load();},
-  load(){try{const d=JSON.parse(localStorage.getItem(this.KEY)||'{}');this.perms={...this.perms,...d};}catch(e){}},
-  save(){try{localStorage.setItem(this.KEY,JSON.stringify(this.perms));}catch(e){}},
-  set(perm,state){this.perms[perm]=state;this.save();},
-  get(perm){return this.perms[perm]||'prompt';},
-  isGranted(perm){return this.perms[perm]==='granted';},
-  isDenied(perm){return this.perms[perm]==='denied';},
-
-  /* Request microphone permission via getUserMedia */
-  async requestMicrophone(){
-    if(this.perms.microphone==='granted')return true;
-    if(this.perms.microphone==='denied')return false;
-    try{
-      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-      stream.getTracks().forEach(t=>t.stop());
-      this.set('microphone','granted');
-      return true;
-    }catch(e){
-      console.warn('Microphone permission denied:',e);
-      this.set('microphone','denied');
-      return false;
-    }
-  },
-
-  /* Request contacts permission via Contact Picker API or fallback */
-  async requestContacts(){
-    if(this.perms.contacts==='granted')return true;
-    if(this.perms.contacts==='denied')return false;
-    // Try Contact Picker API (Chrome Android)
-    if('contacts'in navigator&&'ContactsManager'in window){
-      try{
-        const props=['name','tel'];
-        const supported=await navigator.contacts.getProperties();
-        if(supported.includes('name')&&supported.includes('tel')){
-          this.set('contacts','granted');
-          return true;
-        }
-      }catch(e){console.warn('Contact Picker API not available:',e);}
-    }
-    // Fallback: try permissions.query for contacts
-    if(navigator.permissions&&navigator.permissions.query){
-      try{
-        const result=await navigator.permissions.query({name:'contacts'});
-        if(result.state==='granted'){this.set('contacts','granted');return true;}
-        if(result.state==='denied'){this.set('contacts','denied');return false;}
-      }catch(e){}
-    }
-    return 'prompt';
-  }
-};
-
-/* ========== CONTACTS MANAGER ========== */
-const ContactsManager={
-  deviceContacts:[],
-  async loadDeviceContacts(){
-    this.deviceContacts=[];
-    // Try Contact Picker API first
-    if('contacts'in navigator&&'ContactsManager'in window){
-      try{
-        const props=['name','tel'];
-        const contacts=await navigator.contacts.select(props,{multiple:true});
-        this.deviceContacts=contacts.map(c=>({
-          name:Array.isArray(c.name)?c.name[0]:c.name||'Unknown',
-          phone:Array.isArray(c.tel)?c.tel[0]:c.tel||'',
-          provider:this.detectNetwork(Array.isArray(c.tel)?c.tel[0]:c.tel||'')
-        })).filter(c=>c.phone);
-        return this.deviceContacts;
-      }catch(e){console.warn('Contact Picker select failed:',e);}
-    }
-    // Fallback to frequent contacts from storage
-    this.deviceContacts=ChatbotMemory.frequentContacts||[];
-    return this.deviceContacts;
-  },
-  detectNetwork(phone){
-    if(!phone)return'Unknown';
-    const digits=String(phone).replace(/\D/g,'');
-    const local=digits.startsWith('255')?'0'+digits.slice(3):digits;
-    return NETWORK_PREFIXES[local.slice(0,4)]||NETWORK_PREFIXES[local.slice(0,3)]||'Unknown';
-  },
-  getAllContacts(){
-    const seen=new Set();
-    const all=[];
-    (this.deviceContacts||[]).forEach(c=>{
-      const key=String(c.phone).replace(/\D/g,'');
-      if(key&&!seen.has(key)){seen.add(key);all.push(c);}
-    });
-    (ChatbotMemory.frequentContacts||[]).forEach(c=>{
-      const key=String(c.phone).replace(/\D/g,'');
-      if(key&&!seen.has(key)){seen.add(key);all.push(c);}
-    });
-    return all.sort((a,b)=>a.name.localeCompare(b.name));
-  },
-  searchContacts(query){
-    const q=(query||'').toLowerCase().trim();
-    if(!q)return this.getAllContacts();
-    return this.getAllContacts().filter(c=>
-      (c.name||'').toLowerCase().includes(q)||
-      (c.phone||'').includes(q)
-    );
-  }
-};
-
 const OfflineTxQueue={
-  KEY:'sematel_pending_v4',
+  KEY:'sematel_pending_v3',
   list(){try{return JSON.parse(localStorage.getItem(this.KEY)||'[]')}catch(e){return[]}},
   enqueue(tx){const q=this.list();q.push({...tx,queuedAt:Date.now()});localStorage.setItem(this.KEY,JSON.stringify(q))},
   clear(){localStorage.removeItem(this.KEY)}
 };
 
 const FraudGuard={
-  maxAmount:500000,minGapMs:3000,maxDailyTx:20,
+  maxAmount:500000,minGapMs:3000,
   check(tx){
     const amt=tx.amount||tx.price||0;
     if(amt>this.maxAmount)return false;
@@ -1060,10 +693,6 @@ const FraudGuard={
     if(recent.length>=5)return false;
     const last=ChatbotMemory.lastTxTimes[ChatbotMemory.lastTxTimes.length-1];
     if(last&&now-last<this.minGapMs)return false;
-    // Daily limit check
-    const today=new Date().toISOString().split('T')[0];
-    const todayTx=(ChatbotMemory.recentTransactions||[]).filter(t=>t.date===today).length;
-    if(todayTx>=this.maxDailyTx)return false;
     return true;
   },
   record(){
@@ -1072,111 +701,6 @@ const FraudGuard={
     if(ChatbotMemory.lastTxTimes.length>20)ChatbotMemory.lastTxTimes=ChatbotMemory.lastTxTimes.slice(-20);
     StorageManager.save();
   }
-};
-
-/* ========== SESSION MANAGER ========== */
-const SessionManager={
-  timeoutMs:5*60*1000,warningMs:30*1000,timer:null,warningTimer:null,
-  activityCallbacks:[],
-  init(){this.reset();this.bindActivity();},
-  bindActivity(){const events=['touchstart','mousedown','keydown','input'];events.forEach(e=>{document.addEventListener(e,()=>this.reset(),true);});},
-  reset(){clearTimeout(this.timer);clearTimeout(this.warningTimer);this.warningTimer=setTimeout(()=>this.warn(),this.timeoutMs-this.warningMs);this.timer=setTimeout(()=>this.expire(),this.timeoutMs);},
-  warn(){const el=document.getElementById('timeoutBanner');if(!el)return;const t=Engine.translate('timeout_warning');el.textContent=t;el.classList.add('show');Engine.toast(t);},
-  expire(){const el=document.getElementById('timeoutBanner');if(el)el.classList.remove('show');Engine.addMessage(Engine.translate('session_timeout'),'bot');Engine.endChat();this.reset();},
-  destroy(){clearTimeout(this.timer);clearTimeout(this.warningTimer);}
-};
-
-/* ========== INPUT SANITIZER ========== */
-const InputSanitizer={
-  sanitize(text){if(!text)return'';return text.replace(/[<>\"']/g,'').trim();},
-  isValidPhone(phone){const digits=phone.replace(/\D/g,'');return(digits.length>=9&&digits.length<=13);},
-  isValidAmount(amt){const n=parseInt(amt,10);return!isNaN(n)&&n>0&&n<=500000;},
-  isValidMeter(meter){const digits=meter.replace(/\D/g,'');return(digits.length>=11&&digits.length<=13);},
-  isValidPIN(pin){return/^\d{4}$/.test(pin);},
-  isValidOTP(otp){return/^\d{6}$/.test(otp);},
-  isValidVoucher(code){return/^[A-Z0-9]{5,20}$/i.test(code);},
-  hashInput(input){let hash=0;for(let i=0;i<input.length;i++){const c=input.charCodeAt(i);hash=((hash<<5)-hash)+c;hash|=0;}return String(Math.abs(hash));}
-};
-
-/* ========== CHANNEL DETECTOR ========== */
-const ChannelDetector={
-  detect(){
-    const ua=navigator.userAgent.toLowerCase();
-    const urlParams=new URLSearchParams(window.location.search);
-    const channel=urlParams.get('channel');
-    if(channel&&CHANNEL_CONFIG[channel])return channel;
-    if(/whatsapp/.test(ua))return'whatsapp';
-    if(/telegram/.test(ua)||urlParams.get('tg'))return'telegram';
-    if(urlParams.get('sms')||/sms/.test(ua))return'sms';
-    return'app';
-  },
-  label(){const ch=this.detect();return CHANNEL_CONFIG[ch]||CHANNEL_CONFIG.app;},
-  isShortcode(){const ch=this.detect();return ch==='sms';}
-};
-
-/* ========== RECEIPT MANAGER ========== */
-const ReceiptManager={
-  generate(tx,result){
-    const isSw=ChatbotMemory.lang==='sw';
-    const lines=[
-      '================================',
-      '     SEMA TEL - RISITI/RISITI',
-      '================================',
-      '',
-      `  Ref: ${result.ref||'N/A'}`,
-      `  Tarehe/Date: ${result.date||new Date().toLocaleDateString()}`,
-      `  Muda/Time: ${result.time||new Date().toLocaleTimeString()}`,
-      '',
-      '  HUDUMA/SERVICE:',
-      `  ${tx.type||'TX'}`,
-      '',
-      '  MAELEZO/DETAILS:',
-      `  ${tx.details||''}`,
-      '',
-      '  KIASI/AMOUNT:',
-      `  Tsh ${(tx.amount||tx.price||0).toLocaleString()}`,
-      '',
-      '  NJIA YA MALIPO/PAYMENT:',
-      `  ${tx.paymentMethod||'Wallet'}`,
-      '',
-      '--------------------------------',
-      '  Asante kwa kutumia SemaTel!',
-      '  Thank you for using SemaTel!',
-      '================================'
-    ];
-    return lines.join('\n');
-  },
-  download(tx,result){
-    const content=this.generate(tx,result);
-    const blob=new Blob([content],{type:'text/plain'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download=`SemaTel_Risiti_${result.ref||Date.now()}.txt`;
-    document.body.appendChild(a);a.click();
-    document.body.removeChild(a);URL.revokeObjectURL(url);
-  },
-  async share(tx,result){
-    const content=this.generate(tx,result);
-    if(navigator.share){
-      try{await navigator.share({title:'SemaTel Risiti',text:content});return true;}
-      catch(e){return false;}
-    }else if(navigator.clipboard){
-      try{await navigator.clipboard.writeText(content);return true;}
-      catch(e){return false;}
-    }
-    return false;
-  }
-};
-
-/* ========== OTP GENERATOR ========== */
-const OTPManager={
-  currentOTP:'',
-  attempts:0,
-  maxAttempts:3,
-  generate(){this.currentOTP=Math.floor(100000+Math.random()*899999).toString();this.attempts=0;StorageManager.analytics.logOtp();return this.currentOTP;},
-  validate(input){this.attempts++;return input===this.currentOTP&&this.attempts<=this.maxAttempts;},
-  reset(){this.currentOTP='';this.attempts=0;},
-  remaining(){return Math.max(0,this.maxAttempts-this.attempts);}
 };
 
 /* ========== HELPERS ========== */
@@ -1237,7 +761,7 @@ const TransactionEngine={
   },
   process(txData){
     return new Promise((resolve,reject)=>{
-      if(!navigator.onLine){OfflineTxQueue.enqueue(txData);reject({status:'FAILED',reason:'Offline - muamala umesalia kwa usawazishaji',queued:true});return;}
+      if(!navigator.onLine){OfflineTxQueue.enqueue(txData);reject({status:'FAILED',reason:'Offline – muamala umesalia kwa usawazishaji',queued:true});return;}
       setTimeout(()=>{
         const cost=txData.amount||txData.price||0;
         if(ChatbotMemory.walletBalance<cost){reject({status:'FAILED',reason:'Insufficient funds'});return;}
@@ -1264,78 +788,15 @@ const Engine={
 
   init(){
     this._balHidden=ChatbotMemory.balanceHidden||false;
-    StorageManager.pinAttempts=0;StorageManager.pinLockUntil=0;
-    PermissionManager.init();
     this.bindUI();
     LayoutManager.init();
     this.initSpeech();
-    this.detectChannel();
     this.updateHeroBalance();
     this.updateNetLabel();
     this.setGreeting();
-    SessionManager.init();
     document.getElementById('lblToday').textContent=new Date().toLocaleDateString(ChatbotMemory.lang==='sw'?'sw-TZ':'en-TZ',{weekday:'long',day:'numeric',month:'long'});
     this.renderWelcome();
     window.addEventListener('online',()=>this.flushPending());
-    // Request permissions after a short delay to allow UI to render
-    setTimeout(()=>this.requestAppPermissions(),2000);
-  },
-  /* ---- REQUEST APP PERMISSIONS (contacts + microphone) ---- */
-  async requestAppPermissions(){
-    // Request microphone permission for voice input
-    const micGranted=await PermissionManager.requestMicrophone();
-    if(!micGranted&&PermissionManager.get('microphone')==='prompt'){
-      this.showPermissionPrompt('microphone');
-    }
-    // Request contacts permission
-    const contactsResult=await PermissionManager.requestContacts();
-    if(contactsResult==='prompt'){
-      this.showPermissionPrompt('contacts');
-    }else if(contactsResult===true){
-      await ContactsManager.loadDeviceContacts();
-    }
-  },
-  /* ---- SHOW PERMISSION PROMPT IN CHAT ---- */
-  showPermissionPrompt(permType){
-    const isSw=ChatbotMemory.lang==='sw';
-    const titleKey=permType==='contacts'?'perm_contacts_title':'perm_microphone_title';
-    const textKey=permType==='contacts'?'perm_contacts_text':'perm_microphone_text';
-    const html=`<div class="perm-prompt">
-      <div class="perm-prompt-title">${this.translate(titleKey)}</div>
-      <div class="perm-prompt-text">${this.translate(textKey)}</div>
-      <div class="perm-prompt-buttons">
-        <button class="perm-prompt-btn allow" onclick="Engine.handlePermissionResponse('${permType}',true)">${this.translate('perm_allow')}</button>
-        <button class="perm-prompt-btn deny" onclick="Engine.handlePermissionResponse('${permType}',false)">${this.translate('perm_deny')}</button>
-      </div>
-    </div>`;
-    this.addMessage(null,'bot',html);
-  },
-  handlePermissionResponse(permType,allowed){
-    PermissionManager.set(permType,allowed?'granted':'denied');
-    const msgKey=allowed?'perm_granted':'perm_denied';
-    this.addMessage(this.translate(msgKey),'bot');
-    if(allowed&&permType==='contacts'){
-      ContactsManager.loadDeviceContacts().then(()=>{
-        this.addMessage(ChatbotMemory.lang==='sw'?'✅ Mawasiliano yamepakiwa. Unaweza kuchagua mpokeaji kutoka kwa orodha yako.':'✅ Contacts loaded. You can now select a recipient from your list.','bot');
-      });
-    }
-    if(allowed&&permType==='microphone'){
-      this.initSpeech();
-    }
-  },
-
-  /* ---- CHANNEL DETECTION (per flowchart channels box) ---- */
-  detectChannel(){
-    const ch=ChannelDetector.detect();
-    const cfg=CHANNEL_CONFIG[ch]||CHANNEL_CONFIG.app;
-    const badge=document.getElementById('channelBadge');
-    if(badge)badge.textContent=cfg.icon+' '+cfg.name;
-    // Adapt UI for channel
-    if(ch==='sms'){
-      const input=document.getElementById('userInput');
-      if(input)input.placeholder=ChatbotMemory.lang==='sw'?'Andika: 1-Airtime, 2-Data...':'Type: 1-Airtime, 2-Data...';
-    }
-    return ch;
   },
 
   setGreeting(){
@@ -1407,13 +868,6 @@ const Engine={
   tx(k,v){if(v!==undefined&&v!==null)currentTx[k]=v;},
   translate(k){return LANGUAGES[ChatbotMemory.lang][k]||k;},
 
-  /* ---- TOAST NOTIFICATION ---- */
-  toast(msg){
-    const el=document.getElementById('toast');if(!el)return;
-    el.textContent=msg;el.classList.add('show');
-    setTimeout(()=>el.classList.remove('show'),3000);
-  },
-
   showTyping(on){
     const t=document.getElementById('typingIndicator');
     if(!t)return;
@@ -1449,9 +903,7 @@ const Engine={
   },
 
   handleText(text){
-    const t=InputSanitizer.sanitize(text);
-    if(!t)return;
-    SessionManager.reset();
+    const t=(text||'').trim();
     if(/^(mwanzo|home|start|restart)$/i.test(t)){this.resetToHome();return;}
     if(/^(jaribu tena|retry)$/i.test(t)){this.retryTransaction();return;}
     if(awaitingSlot==='amount'){this.fillAmountSlot(t);return;}
@@ -1468,9 +920,6 @@ const Engine={
     if(awaitingSlot==='paybill_number'){this.fillPaybillNumberSlot(t);return;}
     if(awaitingSlot==='bulk_confirm'){this.fillBulkSlot(t);return;}
     if(awaitingSlot==='govt_code'){this.fillGovtSlot(t);return;}
-    if(awaitingSlot==='payment_method'){this.fillPaymentMethodSlot(t);return;}
-    if(awaitingSlot==='otp_input'){this.fillOTPSlot(t);return;}
-    if(awaitingSlot==='balance_type'){this.fillBalanceTypeSlot(t);return;}
 
     const parsed=parseIntent(t);
     const chipIntent=CHIP_INTENT_MAP[t];
@@ -1488,7 +937,6 @@ const Engine={
 
   processIntent(intent,entities){
     entities=entities||{};
-    StorageManager.analytics.logIntent(intent);
     if(entities.amount)this.tx('amount',entities.amount);if(entities.phone)this.tx('phone',entities.phone);
     if(entities.meter)this.tx('meter',entities.meter);if(entities.product)this.tx('product',entities.product);
     if(entities.provider)this.tx('provider',entities.provider);
@@ -1512,111 +960,11 @@ const Engine={
       case'TRAVEL_BOOKING':return this.flowTravel();
       case'MOBILE_BANKING':return this.flowMobileBanking();
       case'GET_HELP':return this.showHelp();
-      case'YES_CONFIRM':return this.fillMoreHelpSlot('ndiyo');
-      case'NO_THANKS':return this.endChat();
-      // Payment method chip intents
-      case'PAY_WALLET':return this.fillPaymentMethodSlot('wallet');
-      case'PAY_AIRTIME_BAL':return this.fillPaymentMethodSlot('airtime_bal');
-      case'PAY_TIGO_PESA':return this.fillPaymentMethodSlot('tigo_pesa');
-      case'PAY_AIRTEL_MONEY':return this.fillPaymentMethodSlot('airtel_money');
-      case'PAY_CARD':return this.fillPaymentMethodSlot('card');
-      // Balance type chip intents
-      case'BAL_AIRTIME':return this.fillBalanceTypeSlot('airtime');
-      case'BAL_DATA':return this.fillBalanceTypeSlot('data');
-      case'BAL_WALLET':return this.fillBalanceTypeSlot('wallet');
       default:this.resetToHome();
     }
   },
 
-  /* ---- PAYMENT METHOD SELECTION (Flowchart A3, C3) ---- */
-  showPaymentMethodSelector(){
-    const isSw=ChatbotMemory.lang==='sw';
-    const txType=currentTx.type||'TX';
-    const available=PAYMENT_METHODS.filter(m=>m.supported.includes(txType));
-    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">${this.translate('ask_payment_method')}</div>`;
-    html+=`<div class="pay-method-grid">`;
-    available.forEach((m,i)=>{
-      html+=`<button class="pay-method-btn" onclick="Engine.pickPaymentMethod('${m.id}')">
-        <span class="pay-icon">${m.icon}</span>
-        <span class="pay-label">${m.label}</span>
-        <span class="pay-sublabel">${m.sub}</span>
-      </button>`;
-    });
-    html+=`</div>`;
-    this.addMessage(null,'bot',html);
-    awaitingSlot='payment_method';
-  },
-  pickPaymentMethod(methodId){
-    awaitingSlot=null;
-    currentTx.paymentMethod=methodId;
-    const pm=PAYMENT_METHODS.find(m=>m.id===methodId);
-    this.addMessage(pm?pm.label:methodId,'user');
-    // Proceed to confirmation/PIN
-    if(currentTx._afterPaymentMethod){
-      currentTx._afterPaymentMethod();
-      delete currentTx._afterPaymentMethod;
-    }
-  },
-  fillPaymentMethodSlot(t){
-    const methodId=t.toLowerCase().trim();
-    const pm=PAYMENT_METHODS.find(m=>m.id===methodId||m.label.toLowerCase().includes(methodId));
-    if(pm){awaitingSlot=null;currentTx.paymentMethod=pm.id;this.addMessage(pm.label,'user');
-      if(currentTx._afterPaymentMethod){currentTx._afterPaymentMethod();delete currentTx._afterPaymentMethod;}
-    }else{this.showPaymentMethodSelector();}
-  },
-
-  /* ---- OTP VERIFICATION (Flowchart Security Layer) ---- */
-  showOTPInput(){
-    const isSw=ChatbotMemory.lang==='sw';
-    const otp=OTPManager.generate();
-    awaitingSlot='otp_input';
-    // Simulate sending OTP
-    this.addMessage(this.translate('otp_sent'),'bot');
-    let html=`<div style="font-weight:700;margin-bottom:8px;font-family:var(--fd)">${this.translate('otp_msg')}</div>`;
-    html+=`<div class="otp-grid">
-      <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp1" oninput="Engine.otpAutoAdvance(this,1)" onkeydown="Engine.otpBackspace(event,1)">
-      <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp2" oninput="Engine.otpAutoAdvance(this,2)" onkeydown="Engine.otpBackspace(event,2)">
-      <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp3" oninput="Engine.otpAutoAdvance(this,3)" onkeydown="Engine.otpBackspace(event,3)">
-      <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp4" oninput="Engine.otpAutoAdvance(this,4)" onkeydown="Engine.otpBackspace(event,4)">
-      <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp5" oninput="Engine.otpAutoAdvance(this,5)" onkeydown="Engine.otpBackspace(event,5)">
-      <input type="text" class="otp-input" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp6" oninput="Engine.otpAutoAdvance(this,6)" onkeydown="Engine.otpBackspace(event,6)">
-    </div>
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:4px">${isSw?'Demo OTP: '+OTPManager.currentOTP:'Demo OTP: '+OTPManager.currentOTP}</div>
-    <button class="btn-block" style="background:var(--light);color:var(--slate);box-shadow:none;border:1px solid var(--bdr);margin-top:6px" onclick="Engine.cancelOTP()">${this.translate('cancel')}</button>`;
-    this.addMessage(null,'bot',html);
-    setTimeout(()=>{const el=document.getElementById('otp1');if(el)el.focus();},300);
-  },
-  otpAutoAdvance(input,idx){
-    const val=input.value.replace(/\D/g,'');input.value=val;
-    if(val&&idx<6){const next=document.getElementById('otp'+(idx+1));if(next)next.focus();}
-    if(idx===6&&val){setTimeout(()=>this.collectOTP(),200);}
-  },
-  otpBackspace(e,idx){
-    if(e.key==='Backspace'&&!e.target.value){if(idx>1){const prev=document.getElementById('otp'+(idx-1));if(prev){prev.focus();prev.select();}}}
-  },
-  collectOTP(){
-    let code='';for(let i=1;i<=6;i++){const el=document.getElementById('otp'+i);code+=el?el.value:'';}
-    this.fillOTPSlot(code);
-  },
-  fillOTPSlot(code){
-    const clean=code.replace(/\D/g,'');
-    if(clean.length!==6){this.addMessage(this.translate('otp_invalid'),'bot');return;}
-    if(OTPManager.validate(clean)){
-      awaitingSlot=null;OTPManager.reset();
-      this.addMessage('✅ OTP verified','user');
-      if(currentTx._afterOTP){
-        const fn=currentTx._afterOTP;delete currentTx._afterOTP;
-        setTimeout(()=>fn(),300);
-      }
-    }else{
-      const rem=OTPManager.remaining();
-      if(rem<=0){awaitingSlot=null;OTPManager.reset();this.addMessage('❌ OTP attempts exhausted. Please start again.','bot');this.askMoreHelp();return;}
-      this.addMessage(this.translate('otp_invalid')+` (${rem} attempts left)`,'bot');
-    }
-  },
-  cancelOTP(){awaitingSlot=null;OTPManager.reset();this.askMoreHelp();},
-
-  /* ---- AIRTIME (Flowchart: A1→A2→A3→A4→6) ---- */
+  /* ---- AIRTIME ---- */
   flowAirtime(){
     currentTx.type='AIRTIME';
     this.showTyping(true);
@@ -1631,34 +979,19 @@ const Engine={
           <div style="font-size:11px;color:var(--muted);margin-top:6px">${ChatbotMemory.lang==='sw'?'Au andika kiasi 👇':'Or type any amount 👇'}</div>`;
         this.addMessage(null,'bot',html);return;
       }
-      this.proceedAirtimeA3();
+      this.proceedToPayment('AIRTIME');
     },400);
   },
-  pickAmt(amt){this.addMessage('Tsh '+amt.toLocaleString(),'user');currentTx.amount=amt;this.proceedAirtimeA3();},
-  fillAmountSlot(t){
-    const amt=normalizeAmount(t)||parseInt(t.replace(/\D/g,''),10);
-    if(amt>0&&InputSanitizer.isValidAmount(amt)){awaitingSlot=null;currentTx.amount=amt;this.proceedAirtimeA3();}
-    else this.addMessage(this.translate('ask_missing_amount'),'bot');
-  },
-  // Flowchart step A3: Choose payment method
-  proceedAirtimeA3(){
-    if(!currentTx.paymentMethod){
-      currentTx._afterPaymentMethod=()=>this.proceedAirtimeA4();
-      this.showPaymentMethodSelector();
-    }else{this.proceedAirtimeA4();}
-  },
-  // Flowchart step A4: Confirm transaction
-  proceedAirtimeA4(){
-    this.proceedToPayment('AIRTIME');
-  },
+  pickAmt(amt){this.addMessage('Tsh '+amt.toLocaleString(),'user');currentTx.amount=amt;this.proceedToPayment(currentTx.type||'AIRTIME');},
+  fillAmountSlot(t){const amt=normalizeAmount(t)||parseInt(t.replace(/\D/g,''),10);if(amt>0){awaitingSlot=null;currentTx.amount=amt;this.proceedToPayment(currentTx.type||'AIRTIME');}else this.addMessage(this.translate('ask_missing_amount'),'bot');},
 
-  /* ---- DATA (Flowchart: B1→B2→B3→6) ---- */
+  /* ---- DATA ---- */
   flowData(){
     currentTx.type='DATA';this.showTyping(true);
     setTimeout(()=>{
       this.showTyping(false);
       const bundle=this.resolveDataBundle();
-      if(bundle){currentTx.price=bundle.price;currentTx.details=`Data: ${bundle.name} (${bundle.validity})`;this.proceedDataB3();return;}
+      if(bundle){currentTx.price=bundle.price;currentTx.details=`Data: ${bundle.name} (${bundle.validity})`;this.proceedToPayment('DATA');return;}
       awaitingSlot='bundle_choice';
       const allB=[...DATA_CATALOGUE.Daily,...DATA_CATALOGUE.Weekly,...DATA_CATALOGUE.Monthly];
       let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">📶 ${ChatbotMemory.lang==='sw'?'Chagua Kifurushi:':'Choose Bundle:'}</div>
@@ -1677,12 +1010,8 @@ const Engine={
     if(currentTx.amount){const f=all.find(b=>b.price===currentTx.amount);if(f)return f;}
     return null;
   },
-  pickBundle(idx){awaitingSlot=null;const b=this._dataBundleList[idx];this.addMessage(b.name+' - Tsh '+b.price.toLocaleString(),'user');currentTx.price=b.price;currentTx.amount=b.price;currentTx.details=`Data: ${b.name} (${b.validity})`;this.proceedDataB3();},
+  pickBundle(idx){awaitingSlot=null;const b=this._dataBundleList[idx];this.addMessage(b.name+' – Tsh '+b.price.toLocaleString(),'user');currentTx.price=b.price;currentTx.amount=b.price;currentTx.details=`Data: ${b.name} (${b.validity})`;this.proceedToPayment('DATA');},
   fillBundleChoiceSlot(t){const p=parseIntent(t);if(p.product||p.amount){awaitingSlot=null;if(p.product)currentTx.product=p.product;if(p.amount)currentTx.amount=p.amount;this.flowData();}else this.addMessage(this.translate('ask_bundle_choice'),'bot');},
-  // Flowchart step B3: Confirm transaction
-  proceedDataB3(){
-    this.proceedToPayment('DATA');
-  },
 
   /* ---- SMS ---- */
   flowSMS(){
@@ -1692,11 +1021,11 @@ const Engine={
       if(currentTx.amount){const match=SMS_CATALOGUE.find(s=>s.price===currentTx.amount)||SMS_CATALOGUE.reduce((b,s)=>Math.abs(s.price-currentTx.amount)<Math.abs(b.price-currentTx.amount)?s:b);currentTx.details=`${match.name} SMS`;currentTx.amount=match.price;this.proceedToPayment('SMS');return;}
       awaitingSlot='bundle_choice';this._smsMode=true;
       let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">💬 SMS Bundle:</div>`;
-      SMS_CATALOGUE.forEach((s,i)=>{html+=`<button class="btn-block" onclick="Engine.pickSMS(${i})">${s.name} - Tsh ${s.price.toLocaleString()}</button>`;});
+      SMS_CATALOGUE.forEach((s,i)=>{html+=`<button class="btn-block" onclick="Engine.pickSMS(${i})">${s.name} – Tsh ${s.price.toLocaleString()}</button>`;});
       this.addMessage(null,'bot',html);
     },400);
   },
-  pickSMS(idx){awaitingSlot=null;this._smsMode=false;const s=SMS_CATALOGUE[idx];this.addMessage(s.name+' - Tsh '+s.price.toLocaleString(),'user');currentTx.amount=s.price;currentTx.details=`${s.name} SMS`;this.proceedToPayment('SMS');},
+  pickSMS(idx){awaitingSlot=null;this._smsMode=false;const s=SMS_CATALOGUE[idx];this.addMessage(s.name+' – Tsh '+s.price.toLocaleString(),'user');currentTx.amount=s.price;currentTx.details=`${s.name} SMS`;this.proceedToPayment('SMS');},
 
   /* ---- MINUTES ---- */
   flowMinutes(){
@@ -1706,108 +1035,31 @@ const Engine={
       if(currentTx.amount){const match=MINUTE_CATALOGUE.reduce((b,m)=>Math.abs(m.price-currentTx.amount)<Math.abs(b.price-currentTx.amount)?m:b);currentTx.details=`${match.name}`;currentTx.amount=match.price;this.proceedToPayment('MINUTES');return;}
       awaitingSlot='bundle_choice';this._minuteMode=true;
       let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">📞 Dakika Bundle:</div>`;
-      MINUTE_CATALOGUE.forEach((m,i)=>{html+=`<button class="btn-block" onclick="Engine.pickMinute(${i})">${m.name} - Tsh ${m.price.toLocaleString()}</button>`;});
+      MINUTE_CATALOGUE.forEach((m,i)=>{html+=`<button class="btn-block" onclick="Engine.pickMinute(${i})">${m.name} – Tsh ${m.price.toLocaleString()}</button>`;});
       this.addMessage(null,'bot',html);
     },400);
   },
-  pickMinute(idx){awaitingSlot=null;this._minuteMode=false;const m=MINUTE_CATALOGUE[idx];this.addMessage(m.name+' - Tsh '+m.price.toLocaleString(),'user');currentTx.amount=m.price;currentTx.details=`${m.name}`;this.proceedToPayment('MINUTES');},
+  pickMinute(idx){awaitingSlot=null;this._minuteMode=false;const m=MINUTE_CATALOGUE[idx];this.addMessage(m.name+' – Tsh '+m.price.toLocaleString(),'user');currentTx.amount=m.price;currentTx.details=`${m.name}`;this.proceedToPayment('MINUTES');},
 
-  /* ---- MONEY (Flowchart: C1→C2→C3→C4→6) ---- */
+  /* ---- MONEY ---- */
   flowMoney(){
     currentTx.type='MONEY';this.showTyping(true);
     setTimeout(()=>{
       this.showTyping(false);
       if(currentTx.phone){const net=detectNetwork(currentTx.phone);if(net&&!currentTx.provider){currentTx.provider=net;currentTx.wallet=networkWallet(net);}}
-      // Step 1: ALWAYS ask for recipient number first
       if(!currentTx.phone){awaitingSlot='phone';
-        const isSw=ChatbotMemory.lang==='sw';
-        let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">💸 ${this.translate('ask_recipient_phone')}</div>`;
-        // Show "Select from Contacts" button if permission granted
-        if(PermissionManager.isGranted('contacts')){
-          html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
-            <span style="font-size:18px">📇</span>
-            <span>${this.translate('select_from_contacts')}</span>
-          </button>`;
-        }
-        // Show frequent contacts if available
+        // Show frequent contacts
+        let html=`<div style="font-weight:700;margin-bottom:8px;font-family:var(--fd)">💸 ${ChatbotMemory.lang==='sw'?'Mpokeaji:':'Recipient:'}</div>`;
         if(ChatbotMemory.frequentContacts&&ChatbotMemory.frequentContacts.length){
-          html+=`<div style="font-size:10.5px;color:var(--muted);margin-bottom:6px;font-weight:700">${isSw?'Mawasiliano ya kawaida:':'Frequent contacts:'}</div>`;
-          ChatbotMemory.frequentContacts.forEach((c,i)=>{const color=NETWORK_COLOR[c.provider]||'#555';html+=`<button class="btn-block" style="text-align:left;display:flex;align-items:center;gap:8px;margin-bottom:6px" onclick="Engine.pickContact(${i})"><span style="width:32px;height:32px;border-radius:10px;background:${color}20;color:${color};display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">${c.name[0]}</span><span><div style="font-weight:700">${c.name}</div><div style="font-size:11px;opacity:.6">${c.phone} · ${c.provider}</div></span></button>`;});
+          html+=`<div style="font-size:10.5px;color:var(--muted);margin-bottom:6px">${ChatbotMemory.lang==='sw'?'Mawasiliano ya kawaida:':'Frequent contacts:'}</div>`;
+          ChatbotMemory.frequentContacts.forEach((c,i)=>{const color=NETWORK_COLOR[c.provider]||'#555';html+=`<button class="btn-block" style="text-align:left;display:flex;align-items:center;gap:8px" onclick="Engine.pickContact(${i})"><span style="width:32px;height:32px;border-radius:10px;background:${color}20;color:${color};display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">${c.name[0]}</span><span><div style="font-weight:700">${c.name}</div><div style="font-size:11px;opacity:.6">${c.phone} · ${c.provider}</div></span></button>`;});
         }
-        html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">${isSw?'Andika namba ya mpokeaji hapa chini 👇':'Type recipient number below 👇'}</div>`;
+        html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">${ChatbotMemory.lang==='sw'?'Au andika namba 👇':'Or type number 👇'}</div>`;
         this.addMessage(null,'bot',html);return;
       }
-      // Step 2: Ask for amount
       if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
-      this.proceedMoneyC3();
+      this.showMoneySummaryAndPIN();
     },400);
-  },
-  /* ---- CONTACT PICKER ---- */
-  openContactPicker(){
-    const isSw=ChatbotMemory.lang==='sw';
-    const overlay=document.getElementById('contactPickerOverlay');
-    const title=document.getElementById('contactPickerTitle');
-    const subtitle=document.getElementById('contactPickerSubtitle');
-    const search=document.getElementById('contactSearch');
-    const cancelBtn=document.getElementById('contactCancelBtn');
-    if(title)title.textContent='👥 '+this.translate('select_recipient');
-    if(subtitle)subtitle.textContent=isSw?'Chagua kutoka mawasiliano yako':'Select from your contacts';
-    if(search)search.placeholder=this.translate('search_contacts');
-    if(cancelBtn)cancelBtn.textContent=this.translate('cancel');
-    // Load and render contacts
-    const contacts=ContactsManager.getAllContacts();
-    this._renderContactList(contacts);
-    if(overlay)overlay.classList.add('show');
-    // Clear search
-    if(search)search.value='';
-  },
-  closeContactPicker(){
-    const overlay=document.getElementById('contactPickerOverlay');
-    if(overlay)overlay.classList.remove('show');
-  },
-  _renderContactList(contacts){
-    const listEl=document.getElementById('contactList');
-    if(!listEl)return;
-    if(!contacts||!contacts.length){
-      listEl.innerHTML=`<div class="contact-empty">${this.translate('no_contacts_found')}</div>`;
-      return;
-    }
-    let html='';
-    contacts.forEach((c,i)=>{
-      const color=NETWORK_COLOR[c.provider]||'#555';
-      const initials=c.name?c.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase():'?';
-      html+=`<div class="contact-item" onclick="Engine.selectContactFromPicker(${i})">
-        <div class="contact-avatar" style="background:${color}25;color:${color}">${initials}</div>
-        <div class="contact-info">
-          <div class="contact-name">${c.name||'Unknown'}</div>
-          <div class="contact-number">${c.phone}</div>
-        </div>
-        <div class="contact-network-badge">${c.provider||''}</div>
-      </div>`;
-    });
-    listEl.innerHTML=html;
-    this._currentContactList=contacts;
-  },
-  filterContacts(query){
-    const contacts=ContactsManager.searchContacts(query);
-    this._renderContactList(contacts);
-  },
-  selectContactFromPicker(idx){
-    const contact=this._currentContactList[idx];
-    if(!contact)return;
-    this.closeContactPicker();
-    this.addMessage(contact.name+' ('+contact.phone+')','user');
-    currentTx.phone=contact.phone;
-    currentTx.provider=contact.provider||detectNetwork(contact.phone);
-    currentTx.wallet=networkWallet(currentTx.provider);
-    awaitingSlot=null;
-    // Show network detection
-    if(currentTx.provider){
-      this.addMessage(`<span class="net-detect">📡 ${currentTx.provider} / ${currentTx.wallet} ${this.translate('network_detected')}</span>`,'bot');
-    }
-    // Proceed to amount
-    if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
-    this.proceedMoneyC3();
   },
   pickContact(idx){
     const c=ChatbotMemory.frequentContacts[idx];
@@ -1815,32 +1067,20 @@ const Engine={
     currentTx.phone=c.phone;currentTx.provider=c.provider;currentTx.wallet=networkWallet(c.provider);
     awaitingSlot=null;
     if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
-    this.proceedMoneyC3();
+    this.showMoneySummaryAndPIN();
   },
   fillPhoneSlot(t){
     const phone=extractPhone(t)||(t.replace(/\D/g,'').length>=9?t.replace(/\s/g,''):null);
-    if(phone&&InputSanitizer.isValidPhone(phone)){awaitingSlot=null;currentTx.phone=phone;const net=detectNetwork(phone);if(net){currentTx.provider=net;currentTx.wallet=networkWallet(net);this.addMessage(`<span class="net-detect">📡 ${net} / ${networkWallet(net)} ${this.translate('network_detected')}</span>`,'bot');}
+    if(phone){awaitingSlot=null;currentTx.phone=phone;const net=detectNetwork(phone);if(net){currentTx.provider=net;currentTx.wallet=networkWallet(net);this.addMessage(`<span class="net-detect">📡 ${net} / ${networkWallet(net)} ${this.translate('network_detected')}</span>`,'bot');}
       if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
-      this.proceedMoneyC3();
+      this.showMoneySummaryAndPIN();
     }else this.addMessage(this.translate('ask_missing_phone'),'bot');
-  },
-  // Flowchart step C3: Choose payment method
-  proceedMoneyC3(){
-    if(!currentTx.paymentMethod){
-      currentTx._afterPaymentMethod=()=>this.proceedMoneyC4();
-      this.showPaymentMethodSelector();
-    }else{this.proceedMoneyC4();}
-  },
-  // Flowchart step C4: Confirm transaction
-  proceedMoneyC4(){
-    this.showMoneySummaryAndPIN();
   },
   showMoneySummaryAndPIN(){
     const isSw=ChatbotMemory.lang==='sw';
     const net=currentTx.provider||detectNetwork(currentTx.phone)||'—';
     const wallet=currentTx.wallet||networkWallet(net)||'M-Pesa';
-    const pm=PAYMENT_METHODS.find(m=>m.id===(currentTx.paymentMethod||'wallet'))||PAYMENT_METHODS[0];
-    currentTx.details=`Tuma Tsh ${Number(currentTx.amount).toLocaleString()} \u2192 ${currentTx.phone}`;
+    currentTx.details=`Tuma Tsh ${Number(currentTx.amount).toLocaleString()} → ${currentTx.phone}`;
     if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
     const balAfter=ChatbotMemory.walletBalance-currentTx.amount;
     const netColor=NETWORK_COLOR[net]||'#555';
@@ -1849,7 +1089,6 @@ const Engine={
       <div class="rcard-row"><span>${isSw?'Mpokeaji':'Recipient'}</span><span>${currentTx.phone}</span></div>
       <div class="rcard-row"><span>${isSw?'Mtandao':'Network'}</span><span><span style="background:${netColor}15;color:${netColor};padding:2px 7px;border-radius:6px;font-size:11px;font-weight:800">${net}</span> ${wallet}</span></div>
       <div class="rcard-row"><span>${isSw?'Kiasi':'Amount'}</span><span style="font-weight:800;color:var(--savanna-deep);font-size:16px">Tsh ${Number(currentTx.amount).toLocaleString()}</span></div>
-      <div class="rcard-row"><span>${isSw?'Njia ya Malipo':'Payment Method'}</span><span>${pm.icon} ${pm.label}</span></div>
       <div class="rcard-row"><span>${isSw?'Salio Baada':'Balance After'}</span><span>Tsh ${balAfter.toLocaleString()}</span></div>
     </div>`;
     this.addMessage(null,'bot',html);setTimeout(()=>this.showInlinePIN('MONEY'),300);
@@ -1865,11 +1104,11 @@ const Engine={
       this.showLukuSummaryAndPIN();
     },400);
   },
-  fillMeterSlot(t){const m=extractMeter(t)||(t.replace(/\D/g,'').length>=11?t.replace(/\D/g,''):null);if(m&&InputSanitizer.isValidMeter(m)){awaitingSlot=null;currentTx.meter=m;if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}this.showLukuSummaryAndPIN();}else this.addMessage(this.translate('ask_missing_meter'),'bot');},
+  fillMeterSlot(t){const m=extractMeter(t)||(t.replace(/\D/g,'').length>=11?t.replace(/\D/g,''):null);if(m){awaitingSlot=null;currentTx.meter=m;if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}this.showLukuSummaryAndPIN();}else this.addMessage(this.translate('ask_missing_meter'),'bot');},
   showLukuSummaryAndPIN(){
     const isSw=ChatbotMemory.lang==='sw';
     const approxUnits=(currentTx.amount/210).toFixed(1);
-    currentTx.details=`LUKU Meita ${currentTx.meter} - Tsh ${Number(currentTx.amount).toLocaleString()}`;
+    currentTx.details=`LUKU Meita ${currentTx.meter} – Tsh ${Number(currentTx.amount).toLocaleString()}`;
     if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
     const html=`<div class="rcard" style="border-left:4px solid var(--gold)">
       <div class="rcard-title">⚡ ${isSw?'THIBITISHA LUKU':'CONFIRM LUKU'}</div>
@@ -1885,7 +1124,7 @@ const Engine={
   flowBills(){
     currentTx.type='BILLS';awaitingSlot='bill_provider';
     const isSw=ChatbotMemory.lang==='sw';
-    const html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🧾 ${isSw?'Lipa Bili - Chagua:':'Pay Bills - Choose:'}</div>
+    const html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🧾 ${isSw?'Lipa Bili – Chagua:':'Pay Bills – Choose:'}</div>
       <div class="svc-grid" style="grid-template-columns:repeat(2,1fr)">
         <div class="qa-tile" onclick="Engine.pickBillProvider('DAWASCO','💧','Maji')"><div class="qa-icon">💧</div>DAWASCO<div style="font-size:9px;color:var(--muted)">Maji</div></div>
         <div class="qa-tile" onclick="Engine.pickBillProvider('TANESCO','⚡','Umeme')"><div class="qa-icon">⚡</div>TANESCO<div style="font-size:9px;color:var(--muted)">Umeme</div></div>
@@ -1914,7 +1153,7 @@ const Engine={
   showBillSummaryAndPIN(){
     const isSw=ChatbotMemory.lang==='sw';
     const icon=currentTx.billIcon||'🧾';const label=currentTx.billLabel||currentTx.billProvider;
-    currentTx.details=`${label} - Akaunti ${currentTx.billAccount}`;
+    currentTx.details=`${label} – Akaunti ${currentTx.billAccount}`;
     if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
     const html=`<div class="rcard" style="border-left:4px solid var(--blue-tz)">
       <div class="rcard-title">${icon} ${isSw?'THIBITISHA BILI':'CONFIRM BILL'}</div>
@@ -1930,7 +1169,7 @@ const Engine={
   flowIntlTransfer(){
     currentTx.type='INTL';awaitingSlot='intl_country';
     const isSw=ChatbotMemory.lang==='sw';
-    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🌍 ${isSw?'Tuma Pesa Nje - Chagua Nchi:':'International Transfer - Choose Country:'}</div>`;
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🌍 ${isSw?'Tuma Pesa Nje – Chagua Nchi:':'International Transfer – Choose Country:'}</div>`;
     INTL_DESTINATIONS.forEach((d,i)=>{html+=`<button class="btn-block" onclick="Engine.pickIntlDest(${i})" style="text-align:left;display:flex;align-items:center;gap:10px"><span style="font-size:20px">${d.flag}</span><span><div style="font-weight:700">${d.country}</div><div style="font-size:11px;opacity:.65">${d.wallet} · Rate: ~${d.rate} Tsh/unit</div></span></button>`;});
     this.addMessage(null,'bot',html);
   },
@@ -1949,7 +1188,7 @@ const Engine={
   showIntlSummaryAndPIN(){
     const isSw=ChatbotMemory.lang==='sw';const d=currentTx.intlDest||INTL_DESTINATIONS[0];
     const received=(currentTx.amount/d.rate).toFixed(2);
-    currentTx.details=`Tuma nje ${d.country} - Tsh ${Number(currentTx.amount).toLocaleString()}`;
+    currentTx.details=`Tuma nje ${d.country} – Tsh ${Number(currentTx.amount).toLocaleString()}`;
     if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
     const html=`<div class="rcard" style="border-left:4px solid var(--gold)">
       <div class="rcard-title">${d.flag} ${isSw?'THIBITISHA TUMA NJE':'CONFIRM INTL TRANSFER'}</div>
@@ -1979,7 +1218,7 @@ const Engine={
   fillGovtSlot(t){const g=GOVT_SERVICES.find(s=>t.toLowerCase().includes(s.code.toLowerCase()));if(g){awaitingSlot=null;this.pickGovt(GOVT_SERVICES.indexOf(g));}else{this.flowGovt();}},
   showGovtSummaryAndPIN(){
     const isSw=ChatbotMemory.lang==='sw';const g=currentTx.govtService||GOVT_SERVICES[0];
-    currentTx.details=`${g.code} - Tsh ${Number(currentTx.amount).toLocaleString()}`;
+    currentTx.details=`${g.code} – Tsh ${Number(currentTx.amount).toLocaleString()}`;
     if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
     const html=`<div class="rcard" style="border-left:4px solid #555">
       <div class="rcard-title">${g.icon} ${isSw?'THIBITISHA MALIPO':'CONFIRM PAYMENT'}</div>
@@ -2003,7 +1242,7 @@ const Engine={
   },
   showSchoolSummaryAndPIN(){
     const isSw=ChatbotMemory.lang==='sw';
-    currentTx.details=`Karo/Ada - Ref ${currentTx.schoolRef}`;
+    currentTx.details=`Karo/Ada – Ref ${currentTx.schoolRef}`;
     if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
     const html=`<div class="rcard" style="border-left:4px solid #7c3aed">
       <div class="rcard-title">🎓 ${isSw?'THIBITISHA ADA/KARO':'CONFIRM SCHOOL FEES'}</div>
@@ -2025,7 +1264,7 @@ const Engine={
     if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');}
     else{
       const isSw=ChatbotMemory.lang==='sw';
-      currentTx.details=`Paybill ${currentTx.paybillNum} - Tsh ${Number(currentTx.amount).toLocaleString()}`;
+      currentTx.details=`Paybill ${currentTx.paybillNum} – Tsh ${Number(currentTx.amount).toLocaleString()}`;
       if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
       const html=`<div class="rcard" style="border-left:4px solid #059669">
         <div class="rcard-title">🔢 ${isSw?'THIBITISHA PAYBILL':'CONFIRM PAYBILL'}</div>
@@ -2059,8 +1298,8 @@ const Engine={
       <div style="font-size:12.5px;color:var(--slate);margin-bottom:10px">${isSw?'Hifadhi ya tiketi zinakuja hivi karibuni. Unaweza kununua kupitia mwenzi wetu wa safari.':'Ticket booking coming soon. You can book via our travel partner.'}</div>
       <button class="btn-block" onclick="window.open('https://safari.tz','_blank')">${isSw?'Tembelea Safari.tz':'Visit Safari.tz'}</button>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px">
-        <button class="btn-sub">✈️ Ndege<br><span style="font-size:10px;font-weight:400">DAR - NBO</span></button>
-        <button class="btn-sub">🚌 Basi<br><span style="font-size:10px;font-weight:400">DAR - MWZ</span></button>
+        <button class="btn-sub">✈️ Ndege<br><span style="font-size:10px;font-weight:400">DAR – NBO</span></button>
+        <button class="btn-sub">🚌 Basi<br><span style="font-size:10px;font-weight:400">DAR – MWZ</span></button>
       </div>
     </div>`;
     this.addMessage(null,'bot',html);this.askMoreHelp();
@@ -2070,66 +1309,28 @@ const Engine={
   flowMobileBanking(){
     const isSw=ChatbotMemory.lang==='sw';
     const banks=[{name:'CRDB Bank',icon:'🏦',short:'CRDB'},{name:'NMB Bank',icon:'🏛️',short:'NMB'},{name:'Equity Bank',icon:'🟦',short:'EQT'},{name:'NCBA Bank',icon:'🔷',short:'NCBA'}];
-    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🏦 ${isSw?'Mobile Banking - Chagua Benki:':'Mobile Banking - Choose Bank:'}</div>`;
+    let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🏦 ${isSw?'Mobile Banking – Chagua Benki:':'Mobile Banking – Choose Bank:'}</div>`;
     banks.forEach(b=>{html+=`<button class="btn-block" onclick="Engine.addMessage('${b.name}','user');Engine.addMessage('${isSw?'Huduma ya '+b.name+' inakuja hivi karibuni. Unaweza kupata kupitia USSD *150*'+b.short+'#':'Service for '+b.name+' coming soon. Access via USSD *150*'+b.short+'#'}','bot');Engine.askMoreHelp()" style="text-align:left;display:flex;align-items:center;gap:8px"><span>${b.icon}</span>${b.name}</button>`;});
     this.addMessage(null,'bot',html);
   },
 
-  /* ---- BALANCE (Flowchart D: D1→D2→D3) ---- */
+  /* ---- BALANCE ---- */
   flowBalance(){
-    // Flowchart D1: Ask which balance to check
-    const isSw=ChatbotMemory.lang==='sw';
-    awaitingSlot='balance_type';
-    const html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">${this.translate('balance_which')}</div>
-      <div class="pay-method-grid">
-        <button class="pay-method-btn" onclick="Engine.fillBalanceTypeSlot('airtime')"><span class="pay-icon">📱</span><span class="pay-label">${isSw?'Airtime Salio':'Airtime Balance'}</span></button>
-        <button class="pay-method-btn" onclick="Engine.fillBalanceTypeSlot('data')"><span class="pay-icon">📶</span><span class="pay-label">${isSw?'Data Salio':'Data Balance'}</span></button>
-        <button class="pay-method-btn" onclick="Engine.fillBalanceTypeSlot('wallet')"><span class="pay-icon">💰</span><span class="pay-label">${isSw?'M-Money Salio':'M-Money Balance'}</span></button>
-        <button class="pay-method-btn" onclick="Engine.fillBalanceTypeSlot('all')"><span class="pay-icon">📊</span><span class="pay-label">${isSw?'Salio Zote':'All Balances'}</span></button>
-      </div>`;
-    this.addMessage(null,'bot',html);
-  },
-  // Flowchart D2+D3: Fetch and show selected balance
-  fillBalanceTypeSlot(type){
-    awaitingSlot=null;
-    const isSw=ChatbotMemory.lang==='sw';
-    this.addMessage(this.translate('balance_fetch'),'bot');
     this.showTyping(true);
     setTimeout(()=>{
-      this.showTyping(false);
-      let html='';
-      if(type==='airtime'){
-        html=`<div class="rcard">
-          <div class="rcard-title">📱 ${isSw?'Airtime Salio':'Airtime Balance'}</div>
-          <div class="rcard-row"><span>Airtime</span><span style="color:var(--gold-deep);font-weight:800;font-size:18px">Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}</span></div>
-          <div style="font-size:10px;color:var(--muted);margin-top:8px">${ChatbotMemory.network} • ${new Date().toLocaleTimeString()}</div>
-        </div>`;
-      }else if(type==='data'){
-        html=`<div class="rcard">
-          <div class="rcard-title">📶 ${isSw?'Data Salio':'Data Balance'}</div>
-          <div class="rcard-row"><span>Data</span><span style="color:var(--savanna-deep);font-weight:800;font-size:18px">${ChatbotMemory.dataBalance}</span></div>
-          <div style="font-size:10px;color:var(--muted);margin-top:8px">${ChatbotMemory.network} • ${new Date().toLocaleTimeString()}</div>
-        </div>`;
-      }else if(type==='wallet'){
-        html=`<div class="rcard">
-          <div class="rcard-title">💰 ${isSw?'M-Money Salio':'M-Money Balance'}</div>
-          <div class="rcard-row"><span>M-Money Wallet</span><span style="color:var(--kili-peak);font-weight:800;font-size:18px">Tsh ${ChatbotMemory.walletBalance.toLocaleString()}</span></div>
-          <div style="font-size:10px;color:var(--muted);margin-top:8px">${ChatbotMemory.network} • ${new Date().toLocaleTimeString()}</div>
-        </div>`;
-      }else{
-        html=`<div class="rcard">
-          <div class="rcard-title">💰 ${isSw?'Salio Zote':'All Balances'}</div>
-          <div class="rcard-row"><span>Airtime</span><span style="color:var(--gold-deep);font-weight:800">Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}</span></div>
-          <div class="rcard-row"><span>Data</span><span style="color:var(--savanna-deep);font-weight:800">${ChatbotMemory.dataBalance}</span></div>
-          <div class="rcard-row"><span>M-Money Wallet</span><span style="color:var(--kili-peak);font-weight:800">Tsh ${ChatbotMemory.walletBalance.toLocaleString()}</span></div>
-          <div style="font-size:10px;color:var(--muted);margin-top:8px">${ChatbotMemory.network} • ${new Date().toLocaleTimeString()}</div>
-        </div>`;
-      }
+      this.showTyping(false);const isSw=ChatbotMemory.lang==='sw';
+      const html=`<div class="rcard">
+        <div class="rcard-title">💰 ${isSw?'Salio Lako':'Your Balance'}</div>
+        <div class="rcard-row"><span>Airtime</span><span style="color:var(--gold-deep);font-weight:800">Tsh ${ChatbotMemory.airtimeBalance.toLocaleString()}</span></div>
+        <div class="rcard-row"><span>Data</span><span style="color:var(--savanna-deep);font-weight:800">${ChatbotMemory.dataBalance}</span></div>
+        <div class="rcard-row"><span>M-Money Wallet</span><span style="color:var(--kili-peak);font-weight:800">Tsh ${ChatbotMemory.walletBalance.toLocaleString()}</span></div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px">${ChatbotMemory.network} • ${new Date().toLocaleTimeString()}</div>
+      </div>`;
       this.addMessage(null,'bot',html);this.askMoreHelp();
     },600);
   },
 
-  /* ---- VOUCHER (Flowchart E: E1→E2→E3→E4) ---- */
+  /* ---- VOUCHER ---- */
   flowVoucher(){
     if(!currentTx.voucherType){
       awaitingSlot='voucher_type';
@@ -2144,7 +1345,7 @@ const Engine={
   pickVoucherType(type){awaitingSlot=null;currentTx.voucherType=type;this.addMessage(type,'user');this.flowVoucher();},
   fillVoucherTypeSlot(t){if(/airtime/i.test(t)){awaitingSlot=null;currentTx.voucherType='AIRTIME';this.flowVoucher();}else if(/data/i.test(t)){awaitingSlot=null;currentTx.voucherType='DATA';this.flowVoucher();}else this.addMessage(ChatbotMemory.lang==='sw'?'Chagua: Airtime au Data':'Choose: Airtime or Data','bot');},
   fillVoucherCodeSlot(t){
-    if(t.length<5||!InputSanitizer.isValidVoucher(t)){this.addMessage(this.translate('invalid_voucher'),'bot');return;}
+    if(t.length<5){this.addMessage(this.translate('invalid_voucher'),'bot');return;}
     awaitingSlot=null;currentTx.voucherCode=t.toUpperCase().replace(/\s/g,'');currentTx.type='VOUCHER';
     this.addMessage(this.translate('balance_fetch'),'bot');
     const table=VALID_VOUCHER_CODES[currentTx.voucherType]||{};
@@ -2186,18 +1387,8 @@ const Engine={
     this.addMessage(null,'bot',html);
   },
 
-  /* ---- PIN INPUT (Flowchart Security Layer) ---- */
+  /* ---- PIN INPUT ---- */
   showInlinePIN(txType){
-    // Check if PIN is locked
-    if(StorageManager.isPinLocked()){
-      this.addMessage(this.translate('pin_blocked'),'bot');
-      StorageManager.analytics.logPinFail();
-      this.askMoreHelp();return;
-    }
-    const attempts=StorageManager.pinAttempts;
-    if(attempts>=2){
-      this.addMessage(this.translate('pin_last_attempt'),'bot');
-    }
     const isSw=ChatbotMemory.lang==='sw';
     let pin='';
     const dotsId='pd_'+Date.now();
@@ -2221,19 +1412,9 @@ const Engine={
   cancelPIN(){resetTx();this.askMoreHelp();},
   executePIN(){
     const isSw=ChatbotMemory.lang==='sw';
-    // Validate PIN format
-    if(!InputSanitizer.isValidPIN(this._pinBuffer)){
-      StorageManager.recordPinFail();
-      StorageManager.analytics.logPinFail();
-      this.addMessage('❌ Invalid PIN format. 4 digits required.','bot');
-      setTimeout(()=>this.showInlinePIN(this._pinTxType),500);
-      return;
-    }
     this.addMessage('🔒 ••••','user');
     this.addMessage(this.translate('processing'),'bot');
-    StorageManager.resetPinState();
     TransactionEngine.process(currentTx).then(res=>{
-      StorageManager.analytics.logSuccess();
       const isSw=ChatbotMemory.lang==='sw';
       const html=`<div class="rcard" style="border-left:4px solid var(--emerald);background:rgba(34,160,90,.04)">
         <div class="rcard-title" style="color:var(--emerald)">✅ ${this.translate('success')}</div>
@@ -2244,13 +1425,10 @@ const Engine={
       </div>`;
       this.addMessage(null,'bot',html);
       this.showSuccessAnimation(res.ref);
-      // Show receipt actions
-      this.showReceiptActions(res);
       const successTxt=isSw?`✅ Muamala umefanikiwa! Ref: ${res.ref}`:`✅ Transaction successful! Ref: ${res.ref}`;
       setTimeout(()=>this.addMessage(successTxt,'bot'),500);
       resetTx();this.askMoreHelp();
     }).catch(err=>{
-      StorageManager.analytics.logFail();
       const isSw=ChatbotMemory.lang==='sw';const reason=err.reason||(isSw?'Hitilafu ya mtandao':'Network error');
       const html=`<div class="rcard" style="border-left:4px solid var(--r6);background:var(--r1)">
         <div style="color:var(--r6);font-weight:800;font-size:14px;margin-bottom:4px">${this.translate('failed')}</div>
@@ -2260,32 +1438,6 @@ const Engine={
       </div>`;
       this.addMessage(null,'bot',html);resetTx();this.askMoreHelp();
     });
-  },
-
-  /* ---- RECEIPT ACTIONS (new proficiency feature) ---- */
-  showReceiptActions(result){
-    const isSw=ChatbotMemory.lang==='sw';
-    const html=`<div class="receipt-actions">
-      <button class="receipt-btn" onclick="Engine.downloadReceipt()">📥 ${isSw?'Pakua Risiti':'Download'}</button>
-      <button class="receipt-btn" onclick="Engine.shareReceipt()">📤 ${isSw?'Shiriki Risiti':'Share'}</button>
-    </div>`;
-    this.addMessage(null,'bot',html);
-    // Store last receipt for download/share
-    this._lastReceipt=ReceiptManager.generate(currentTx,result);
-    this._lastReceiptTx={...currentTx};
-    this._lastReceiptResult={...result};
-  },
-  downloadReceipt(){
-    if(this._lastReceiptTx&&this._lastReceiptResult){
-      ReceiptManager.download(this._lastReceiptTx,this._lastReceiptResult);
-      this.toast(this.translate('receipt_saved'));
-    }
-  },
-  async shareReceipt(){
-    if(this._lastReceiptTx&&this._lastReceiptResult){
-      const ok=await ReceiptManager.share(this._lastReceiptTx,this._lastReceiptResult);
-      this.toast(ok?this.translate('receipt_shared'):this.translate('receipt_saved'));
-    }
   },
 
   showSuccessAnimation(ref){
@@ -2304,14 +1456,12 @@ const Engine={
     const amt=currentTx.amount||currentTx.price||0;
     if(!amt){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
     currentTx.type=type;
-    if(!currentTx.details)currentTx.details=`${type} - Tsh ${amt.toLocaleString()}`;
+    if(!currentTx.details)currentTx.details=`${type} – Tsh ${amt.toLocaleString()}`;
     if(!FraudGuard.check(currentTx)){this.addMessage(this.translate('fraud_block'),'bot');return;}
     const balAfter=ChatbotMemory.walletBalance-amt;
-    const pm=PAYMENT_METHODS.find(m=>m.id===(currentTx.paymentMethod||'wallet'))||PAYMENT_METHODS[0];
     const html=`<div class="rcard" style="border-left:4px solid var(--emerald)">
       <div class="rcard-title">✅ ${this.translate('confirm_title')}</div>
       <div class="rcard-row"><span>${isSw?'Huduma':'Service'}</span><span>${type}</span></div>
-      <div class="rcard-row"><span>${isSw?'Njia ya Malipo':'Payment Method'}</span><span>${pm.icon} ${pm.label}</span></div>
       <div class="rcard-row"><span>${isSw?'Kiasi':'Amount'}</span><span style="font-weight:800;color:var(--savanna-deep);font-size:16px">Tsh ${amt.toLocaleString()}</span></div>
       <div class="rcard-row"><span>${isSw?'Salio Baada':'Balance After'}</span><span>Tsh ${balAfter.toLocaleString()}</span></div>
     </div>`;
@@ -2320,7 +1470,6 @@ const Engine={
 
   retryTransaction(){this.showInlinePIN(currentTx.type||'TX');},
 
-  /* ---- MORE HELP (Flowchart step 8) ---- */
   askMoreHelp(){
     setTimeout(()=>{
       this.addMessage(this.translate('more_help'),'bot');
@@ -2386,15 +1535,6 @@ const Engine={
   initSpeech(){
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){const b=document.getElementById('micBtn');if(b)b.style.display='none';return;}
-    // Check microphone permission before initializing
-    if(!PermissionManager.isGranted('microphone')){
-      const micBtn=document.getElementById('micBtn');
-      if(micBtn)micBtn.style.display='none';
-      return;
-    }
-    // Show mic button when permission is granted
-    const micBtn=document.getElementById('micBtn');
-    if(micBtn){micBtn.style.display='flex';micBtn.classList.add('perm-granted');}
     this.recognition=new SR();
     this.recognition.continuous=false;this.recognition.interimResults=false;
     this.recognition.lang=ChatbotMemory.lang==='en'?'en-TZ':'sw-TZ';
@@ -2404,23 +1544,7 @@ const Engine={
     this.recognition.onerror=()=>{this.addMessage('🎙️ Sikio halijasomeka. Jaribu tena.','bot');};
     this.recognition.onend=()=>{this.isListening=false;document.getElementById('micBtn').classList.remove('recording');document.getElementById('userInput').placeholder='Andika hapa / Type message...';if(this._pendingVoice){this._pendingVoice=false;this.sendMessage();}};
   },
-  async toggleMic(){
-    // If mic permission not granted, request it first
-    if(!PermissionManager.isGranted('microphone')){
-      const granted=await PermissionManager.requestMicrophone();
-      if(granted){
-        this.initSpeech();
-        this.toast(ChatbotMemory.lang==='sw'?'🎙️ Sasa unaweza kutumia sauti':'🎙️ Voice input enabled');
-        // Start listening immediately after granting
-        setTimeout(()=>{if(this.recognition)this.recognition.start();},300);
-      }else{
-        this.showPermissionPrompt('microphone');
-      }
-      return;
-    }
-    if(!this.recognition){this.addMessage('🎙️ Voice input not supported.','bot');return;}
-    this.isListening?this.recognition.stop():this.recognition.start();
-  }
+  toggleMic(){if(!this.recognition){this.addMessage('🎙️ Voice input not supported.','bot');return;}this.isListening?this.recognition.stop():this.recognition.start();}
 };
 
 /* ========== LAYOUT MANAGER ========== */
@@ -2456,17 +1580,5 @@ bootSemaTel.done=false;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSemaTel);
 else bootSemaTel();
 </script>
-
-<!-- CONTACT PICKER OVERLAY -->
-<div class="contact-picker-overlay" id="contactPickerOverlay">
-  <div class="contact-picker-content" id="contactPickerContent">
-    <div class="contact-picker-title" id="contactPickerTitle">👥 Chagua Mpokeaji</div>
-    <div class="contact-picker-subtitle" id="contactPickerSubtitle">Chagua kutoka mawasiliano yako</div>
-    <input type="text" class="contact-search" id="contactSearch" placeholder="Tafuta mawasiliano..." oninput="Engine.filterContacts(this.value)">
-    <div class="contact-list" id="contactList"></div>
-    <button class="contact-permission-btn" style="background:var(--light);color:var(--slate);box-shadow:none;border:1px solid var(--bdr);margin-top:12px" onclick="Engine.closeContactPicker()" id="contactCancelBtn">Ghairi</button>
-  </div>
-</div>
-
 </body>
 </html>
