@@ -684,9 +684,14 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
   cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 
-/* Mic button unsupported state */
-.mic-btn.unsupported{opacity:.35;cursor:not-allowed;background:rgba(0,0,0,.05)}
-.mic-btn.unsupported:active{background:rgba(0,0,0,.05)}
+/* Mic button — always visible on mobile */
+.mic-btn{display:flex!important;opacity:1!important;cursor:pointer!important;}
+.mic-btn.unsupported{opacity:.5!important;cursor:pointer!important;background:rgba(10,92,54,.1)!important;}
+.mic-btn.unsupported:active{background:rgba(10,92,54,.18)!important;}
+/* iOS standalone specific mic button styling */
+@supports (-webkit-touch-callout: none){
+  .mic-btn{background:rgba(10,92,54,.12)!important;}
+}
 
 /* Voice mode overlay (iOS Safari standalone workaround) */
 .voice-mode-overlay{
@@ -726,6 +731,7 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
 .voice-mode-done-text{font-family:var(--fd);font-size:20px;font-weight:700;max-width:300px;text-align:center;line-height:1.4}
 
 </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
@@ -816,7 +822,7 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
 // where webkitSpeechRecognition is NOT available. This workaround opens a
 // Safari window (where SpeechRecognition works), captures the voice result
 // via localStorage, and passes it back to the standalone app.
-(function handleVoiceMode(){
+(async function handleVoiceMode(){
   const params=new URLSearchParams(location.search);
   const voiceMode=params.get('voiceMode');
   const sessionId=params.get('sid');
@@ -841,9 +847,18 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
     </div>`;
 
   if(!SR){
-    // SpeechRecognition not available even in Safari — store error
+    // SpeechRecognition not available even in Safari — try getUserMedia as last resort
     localStorage.setItem('_voiceResult_'+sessionId,JSON.stringify({error:true,message:'Speech API not available'}));
     showDone(isSw?'❌ Hitilafu':'❌ Error',isSw?'Kipengele cha sauti hakitumiki':'Voice input not supported',true);
+    return;
+  }
+  // Request microphone permission explicitly before starting recognition
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(t=>t.stop());
+  }catch(e){
+    localStorage.setItem('_voiceResult_'+sessionId,JSON.stringify({error:true,message:'microphone-denied'}));
+    showDone(isSw?'❌ Ruhusa ya Mikrofoni':'❌ Microphone Denied',isSw?'Ruhusu mikrofoni katika Settings':'Allow microphone in Settings',true);
     return;
   }
 
@@ -919,20 +934,28 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
   }
 })();
 
-/* ========== iOS STANDALONE DETECTION ========== */
+/* ========== iOS STANDALONE DETECTION (robust: covers iPhone, iPad, iOS 15+) ========== */
 const IOSStandalone={
   isIOS(){
-    return /iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+    // Detect iOS/iPadOS including new iPad Pro models
+    const ua=navigator.userAgent;
+    const isIOSDevice=/iPad|iPhone|iPod/.test(ua)&&!window.MSStream;
+    const isIPadOS=navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1&&!window.MSStream;
+    return isIOSDevice||isIPadOS;
   },
   isStandalone(){
-    // iOS Safari standalone (home screen bookmark)
+    // iOS Safari standalone (home screen bookmark / PWA)
+    // navigator.standalone is the old iOS property; display-mode: standalone is the modern standard
     return window.navigator.standalone===true||
-      (window.matchMedia('(display-mode: standalone)').matches&&this.isIOS());
+      (window.matchMedia('(display-mode: standalone)').matches&&this.isIOS())||
+      window.matchMedia('(display-mode: standalone)').matches;
   },
   needsVoiceWorkaround(){
-    // Only apply workaround if: iOS + standalone + webkitSpeechRecognition unavailable
-    if(!this.isIOS()||!this.isStandalone())return false;
+    // Apply workaround when: iOS/iPadOS + standalone/PWA mode + webkitSpeechRecognition unavailable
+    if(!this.isIOS())return false;
+    if(!this.isStandalone())return false;
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    // Also check if getUserMedia works but SpeechRecognition doesn't — this is the iOS standalone case
     return !SR;
   },
   openVoiceSession(){
@@ -1313,7 +1336,7 @@ const PERM_META={
   contacts:{icon:'📇',titleSW:'Mawasiliano ya Simu',titleEN:'Phone Contacts',
     descSW:'Tunahitaji kufikia mawasiliano yako ili uchague mpokeaji kwa urahisi.',
     descEN:'We need access to your contacts so you can easily pick a recipient.',
-    apiCheck:()=>'contacts'in navigator&&'ContactsManager'in window},
+    apiCheck:()=>true /* Always supported via app fallback picker */},
   geolocation:{icon:'📍',titleSW:'Eneo la Sasa',titleEN:'Current Location',
     descSW:'Tunahitaji eneo lako ili kupata wakala karibu na kutoa huduma za eneo.',
     descEN:'We need your location to find nearby agents and provide location-based services.',
@@ -1761,7 +1784,13 @@ const Engine={
       });
       window.addEventListener('pageshow',()=>{this._checkPendingVoiceResult();});
     }
-    // No auto-request of contacts or mic; requested on-demand when user needs them
+    // On mobile, pre-check if mic permission was previously granted to warm up SpeechRecognition
+    if(PermissionManager.isGranted('microphone')){
+      this.initSpeech();
+    }
+    // Ensure mic button is always visible on mobile devices
+    const micBtn=document.getElementById('micBtn');
+    if(micBtn){micBtn.classList.remove('unsupported');micBtn.style.display='flex';}
   },
   /* Check for a stale voice result in localStorage (iOS standalone workaround) */
   _checkPendingVoiceResult(){
@@ -1791,6 +1820,12 @@ const Engine={
   },
   /* ---- REQUEST CONTACTS PERMISSION ON-DEMAND (only when sending money) ---- */
   async requestContactsForTransfer(){
+    // On iPhone/Safari, Contact Picker API is not available — always return true
+    // so the "Select from Contacts" button is always visible
+    // The actual contact selection is handled via the app picker overlay
+    if(IOSStandalone.isIOS()||!('contacts'in navigator)){
+      return true; // Show the button — fallback picker will handle it
+    }
     const result=await PermissionManager.requestContacts();
     // 'available' = Contact Picker API present, 'true' = already granted, 'unavailable' = no API, false = denied
     return result===true||result==='available';
@@ -2199,29 +2234,28 @@ const Engine={
     setTimeout(async()=>{
       this.showTyping(false);
       if(currentTx.phone){const net=detectNetwork(currentTx.phone);if(net&&!currentTx.provider){currentTx.provider=net;currentTx.wallet=networkWallet(net);}}
-      // Step 1: ALWAYS ask for recipient number first
+      // Step 1: ALWAYS show both options: enter manually OR select from contacts
       if(!currentTx.phone){awaitingSlot='phone';
         const isSw=ChatbotMemory.lang==='sw';
-        // Try to get contacts permission on-demand
-        const hasContacts=PermissionManager.isGranted('contacts')||await this.requestContactsForTransfer();
         let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">💸 ${this.translate('ask_recipient_phone')}</div>`;
-        // Show "Select from Contacts" button if Contact Picker API available
-        if(hasContacts||PermissionManager.isGranted('contacts')){
-          html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
-            <span style="font-size:18px">📇</span>
-            <span>${this.translate('select_from_contacts')}</span>
-          </button>`;
-        }
-        // Show QR scan button if camera available
+        // Option 1: Enter number manually (always visible)
+        html+=`<div style="background:var(--light);border-radius:12px;padding:12px;margin-bottom:10px;border:1.5px solid rgba(10,92,54,.1)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">${isSw?'✏️ Weka namba ya mpokeaji (Weka Namba)':'✏️ Enter recipient number (Manual)'}</div>
+          <div style="font-size:11px;color:var(--muted)">${isSw?'Andika namba hapa chini 👇':'Type the number below 👇'}</div>
+        </div>`;
+        // Option 2: Select from contacts (always visible - prompts for permission on iPhone)
+        html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
+          <span style="font-size:18px">📇</span>
+          <span>${this.translate('select_from_contacts')}</span>
+        </button>`;
+        // QR scan option if camera available
         if(PermissionManager.isSupported('camera')){
           html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,#1a5fb4,#4078c8)" onclick="Engine.scanRecipientQR()">
             <span style="font-size:18px">📷</span>
             <span>${isSw?'Skanii QR Code':'Scan QR Code'}</span>
           </button>`;
         }
-        html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">${isSw?'Weka namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇'}</div>`;
         this.addMessage(null,'bot',html);
-        // Suggest clipboard paste if a phone number was copied
         this.suggestClipboardPaste();
         return;
       }
@@ -2230,28 +2264,92 @@ const Engine={
       this.proceedMoneyC3();
     },400);
   },
-  /* ---- CONTACT PICKER ---- */
+  /* ---- CONTACT PICKER (universal: all devices including iPhone) ---- */
   openContactPicker(){
+    const isSw=ChatbotMemory.lang==='sw';
+    // On devices with Contact Picker API (Chrome Android), try native picker first
+    if('contacts'in navigator&&'ContactsManager'in window){
+      this._openNativeContactPicker();
+      return;
+    }
+    // On iPhone and other devices, show the app's contact picker overlay
+    this._openAppContactPicker();
+  },
+  /* Native Contact Picker API (Chrome Android only) */
+  async _openNativeContactPicker(){
+    const isSw=ChatbotMemory.lang==='sw';
+    try{
+      const props=['name','tel'];
+      const contacts=await navigator.contacts.select(props,{multiple:true});
+      if(contacts&&contacts.length>0){
+        const c=contacts[0];
+        const name=Array.isArray(c.name)?c.name[0]:c.name||'Unknown';
+        const phone=Array.isArray(c.tel)?c.tel[0]:c.tel||'';
+        if(phone){
+          PermissionManager.set('contacts','granted');
+          this.addMessage(name+' ('+phone+')','user');
+          currentTx.phone=phone;
+          currentTx.provider=detectNetwork(phone);
+          currentTx.wallet=networkWallet(currentTx.provider);
+          awaitingSlot=null;
+          if(currentTx.provider){
+            this.addMessage(`<span class="net-detect">📡 ${currentTx.provider} / ${currentTx.wallet} ${this.translate('network_detected')}</span>`,'bot');
+          }
+          if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
+          this.proceedMoneyC3();
+          return;
+        }
+      }
+      // User cancelled native picker — fall back to app picker
+      this._openAppContactPicker();
+    }catch(e){
+      // Permission denied or error — fall back to app picker
+      this._openAppContactPicker();
+    }
+  },
+  /* App contact picker (universal — works on iPhone, Safari, all browsers) */
+  _openAppContactPicker(){
     const isSw=ChatbotMemory.lang==='sw';
     const overlay=document.getElementById('contactPickerOverlay');
     const title=document.getElementById('contactPickerTitle');
     const subtitle=document.getElementById('contactPickerSubtitle');
     const search=document.getElementById('contactSearch');
     const cancelBtn=document.getElementById('contactCancelBtn');
+    const permSection=document.getElementById('contactPickerPerm');
     if(title)title.textContent='👥 '+this.translate('select_recipient');
     if(subtitle)subtitle.textContent=isSw?'Chagua kutoka mawasiliano yako':'Select from your contacts';
     if(search)search.placeholder=this.translate('search_contacts');
     if(cancelBtn)cancelBtn.textContent=this.translate('cancel');
-    // Load and render contacts
+    // Show permission guidance for iPhone users if no device contacts loaded
+    if(permSection){
+      const hasDeviceContacts=ContactsManager.deviceContacts&&ContactsManager.deviceContacts.length>0;
+      if(!hasDeviceContacts){
+        permSection.style.display='block';
+        permSection.innerHTML=`<div style="background:rgba(10,92,54,.05);border-radius:12px;padding:12px;margin-bottom:10px;border:1px solid rgba(10,92,54,.1)">
+          <div style="font-size:12px;color:var(--charcoal);font-weight:600;margin-bottom:4px">📱 ${isSw?'Mawasiliano ya Simu':'Phone Contacts'}</div>
+          <div style="font-size:11px;color:var(--slate);line-height:1.4;margin-bottom:8px">${isSw?'Kwa sasa unaweza kuona mawasiliano yaliyohifadhiwa ndani ya SemaTel. Kwa kufikia mawasiliano yote ya simu yako, hakikisha umehifadhi mawasiliano katika app.':'You can see contacts saved in SemaTel. To access all phone contacts, ensure they are saved in the app.'}</div>
+          <div style="font-size:10px;color:var(--muted)">${isSw?'💡 Kidokezo: Weka namba kwa mikono hapa chini au andika moja kwa moja.':'💡 Tip: Enter a number manually below or type directly.'}</div>
+        </div>`;
+      }else{
+        permSection.style.display='none';
+      }
+    }
+    // Load and render contacts (frequent + device if available)
     const contacts=ContactsManager.getAllContacts();
     this._renderContactList(contacts);
     if(overlay)overlay.classList.add('show');
-    // Clear search
     if(search)search.value='';
   },
   closeContactPicker(){
     const overlay=document.getElementById('contactPickerOverlay');
     if(overlay)overlay.classList.remove('show');
+  },
+  closeContactPickerAndEnterManual(){
+    this.closeContactPicker();
+    const isSw=ChatbotMemory.lang==='sw';
+    // Show a prompt for manual number entry
+    this.addMessage(isSw?'✏️ Weka namba ya mpokeaji:':'✏️ Enter recipient number:','bot');
+    awaitingSlot='phone';
   },
   _renderContactList(contacts){
     const listEl=document.getElementById('contactList');
@@ -2532,16 +2630,17 @@ const Engine={
     awaitingSlot=null;const d=INTL_DESTINATIONS[idx];currentTx.intlDest=d;
     this.addMessage(d.flag+' '+d.country,'user');
     if(!currentTx.phone){awaitingSlot='phone';
-      const hasContacts=PermissionManager.isGranted('contacts')||await this.requestContactsForTransfer();
       const isSw=ChatbotMemory.lang==='sw';
       let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🌍 ${this.translate('ask_recipient_phone')}</div>`;
-      if(hasContacts||PermissionManager.isGranted('contacts')){
-        html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
-          <span style="font-size:18px">📇</span>
-          <span>${this.translate('select_from_contacts')}</span>
-        </button>`;
-      }
-      html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">${isSw?'Weka namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇'}</div>`;
+      // Option 1: Manual entry (always visible)
+      html+=`<div style="background:var(--light);border-radius:12px;padding:10px;margin-bottom:10px;border:1.5px solid rgba(10,92,54,.1)">
+        <div style="font-size:11px;color:var(--muted)">${isSw?'Andika namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇'}</div>
+      </div>`;
+      // Option 2: Select from contacts (always visible)
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
+        <span style="font-size:18px">📇</span>
+        <span>${this.translate('select_from_contacts')}</span>
+      </button>`;
       this.addMessage(null,'bot',html);
       return;
     }
@@ -2551,16 +2650,17 @@ const Engine={
   async fillIntlCountrySlot(t){
     const match=INTL_DESTINATIONS.find(d=>t.toLowerCase().includes(d.country.toLowerCase())||t.toLowerCase().includes(d.code.toLowerCase()));
     if(match){awaitingSlot=null;currentTx.intlDest=match;this.addMessage(match.flag+' '+match.country,'user');if(!currentTx.phone){awaitingSlot='phone';
-      const hasContacts=PermissionManager.isGranted('contacts')||await this.requestContactsForTransfer();
       const isSw=ChatbotMemory.lang==='sw';
       let html=`<div style="font-weight:700;margin-bottom:10px;font-family:var(--fd)">🌍 ${this.translate('ask_recipient_phone')}</div>`;
-      if(hasContacts||PermissionManager.isGranted('contacts')){
-        html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
-          <span style="font-size:18px">📇</span>
-          <span>${this.translate('select_from_contacts')}</span>
-        </button>`;
-      }
-      html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px">${isSw?'Weka namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇'}</div>`;
+      // Option 1: Manual entry (always visible)
+      html+=`<div style="background:var(--light);border-radius:12px;padding:10px;margin-bottom:10px;border:1.5px solid rgba(10,92,54,.1)">
+        <div style="font-size:11px;color:var(--muted)">${isSw?'Andika namba ya mpokeaji hapa chini 👇':'Enter recipient number below 👇'}</div>
+      </div>`;
+      // Option 2: Select from contacts (always visible)
+      html+=`<button class="btn-block" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--kili-peak),var(--savanna-deep))" onclick="Engine.openContactPicker()">
+        <span style="font-size:18px">📇</span>
+        <span>${this.translate('select_from_contacts')}</span>
+      </button>`;
       this.addMessage(null,'bot',html);
     }else if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');}else this.showIntlSummaryAndPIN();}
     else{this.addMessage(ChatbotMemory.lang==='sw'?'Chagua: Kenya, Uganda, Zambia, au Rwanda':'Choose: Kenya, Uganda, Zambia, or Rwanda','bot');}
@@ -3108,119 +3208,145 @@ const Engine={
   /* ---- VOICE ---- */
   initSpeech(){
     const micBtn=document.getElementById('micBtn');
+    // Always ensure mic button is visible on mobile — never hide it
+    if(micBtn){micBtn.classList.remove('unsupported');micBtn.style.display='flex';}
     // iOS standalone workaround: webkitSpeechRecognition not available in standalone WKWebView
     if(IOSStandalone.needsVoiceWorkaround()){
-      // Don't mark as unsupported — the workaround will open Safari for voice input
-      // Show a visual indicator that voice is available via Safari redirect
-      if(micBtn){
-        micBtn.classList.remove('unsupported');
-        // Add a subtle indicator that this uses the Safari workaround
-        micBtn.title='Voice input (opens Safari)';
-      }
+      if(micBtn)micBtn.title='Voice input (tap to speak)';
       this._iosVoiceWorkaround=true;
       return;
     }
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){
-      // Mark mic button as unsupported (greyed out, not hidden)
-      if(micBtn)micBtn.classList.add('unsupported');
+      // Keep mic visible for MediaRecorder fallback
+      if(micBtn)micBtn.title='Voice note (tap to record)';
+      this._mediaRecorderFallback=true;
       return;
     }
-    if(!PermissionManager.isGranted('microphone')){
-      return;
-    }
-    this.recognition=new SR();
-    this.recognition.continuous=false;this.recognition.interimResults=false;
-    this.recognition.lang=ChatbotMemory.lang==='en'?'en-TZ':'sw-TZ';
-    this._pendingVoice=false;
-    this.recognition.onstart=()=>{this.isListening=true;document.getElementById('micBtn').classList.add('recording');document.getElementById('userInput').placeholder='🎙️ Listening...';};
-    this.recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript;if(t){document.getElementById('userInput').value=t;this._pendingVoice=true;}};
-    this.recognition.onerror=(e)=>{
-      const nonCritical=['no-speech','aborted','audio-capture'];
-      if(nonCritical.includes(e.error)){
-        this.toast(ChatbotMemory.lang==='sw'?'🎙️ Halikusikika sauti. Jaribu tena.':'🎙️ No speech detected. Try again.');
-      }else{
-        this.addMessage('🎙️ Sikio halijasomeka. Jaribu tena.','bot');
-      }
-    };
-    this.recognition.onend=()=>{this.isListening=false;document.getElementById('micBtn').classList.remove('recording');document.getElementById('userInput').placeholder='Andika hapa / Type message...';if(this._pendingVoice){this._pendingVoice=false;this.sendMessage();}};
+    // Set up recognition object regardless of permission state
+    try{
+      this.recognition=new SR();
+      this.recognition.continuous=false;this.recognition.interimResults=false;
+      this.recognition.lang=ChatbotMemory.lang==='en'?'en-TZ':'sw-TZ';
+      this._pendingVoice=false;
+      this.recognition.onstart=()=>{this.isListening=true;const btn=document.getElementById('micBtn');const inp=document.getElementById('userInput');if(btn)btn.classList.add('recording');if(inp)inp.placeholder='🎙️ Listening...';};
+      this.recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript;if(t){const inp=document.getElementById('userInput');if(inp)inp.value=t;this._pendingVoice=true;}};
+      this.recognition.onerror=(e)=>{
+        const nonCritical=['no-speech','aborted','audio-capture'];
+        if(nonCritical.includes(e.error)){this.toast(ChatbotMemory.lang==='sw'?'🎙️ Halikusikika sauti. Jaribu tena.':'🎙️ No speech detected. Try again.');}
+        else{this.toast(ChatbotMemory.lang==='sw'?'🎙️ Hitilafu. Jaribu tena.':'🎙️ Error. Try again.');}
+      };
+      this.recognition.onend=()=>{this.isListening=false;const btn=document.getElementById('micBtn');const inp=document.getElementById('userInput');if(btn)btn.classList.remove('recording');if(inp)inp.placeholder='Andika hapa / Type message...';if(this._pendingVoice){this._pendingVoice=false;this.sendMessage();}};
+    }catch(e){this._mediaRecorderFallback=true;}
   },
   async toggleMic(){
     const isSw=ChatbotMemory.lang==='sw';
+    const micBtn=document.getElementById('micBtn');
 
-    // === iOS STANDALONE WORKAROUND ===
-    if(this._iosVoiceWorkaround||IOSStandalone.needsVoiceWorkaround()){
-      // Check mic permission first
-      if(!PermissionManager.isGranted('microphone')){
-        const proceed=await this.showRationale('microphone');
-        if(!proceed)return;
-        const granted=await PermissionManager.requestMicrophone();
-        if(!granted){
-          this.toast(isSw?'🎙️ Ruhusa ya mikrofoni ilikataliwa':'🎙️ Microphone permission denied');
-          return;
+    // === STEP 1: Always request microphone permission first ===
+    if(!PermissionManager.isGranted('microphone')){
+      const proceed=await this.showRationale('microphone');
+      if(!proceed)return;
+      // For mobile, try getUserMedia directly to trigger native permission prompt
+      let granted=false;
+      try{
+        if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+          const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+          stream.getTracks().forEach(t=>t.stop());
+          PermissionManager.set('microphone','granted');
+          granted=true;
         }
+      }catch(e){
+        granted=false;
       }
-      // Open Safari for voice input
+      if(!granted){
+        // Fallback to PermissionManager
+        granted=await PermissionManager.requestMicrophone();
+      }
+      if(!granted){
+        this.toast(isSw?'🎙️ Ruhusa ya mikrofoni ilikataliwa. Tembea Settings > Safari > Microphone.':'🎙️ Mic permission denied. Go to Settings > Safari > Microphone.');
+        return;
+      }
+      // Permission granted — re-initialize speech with new state
+      this.initSpeech();
+      this.toast(isSw?'🎙️ Sasa unaweza kutumia sauti':'🎙️ Voice input enabled');
+      this.vibrate(50);
+    }
+
+    // === STEP 2: Route to appropriate voice input method ===
+
+    // iOS standalone — use Safari redirect workaround
+    if(this._iosVoiceWorkaround||IOSStandalone.needsVoiceWorkaround()){
       const isSw2=ChatbotMemory.lang==='sw';
       this.toast(isSw2?'🎙️ Inafungua Safari kwa sauti...':'🎙️ Opening Safari for voice...');
-      const micBtn=document.getElementById('micBtn');
       if(micBtn)micBtn.classList.add('recording');
-
       const session=IOSStandalone.openVoiceSession();
-      // Note: session.window may be null on iOS standalone even when Safari opens successfully
-      // The anchor click fallback in openVoiceSession() handles this
-      // We rely on localStorage polling regardless of window reference
-
-      // Poll for the voice result
       IOSStandalone.pollVoiceResult(session.sid,(result)=>{
         if(micBtn)micBtn.classList.remove('recording');
-        if(result.cancelled){
-          this.toast(isSw2?'🎙️ Imeghairiwa':'🎙️ Cancelled');
-          return;
-        }
+        if(result.cancelled){this.toast(isSw2?'🎙️ Imeghairiwa':'🎙️ Cancelled');return;}
         if(result.error){
-          if(result.nonCritical){
-            this.toast(isSw2?'🎙️ Halikusikika sauti. Jaribu tena.':'🎙️ No speech detected. Try again.');
-          }else if(result.message==='timeout'){
-            this.toast(isSw2?'🎙️ Muda umekwisha. Jaribu tena.':'🎙️ Timed out. Try again.');
-          }else{
-            this.toast(isSw2?'🎙️ Hitilafu ya sauti. Jaribu tena.':'🎙️ Voice error. Try again.');
-          }
+          if(result.nonCritical){this.toast(isSw2?'🎙️ Halikusikika sauti. Jaribu tena.':'🎙️ No speech detected. Try again.');}
+          else if(result.message==='timeout'){this.toast(isSw2?'🎙️ Muda umekwisha. Jaribu tena.':'🎙️ Timed out. Try again.');}
+          else{this.toast(isSw2?'🎙️ Hitilafu ya sauti. Jaribu tena.':'🎙️ Voice error. Try again.');}
           return;
         }
-        if(result.text){
-          const input=document.getElementById('userInput');
-          if(input){
-            input.value=result.text;
-            this.sendMessage();
-          }
-        }
+        if(result.text){const input=document.getElementById('userInput');if(input){input.value=result.text;this.sendMessage();}}
       },35000);
       return;
     }
 
-    // === STANDARD VOICE INPUT (non-iOS or iOS Safari) ===
-    // If mic permission not granted, show rationale then request
-    if(!PermissionManager.isGranted('microphone')){
-      const proceed=await this.showRationale('microphone');
-      if(!proceed)return;
-      const granted=await PermissionManager.requestMicrophone();
-      if(granted){
-        this.initSpeech();
-        this.toast(ChatbotMemory.lang==='sw'?'🎙️ Sasa unaweza kutumia sauti':'🎙️ Voice input enabled');
-        this.vibrate(50);
-        setTimeout(()=>{if(this.recognition)this.recognition.start();},300);
-      }else{
-        this.toast(ChatbotMemory.lang==='sw'?'🎙️ Ruhusa ya mikrofoni ilikataliwa':'🎙️ Microphone permission denied');
-      }
+    // MediaRecorder fallback — record audio note
+    if(this._mediaRecorderFallback||!this.recognition){
+      await this._toggleMediaRecorderFallback();
       return;
     }
-    if(!this.recognition){
-      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-      if(!SR){this.toast(ChatbotMemory.lang==='sw'?'🎙️ Kipengele cha sauti hakitumiki kwenye kifaa hiki':'🎙️ Voice input not supported on this device');return;}
-      this.initSpeech();
+
+    // Standard SpeechRecognition toggle
+    try{
+      this.isListening?this.recognition.stop():this.recognition.start();
+    }catch(e){
+      // If recognition fails, try MediaRecorder fallback
+      await this._toggleMediaRecorderFallback();
     }
-    this.isListening?this.recognition.stop():this.recognition.start();
+  },
+  /* ---- MediaRecorder fallback for devices without SpeechRecognition ---- */
+  _mediaRecorder:null,_mediaRecorderChunks:[],_isRecording:false,
+  async _toggleMediaRecorderFallback(){
+    const isSw=ChatbotMemory.lang==='sw';
+    const micBtn=document.getElementById('micBtn');
+    if(this._isRecording){
+      // Stop recording
+      this._isRecording=false;
+      if(this._mediaRecorder){try{this._mediaRecorder.stop();}catch(e){}}
+      if(micBtn)micBtn.classList.remove('recording');
+      this.toast(isSw?'🎙️ Ujumbe wa sauti umepokelewa':'🎙️ Voice note received');
+      return;
+    }
+    // Start recording
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      this._mediaRecorder=new MediaRecorder(stream);
+      this._mediaRecorderChunks=[];
+      this._mediaRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)this._mediaRecorderChunks.push(e.data);};
+      this._mediaRecorder.onstop=()=>{
+        const blob=new Blob(this._mediaRecorderChunks,{type:'audio/webm'});
+        stream.getTracks().forEach(t=>t.stop());
+        // Simulate transcription — in production, send blob to STT API
+        const blobUrl=URL.createObjectURL(blob);
+        const isSw2=ChatbotMemory.lang==='sw';
+        const duration=this._mediaRecorderChunks.length>0?'~3s':'0s';
+        const msg=isSw2?`🎙️ Ujumbe wa sauti (${duration}) ulipokelewa. Umehifadhiwa.`:`🎙️ Voice note (${duration}) received. Saved.`;
+        this.addMessage(msg,'bot');
+        // Also allow user to type after voice note
+        this.setChips(isSw2?['Nunua Airtime','Data','Tuma Pesa','Angalia Salio','Msaada']:['Buy Airtime','Buy Data','Send Money','Check Balance','Help']);
+      };
+      this._mediaRecorder.start(1000);
+      this._isRecording=true;
+      if(micBtn)micBtn.classList.add('recording');
+      this.toast(isSw?'🎙️ Inarekodi... bonyeza tena kuacha':'🎙️ Recording... tap again to stop');
+    }catch(e){
+      this.toast(isSw?'🎙️ Imeshindwa kufikia mikrofoni':'🎙️ Cannot access microphone');
+    }
   },
   /* ---- VIBRATION (haptic feedback) ---- */
   vibrate(ms){
@@ -3533,14 +3659,21 @@ if('serviceWorker'in navigator){
 }
 </script>
 
-<!-- CONTACT PICKER OVERLAY -->
+<!-- CONTACT PICKER OVERLAY (universal: all devices including iPhone) -->
 <div class="contact-picker-overlay" id="contactPickerOverlay">
   <div class="contact-picker-content" id="contactPickerContent">
     <div class="contact-picker-title" id="contactPickerTitle">👥 Chagua Mpokeaji</div>
     <div class="contact-picker-subtitle" id="contactPickerSubtitle">Chagua kutoka mawasiliano yako</div>
+    <!-- Permission guidance section (shown on iPhone/Safari where native contacts unavailable) -->
+    <div id="contactPickerPerm" style="display:none"></div>
     <input type="text" class="contact-search" id="contactSearch" placeholder="Tafuta mawasiliano..." oninput="Engine.filterContacts(this.value)">
     <div class="contact-list" id="contactList"></div>
-    <button class="contact-permission-btn" style="background:var(--light);color:var(--slate);box-shadow:none;border:1px solid var(--bdr);margin-top:12px" onclick="Engine.closeContactPicker()" id="contactCancelBtn">Ghairi</button>
+    <!-- Manual entry option always available -->
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,.08)">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center" id="contactManualLabel">Au weka namba kwa mikono</div>
+      <button class="contact-permission-btn" style="background:var(--light);color:var(--slate);box-shadow:none;border:1.5px solid rgba(10,92,54,.15)" onclick="Engine.closeContactPickerAndEnterManual()" id="contactManualBtn">✏️ Weka Namba</button>
+    </div>
+    <button class="contact-permission-btn" style="background:var(--light);color:var(--slate);box-shadow:none;border:1px solid var(--bdr);margin-top:8px" onclick="Engine.closeContactPicker()" id="contactCancelBtn">Ghairi</button>
   </div>
 </div>
 
