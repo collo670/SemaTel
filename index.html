@@ -419,15 +419,6 @@ textarea::placeholder{color:var(--silver)}
   display:none;
 }
 
-/* Session timeout warning */
-.timeout-banner{
-  background:linear-gradient(135deg,#b8860b,#d4a017);
-  color:#fff;text-align:center;font-size:11px;font-weight:700;
-  padding:6px 12px;display:none;animation:slideDown .3s ease-out;
-}
-.timeout-banner.show{display:block}
-@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
-
 /* Receipt actions */
 .receipt-actions{display:flex;gap:8px;margin-top:10px}
 .receipt-btn{
@@ -737,8 +728,6 @@ input,textarea,button{touch-action:manipulation;-webkit-tap-highlight-color:tran
 <body>
 <div class="app" id="appShell">
 
-  <!-- SESSION TIMEOUT BANNER -->
-  <div class="timeout-banner" id="timeoutBanner"></div>
 
   <!-- HEADER -->
   <header class="hdr">
@@ -1200,8 +1189,6 @@ const LANGUAGES = {
     ask_bundle_choice:"Chagua kifurushi:",
     ask_payment_method:"💳 Chagua njia ya malipo:",
     network_detected:"Mtandao umegunduliwa",
-    session_timeout:"⏰ Session imekwisha kutokana na kutofanya kazi. Anza upya.",
-    timeout_warning:"⏰ Session itakwisha kwa sekunde 30...",
     receipt_saved:"🧾 Risiti imehifadhiwa!",
     receipt_shared:"🧾 Risiti imeshirikiwa!",
     channel_detected:"Kituo kilichogunduliwa",
@@ -1249,8 +1236,6 @@ const LANGUAGES = {
     ask_bundle_choice:"Choose a bundle:",
     ask_payment_method:"💳 Choose a payment method:",
     network_detected:"Network detected",
-    session_timeout:"⏰ Session expired due to inactivity. Please start again.",
-    timeout_warning:"⏰ Session will expire in 30 seconds...",
     receipt_saved:"🧾 Receipt saved!",
     receipt_shared:"🧾 Receipt shared!",
     channel_detected:"Channel detected",
@@ -1572,18 +1557,6 @@ const FraudGuard={
   }
 };
 
-/* ========== SESSION MANAGER ========== */
-const SessionManager={
-  timeoutMs:5*60*1000,warningMs:30*1000,timer:null,warningTimer:null,
-  activityCallbacks:[],
-  init(){this.reset();this.bindActivity();},
-  bindActivity(){const events=['touchstart','mousedown','keydown','input'];events.forEach(e=>{document.addEventListener(e,()=>this.reset(),true);});},
-  reset(){clearTimeout(this.timer);clearTimeout(this.warningTimer);this.warningTimer=setTimeout(()=>this.warn(),this.timeoutMs-this.warningMs);this.timer=setTimeout(()=>this.expire(),this.timeoutMs);},
-  warn(){const el=document.getElementById('timeoutBanner');if(!el)return;const t=Engine.translate('timeout_warning');el.textContent=t;el.classList.add('show');Engine.toast(t);},
-  expire(){const el=document.getElementById('timeoutBanner');if(el)el.classList.remove('show');Engine.addMessage(Engine.translate('session_timeout'),'bot');Engine.endChat();this.reset();},
-  destroy(){clearTimeout(this.timer);clearTimeout(this.warningTimer);}
-};
-
 /* ========== INPUT SANITIZER ========== */
 const InputSanitizer={
   sanitize(text){if(!text)return'';return text.replace(/[<>\"']/g,'').trim();},
@@ -1769,7 +1742,6 @@ const Engine={
     this.initSpeech();
     this.detectChannel();
     this.updateNetLabel();
-    SessionManager.init();
     this.initPWAInstall();
     this.requestStoragePersist();
     document.getElementById('lblToday').textContent=new Date().toLocaleDateString(ChatbotMemory.lang==='sw'?'sw-TZ':'en-TZ',{weekday:'long',day:'numeric',month:'long'});
@@ -1966,7 +1938,6 @@ const Engine={
   handleText(text){
     const t=InputSanitizer.sanitize(text);
     if(!t)return;
-    SessionManager.reset();
     if(/^(mwanzo|home|start|restart)$/i.test(t)){this.resetToHome();return;}
     if(/^(jaribu tena|retry)$/i.test(t)){this.retryTransaction();return;}
     if(awaitingSlot==='amount'){this.fillAmountSlot(t);return;}
@@ -2153,7 +2124,16 @@ const Engine={
   pickAmt(amt){this.addMessage('Tsh '+amt.toLocaleString(),'user');currentTx.amount=amt;this.proceedAirtimeA3();},
   fillAmountSlot(t){
     const amt=normalizeAmount(t)||parseInt(t.replace(/\D/g,''),10);
-    if(amt>0&&InputSanitizer.isValidAmount(amt)){awaitingSlot=null;currentTx.amount=amt;this.proceedAirtimeA3();}
+    if(amt>0&&InputSanitizer.isValidAmount(amt)){
+      awaitingSlot=null;currentTx.amount=amt;
+      const type=currentTx.type||'AIRTIME';
+      if(type==='MONEY')this.proceedMoneyC3();
+      else if(type==='LUKU')this.showLukuSummaryAndPIN();
+      else if(type==='BILLS')this.showBillSummaryAndPIN();
+      else if(type==='INTL')this.showIntlSummaryAndPIN();
+      else if(type==='DATA')this.proceedDataB3();
+      else this.proceedAirtimeA3();
+    }
     else this.addMessage(this.translate('ask_missing_amount'),'bot');
   },
   // Flowchart step A3: Choose payment method
@@ -2430,17 +2410,15 @@ const Engine={
   },
   fillPhoneSlot(t){
     const phone=extractPhone(t)||(t.replace(/\D/g,'').length>=9?t.replace(/\s/g,''):null);
-    if(phone&&InputSanitizer.isValidPhone(phone)){awaitingSlot=null;currentTx.phone=phone;const net=detectNetwork(phone);if(net){currentTx.provider=net;currentTx.wallet=networkWallet(net);this.addMessage(`<span class="net-detect">📡 ${net} / ${networkWallet(net)} ${this.translate('network_detected')}</span>`,'bot');}
+    if(phone&&InputSanitizer.isValidPhone(phone)){awaitingSlot=null;currentTx.phone=phone;const net=detectNetwork(phone);if(net){currentTx.provider=net;currentTx.wallet=networkWallet(net);}
       if(!currentTx.amount){awaitingSlot='amount';this.addMessage(this.translate('ask_missing_amount'),'bot');return;}
       this.proceedMoneyC3();
     }else this.addMessage(this.translate('ask_missing_phone'),'bot');
   },
-  // Flowchart step C3: Choose payment method
+  // Flowchart step C3: Go straight to summary + PIN
   proceedMoneyC3(){
-    if(!currentTx.paymentMethod){
-      currentTx._afterPaymentMethod=()=>this.proceedMoneyC4();
-      this.showPaymentMethodSelector();
-    }else{this.proceedMoneyC4();}
+    if(!currentTx.paymentMethod)currentTx.paymentMethod='wallet';
+    this.proceedMoneyC4();
   },
   // Flowchart step C4: Confirm transaction
   proceedMoneyC4(){
@@ -3233,7 +3211,7 @@ const Engine={
       this.recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)t+=e.results[i][0].transcript;if(t){const inp=document.getElementById('userInput');if(inp)inp.value=t;this._pendingVoice=true;}};
       this.recognition.onerror=(e)=>{
         const nonCritical=['no-speech','aborted','audio-capture'];
-        if(nonCritical.includes(e.error)){this.toast(ChatbotMemory.lang==='sw'?'🎙️ Halikusikika sauti. Jaribu tena.':'🎙️ No speech detected. Try again.');}
+        if(nonCritical.includes(e.error)){this.toast(ChatbotMemory.lang==='sw'?'🎙️ Haikusikika sauti. Jaribu tena.':'🎙️ No speech detected. Try again.');}
         else{this.toast(ChatbotMemory.lang==='sw'?'🎙️ Hitilafu. Jaribu tena.':'🎙️ Error. Try again.');}
       };
       this.recognition.onend=()=>{this.isListening=false;const btn=document.getElementById('micBtn');const inp=document.getElementById('userInput');if(btn)btn.classList.remove('recording');if(inp)inp.placeholder='Andika hapa / Type message...';if(this._pendingVoice){this._pendingVoice=false;this.sendMessage();}};
