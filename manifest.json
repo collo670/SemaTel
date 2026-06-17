@@ -1,35 +1,56 @@
 {
-  "name": "SemaTel - AI Telecom Chatbot",
+  "name": "SemaTel - AI Super App",
   "short_name": "SemaTel",
-  "description": "AI-powered telecom assistant for buying airtime, data, sending money, and more",
+  "description": "Tanzania's premium AI-powered financial & telecom super-app",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
-  "theme_color": "#2e7d32",
+  "lang": "sw",
+  "dir": "ltr",
+  "theme_color": "#0a5c36",
   "background_color": "#ffffff",
-  "categories": ["utilities", "finance"],
+  "categories": ["utilities", "finance", "productivity"],
   "icons": [
     {
-      "src": "./logo/Sema-Tel.png",
+      "src": "./logo/sematel.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./logo/Sema-Tel.png",
+      "src": "./logo/sematel.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./logo/sematel.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./logo/sematel.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23eef3eb' width='540' height='720'/><rect fill='%232e7d32' width='540' height='60'/><text x='270' y='40' font-size='32' font-weight='bold' fill='white' text-anchor='middle'>SemaTel</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23eef3eb' width='540' height='720'/><rect fill='%230a5c36' width='540' height='60'/><text x='270' y='40' font-size='32' font-weight='bold' fill='white' text-anchor='middle'>SemaTel</text></svg>",
       "sizes": "540x720",
       "type": "image/svg+xml",
       "form_factor": "narrow"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 720'><rect fill='%23eef3eb' width='1024' height='720'/><rect fill='%230a5c36' width='1024' height='60'/><text x='512' y='40' font-size='32' font-weight='bold' fill='white' text-anchor='middle'>SemaTel</text></svg>",
+      "sizes": "1024x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
     }
   ],
   "shortcuts": [

@@ -8,12 +8,23 @@
 <meta name="apple-mobile-web-app-title" content="SemaTel"/>
 <meta name="theme-color" content="#0a5c36"/>
 <meta name="description" content="Tanzania's premium AI-powered financial & telecom super-app"/>
-<link rel="icon" type="image/png" href="logo/Sema-Tel.png">
-<link rel="apple-touch-icon" href="logo/Sema-Tel.png">
+<!-- Favicon (all browsers) -->
+<link rel="icon" type="image/png" sizes="32x32" href="logo/sematel.png">
+<link rel="icon" type="image/png" sizes="192x192" href="logo/sematel.png">
+<link rel="icon" type="image/png" sizes="512x512" href="logo/sematel.png">
+<!-- iOS / iPadOS home-screen icons -->
+<link rel="apple-touch-icon" sizes="180x180" href="logo/sematel.png">
+<link rel="apple-touch-icon" sizes="167x167" href="logo/sematel.png">
+<link rel="apple-touch-icon" sizes="152x152" href="logo/sematel.png">
+<link rel="apple-touch-icon" sizes="120x120" href="logo/sematel.png">
+<link rel="apple-touch-icon" href="logo/sematel.png">
+<!-- Windows tile -->
+<meta name="msapplication-TileImage" content="logo/sematel.png">
+<meta name="msapplication-TileColor" content="#0a5c36">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU2VtYVRlbCAtIEFJIFN1cGVyIEFwcCIsInNob3J0X25hbWUiOiJTZW1hVGVsIiwiZGVzY3JpcHRpb24iOiJUYW56YW5pYXMgcHJlbWl1bSBBSS1wb3dlcmVkIGZpbmFuY2lhbCAmIHRlbGVjb20gc3VwZXItYXBwIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTVjMzYiLCJ0aGVtZV9jb2xvciI6IiMwYTVjMzYiLCJvcmllbnRhdGlvbiI6InBvcnRyYWl0IiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyMwYTVjMzYnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9JyNmNWMyNDInIGZvbnQtd2VpZ2h0PSdib2xkJz5TPC90ZXh0Pjwvc3ZnPiIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ=="/>
+<link rel="manifest" href="manifest.json">
 <title>SemaTel – AI Chatbot</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -4158,7 +4169,24 @@ const Engine={
   },
   /* ---- PWA INSTALL PROMPT ---- */
   _deferredInstallPrompt:null,
+  _isStandalone(){
+    return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)
+        || window.navigator.standalone===true;
+  },
+  _isIOS(){
+    const ua=navigator.userAgent||'';
+    const isIOS=/iPad|iPhone|iPod/.test(ua)&&!window.MSStream;
+    // iPadOS 13+ reports as Mac desktop — detect via touch
+    const isIPad=/Macintosh/.test(ua)&&navigator.maxTouchPoints&&navigator.maxTouchPoints>1;
+    return isIOS||isIPad;
+  },
   initPWAInstall(){
+    // Don't show the banner if already installed/standalone
+    if(this._isStandalone()){
+      const banner=document.getElementById('installBanner');
+      if(banner)banner.style.display='none';
+      return;
+    }
     window.addEventListener('beforeinstallprompt',(e)=>{
       e.preventDefault();
       this._deferredInstallPrompt=e;
@@ -4173,12 +4201,34 @@ const Engine={
     });
   },
   async installApp(){
-    if(!this._deferredInstallPrompt){this.toast('Open in browser menu → "Add to Home Screen"');return;}
-    this._deferredInstallPrompt.prompt();
-    const result=await this._deferredInstallPrompt.userChoice;
-    this._deferredInstallPrompt=null;
-    const banner=document.getElementById('installBanner');
-    if(banner)banner.classList.remove('show');
+    // Android/Chrome/Edge/Samsung — use deferred prompt
+    if(this._deferredInstallPrompt){
+      this._deferredInstallPrompt.prompt();
+      const result=await this._deferredInstallPrompt.userChoice;
+      this._deferredInstallPrompt=null;
+      const banner=document.getElementById('installBanner');
+      if(banner)banner.classList.remove('show');
+      return;
+    }
+    // iOS Safari — no beforeinstallprompt; show step-by-step guidance
+    const sw=ChatbotMemory.lang==='sw';
+    if(this._isIOS()){
+      const isSafari=/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent||'');
+      if(isSafari){
+        this.toast(sw
+          ?'📲 Share → "Ongeza kwa Skrini ya Nyumbani"'
+          :'📲 Tap Share → "Add to Home Screen"',5000);
+      }else{
+        this.toast(sw
+          ?'📲 Fungua kwa Safari → Share → "Ongeza kwa Skrini ya Nyumbani"'
+          :'📲 Open in Safari → Share → "Add to Home Screen"',5000);
+      }
+      return;
+    }
+    // Desktop fallback
+    this.toast(sw
+      ?'💻 Sakinisha kutoka kwa ikoni ya install kwenye address bar'
+      :'💻 Install from the install icon in the address bar',5000);
   },
   dismissInstall(){
     const banner=document.getElementById('installBanner');
@@ -4233,23 +4283,42 @@ bootSemaTel.done=false;
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootSemaTel);
 else bootSemaTel();
 
-/* ========== SERVICE WORKER REGISTRATION (PWA offline support) ========== */
+/* ========== SERVICE WORKER REGISTRATION (PWA offline + install support) ========== */
 if('serviceWorker'in navigator){
-  const swCode=`
-    const CACHE='sematel-v4';
-    const URLS=['./'];
-    self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS)));self.skipWaiting();});
-    self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
-    self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res.status===200){const clone=res.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));}return res;}).catch(()=>caches.match('./'))));});
-    self.addEventListener('sync',e=>{if(e.tag==='sync-pending-tx'){e.waitUntil(clients.matchAll().then(cs=>cs.forEach(c=>c.postMessage({type:'FLUSH_PENDING'}))));}});
-  `;
-  const blob=new Blob([swCode],{type:'application/javascript'});
-  navigator.serviceWorker.register(URL.createObjectURL(blob),{scope:'./'}).then(()=>{
-    console.log('SemaTel SW registered');
-  }).catch(e=>console.warn('SW registration failed:',e));
+  // Register the real sw.js file (NOT a Blob URL — Blob SWs cannot control page scope
+  // and prevent the beforeinstallprompt event from firing on Android/Desktop).
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js',{scope:'./'})
+      .then(reg=>{
+        console.log('SemaTel SW registered with scope:',reg.scope);
+        // Listen for updates
+        reg.addEventListener('updatefound',()=>{
+          const nw=reg.installing;
+          if(!nw)return;
+          nw.addEventListener('statechange',()=>{
+            if(nw.state==='installed'&&navigator.serviceWorker.controller){
+              // New version ready — let it take over on next reload
+              if('BroadcastChannel'in window){
+                try{new BroadcastChannel('sematel-update').postMessage({type:'UPDATE_AVAILABLE'});}catch(e){}
+              }
+            }
+          });
+        });
+      })
+      .catch(e=>console.warn('SW registration failed:',e));
+  });
   // Listen for sync messages from SW
   navigator.serviceWorker.addEventListener('message',e=>{
-    if(e.data&&e.data.type==='FLUSH_PENDING')Engine.flushPending();
+    if(!e.data)return;
+    if(e.data.type==='FLUSH_PENDING')Engine.flushPending();
+    if(e.data.type==='SYNC_COMPLETE')Engine.flushPending&&Engine.flushPending();
+  });
+  // Optional: catch controller change to reload after update
+  let refreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(refreshing)return;
+    refreshing=true;
+    window.location.reload();
   });
 }
 </script>

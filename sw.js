@@ -1,5 +1,12 @@
-const CACHE_NAME = 'sematel-v4';
-const ASSETS = ['./', './index.html', './manifest.json', './sw.js'];
+const CACHE_NAME = 'sematel-v5';
+const APP_LOGO = './logo/sematel.png';
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './sw.js',
+  APP_LOGO
+];
 
 function isHtmlRequest(request) {
   return request.mode === 'navigate' ||
@@ -108,8 +115,32 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(data.title || 'SemaTel', {
       body: data.body || 'Your transaction was processed.',
-      icon: './manifest.json',
-      badge: './manifest.json'
+      icon: data.icon || APP_LOGO,
+      badge: data.badge || APP_LOGO,
+      tag: data.tag || 'sematel-notification',
+      data: { url: data.url || './' }
+    })
+  );
+});
+
+// Open/focus the app when a user taps a push notification (all platforms)
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || './';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      // Focus an existing tab if one is open on the same origin
+      for (const client of clientList) {
+        if (client.url && client.url.includes(self.location.origin)) {
+          if ('focus' in client) {
+            client.navigate && client.navigate(targetUrl);
+            return client.focus();
+          }
+        }
+      }
+      // Otherwise open a new window
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+      return null;
     })
   );
 });
