@@ -1,8 +1,10 @@
-const CACHE_NAME = 'sematel-v7';
+const CACHE_NAME = 'sematel-v8';
 const APP_LOGO = './logo/sematel.png';
 const ASSETS = [
   './',
   './index.html',
+  './styles.css',
+  './app.js',
   './manifest.json',
   './sw.js',
   APP_LOGO

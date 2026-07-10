@@ -2,7 +2,32 @@
   "permissions": {
     "allow": [
       "Bash(python3 -m json.tool manifest.json)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(identify logo/sematel.png)",
+      "Bash(python3 -c \"import playwright\")",
+      "Bash(node -e \"require\\('puppeteer'\\)\")",
+      "Bash(pkill -f \"http.server 8934\")",
+      "Bash(sed -n '35,396p' index.html)",
+      "Bash(sed -n '476,2103p' index.html)",
+      "Read(//tmp/**)",
+      "Bash(cp /tmp/styles_body.css /workspaces/SemaTel/styles.css)",
+      "Bash(cp /tmp/app_body.js /workspaces/SemaTel/app.js)",
+      "Bash(python3 -)",
+      "Bash(node -e \"new Function\\(require\\('fs'\\).readFileSync\\('app.js','utf8'\\)\\); console.log\\('app.js: syntax OK'\\)\")",
+      "Bash(node -e \"console.log\\(require\\('child_process'\\).execSync\\('npx --yes playwright --version 2>&1 || true'\\).toString\\(\\)\\)\")",
+      "Bash('#chat .bubble')",
+      "Bash(node check.js)",
+      "Bash(npm root *)",
+      "Bash(find / -maxdepth 6 -iname \"playwright\" -type d)",
+      "Bash(NODE_PATH=/home/codespace/.npm/_npx/e41f203b7505f1fb/node_modules node check.js)",
+      "Bash(NODE_PATH=/home/codespace/.npm/_npx/e41f203b7505f1fb/node_modules npx --prefix /home/codespace/.npm/_npx/e41f203b7505f1fb playwright install chromium --with-deps)",
+      "Bash(NODE_PATH=/home/codespace/.npm/_npx/e41f203b7505f1fb/node_modules node check2.js)",
+      "Bash(rm -f /tmp/check.js /tmp/check2.js /tmp/sematel.png /tmp/sematel2.png /tmp/styles_body.css /tmp/app_body.js /tmp/httpserver.log)",
+      "Bash(git -C /workspaces/SemaTel status --short)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
     ]
   }
 }
