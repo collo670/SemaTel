@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sematel-v6';
+const CACHE_NAME = 'sematel-v7';
 const APP_LOGO = './logo/sematel.png';
 const ASSETS = [
   './',

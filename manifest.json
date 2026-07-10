@@ -35,7 +35,7 @@
       "purpose": "maskable"
     },
     {
-      "src": "./logo/sematel-512x512.png",
+      "src": "./logo/Android/sematel-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
