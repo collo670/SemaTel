@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -m json.tool manifest.json)"
+      "Bash(python3 -m json.tool manifest.json)",
+      "Bash(node -e ' *)"
     ]
   }
 }
