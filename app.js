@@ -164,9 +164,16 @@ sw:{
   service:'Huduma',payment:'Malipo',details:'Maelezo',meter_no:'Namba ya Mita',
   token:'Tokeni ya LUKU',ref:'Kumbukumbu',date:'Tarehe',fee:'Ada',total:'Jumla',
   rate:'Kiwango',receives:'Atapokea',account:'Akaunti',
+  sending_to:'Unatuma kwa',
+  xfer_warn:'Hakikisha namba ni sahihi. Fedha zikishatumwa haziwezi kurudishwa.',
   more_help:'Karibu tena — niambie huduma nyingine wakati wowote. 🙌',
-  receipt_share:'Shiriki',receipt_save:'Pakua',receipt_copy:'Nakili',
+  receipt_share:'Shiriki',receipt_save:'Pakua PDF',receipt_copy:'Nakili',
   copied:'Imenakiliwa ✓',saved:'Risiti imehifadhiwa ✓',
+  receipt_service:'Huduma',receipt_method:'Njia ya Malipo',receipt_phone:'Simu Yako',
+  receipt_bal_before:'Salio Kabla',receipt_bal_after:'Salio Baada',receipt_reason:'Sababu',
+  receipt_total:'JUMLA',receipt_no:'NAMBA YA RISITI',receipt_thanks:'Asante kwa kutumia SemaTel!',
+  receipt_keep:'Hifadhi risiti hii kwa ajili ya kumbukumbu.',
+  receipt_popup_blocked:'Ruhusu madirisha ibukizi ili kuhifadhi PDF',
   offline_q:'📥 Hakuna intaneti — muamala umewekwa kwenye foleni. Utakamilika mtandao ukirudi.',
   fraud:'⚠️ Muamala umesimamishwa kwa usalama. Subiri kidogo kisha jaribu tena.',
   greet:['Habari! 👋 Nikusaidieje leo?','Mambo vipi! Niambie unachohitaji.','Salama! Niko tayari — sema tu.'],
@@ -223,9 +230,16 @@ en:{
   service:'Service',payment:'Payment',details:'Details',meter_no:'Meter Number',
   token:'LUKU Token',ref:'Reference',date:'Date',fee:'Fee',total:'Total',
   rate:'Rate',receives:'Receives',account:'Account',
+  sending_to:'Sending to',
+  xfer_warn:'Double-check this number. Money sent cannot be reversed.',
   more_help:'Anytime — tell me the next service whenever you\'re ready. 🙌',
-  receipt_share:'Share',receipt_save:'Download',receipt_copy:'Copy',
+  receipt_share:'Share',receipt_save:'Download PDF',receipt_copy:'Copy',
   copied:'Copied ✓',saved:'Receipt saved ✓',
+  receipt_service:'Service',receipt_method:'Payment Method',receipt_phone:'Your Number',
+  receipt_bal_before:'Balance Before',receipt_bal_after:'Balance After',receipt_reason:'Reason',
+  receipt_total:'TOTAL',receipt_no:'RECEIPT NUMBER',receipt_thanks:'Thank you for using SemaTel!',
+  receipt_keep:'Keep this receipt for your records.',
+  receipt_popup_blocked:'Allow pop-ups to save the PDF',
   offline_q:'📥 You\'re offline — transaction queued. It will complete when you\'re back online.',
   fraud:'⚠️ Transaction paused for security. Wait a moment and try again.',
   greet:['Hi there! 👋 How can I help?','Hello! Tell me what you need.','Hey! Ready when you are — just say it.'],
@@ -454,7 +468,7 @@ const SERVICES={
     auth:'pin',
     execute(tx){
       Store.s.bal.airtime+=tx.amount;
-      return[[T('details'),tx.details]];
+      return[];
     }
   },
 
@@ -541,7 +555,7 @@ const SERVICES={
       [T('fee'),`Tsh ${fmt(tx.fee)}`],
       [T('total'),`Tsh ${fmt(tx.total)}`]
     ];},
-    auth:'pin',cost:tx=>tx.total,
+    auth:'pin',cost:tx=>tx.total,peerTransfer:true,
     execute(tx){return[[T('recipient'),tx.phone]];}
   },
 
@@ -650,7 +664,7 @@ const SERVICES={
       [T('fee'),`Tsh ${fmt(tx.fee)} (3%)`],
       [T('receives'),`~${fmt(Math.round(tx.amount*tx.dest.rate))} ${tx.dest.cur}`]
     ];},
-    auth:'pin',cost:tx=>tx.total,
+    auth:'pin',cost:tx=>tx.total,peerTransfer:true,
     execute(tx){return[[T('receives'),`~${fmt(Math.round(tx.amount*tx.dest.rate))} ${tx.dest.cur}`]];}
   },
 
@@ -933,7 +947,7 @@ const Engine={
         const rec={ref,type:tx.service,details:tx.details,amount:tx._cost,date:stamp.date,time:stamp.time,status:'SUCCESS',token:tx.token||null};
         Store.s.history.unshift(rec);Store.s.history=Store.s.history.slice(0,50);
         Store.save();UI.refreshBalances();
-        UI.receipt(rec,extra,tx);
+        UI.receipt(rec,extra,tx,{before:Store.s.bal.wallet+tx._cost,after:Store.s.bal.wallet});
         Voice.say((Store.s.lang==='sw'?'Imefanikiwa. Kumbukumbu ':'Successful. Reference ')+ref);
       }else{
         const reasons=Store.s.lang==='sw'
@@ -942,7 +956,7 @@ const Engine={
         const reason=reasons[Math.floor(Math.random()*reasons.length)];
         const rec={ref,type:tx.service,details:tx.details,amount:tx._cost,date:stamp.date,time:stamp.time,status:'FAILED',reason};
         Store.s.history.unshift(rec);Store.save();
-        UI.failed(rec);
+        UI.failed(rec,tx);
       }
       this.tx=null;this.awaitingText=null;
     },1400);
@@ -1133,17 +1147,34 @@ const UI={
     if(tx.provider)dchips.push(`<span class="d-chip">${netBadge(tx.provider)}</span>`);
     if(tx.paySource)dchips.push(`<span class="d-chip">💳 <b>${escapeHTML(tx.paySource)}</b></span>`);
     const balAfter=tx.paySourceExternal?Store.s.bal.wallet:(Store.s.bal.wallet-(tx._cost||0));
-    let html=`<div class="rcard" style="border-left:4px solid var(--gold)">
+    /* peer-to-peer sends (MONEY/INTL) get elevated recipient/amount emphasis — irreversible once PIN is entered */
+    const isPeer=!!svc.peerTransfer;
+    const recipRow=isPeer?rows.find(r=>r[0]===T('recipient')):null;
+    const bodyRows=isPeer&&recipRow?rows.filter(r=>r!==recipRow):rows;
+    let html=`<div class="rcard${isPeer?' rcard-xfer':''}" style="border-left:4px solid ${isPeer?'var(--gold-deep)':'var(--gold)'}">
       <div class="detected">
         <span class="d-lbl">✨ ${escapeHTML(T('detected'))}</span>
         ${dchips.join('')}
-      </div>
-      <div class="rcard-title">${svc.icon} ${escapeHTML(T('confirm'))}</div>`;
-    rows.forEach(r=>{
-      html+=`<div class="rcard-row"><span class="k">${escapeHTML(r[0])}</span><span class="v ${r[2]||''}">${r[0]===T('network')&&tx.provider?netBadge(tx.provider)+' '+escapeHTML(networkWallet(tx.provider)):escapeHTML(String(r[1]))}</span></div>`;
+      </div>`;
+    if(recipRow){
+      html+=`<div class="xfer-to">
+        <span class="x-ava">${svc.icon}</span>
+        <span class="x-body">
+          <span class="x-lbl">${escapeHTML(T('sending_to'))}</span>
+          <span class="x-num">${escapeHTML(String(recipRow[1]))}</span>
+        </span>
+      </div>`;
+    }
+    html+=`<div class="rcard-title">${svc.icon} ${escapeHTML(T('confirm'))}</div>`;
+    bodyRows.forEach(r=>{
+      const big=isPeer&&r[0]===T('amount')?' big':'';
+      html+=`<div class="rcard-row"><span class="k">${escapeHTML(r[0])}</span><span class="v ${(r[2]||'')+big}">${r[0]===T('network')&&tx.provider?netBadge(tx.provider)+' '+escapeHTML(networkWallet(tx.provider)):escapeHTML(String(r[1]))}</span></div>`;
     });
     if((tx._cost||0)>0&&!tx.paySourceExternal){
       html+=`<div class="rcard-row"><span class="k">${escapeHTML(T('bal_after'))}</span><span class="v">Tsh ${fmt(balAfter)}</span></div>`;
+    }
+    if(isPeer){
+      html+=`<div class="xfer-warn">⚠️ ${escapeHTML(T('xfer_warn'))}</div>`;
     }
     if(svc.auth!=='pin'||!(tx._cost>0)){
       html+=`<div class="btn-grid" style="margin-top:10px">
@@ -1186,8 +1217,9 @@ const UI={
   removePinPad(){const p=$('pinMsg');if(p)p.remove();},
 
   /* ---------- receipt / failure ---------- */
-  receipt(rec,extra,tx){
+  receipt(rec,extra,tx,bal){
     Engine._lastReceipt=rec;
+    Engine._lastReceiptCtx={rec,extra:extra||[],tx,bal,failed:false};
     let rows='';
     rows+=`<div class="rcard-row"><span class="k">Ref</span><span class="v mono">${escapeHTML(rec.ref)}</span></div>`;
     rows+=`<div class="rcard-row"><span class="k">${escapeHTML(T('date'))}</span><span class="v">${escapeHTML(rec.date)} · ${escapeHTML(rec.time)}</span></div>`;
@@ -1205,20 +1237,22 @@ const UI={
       ${rows}
       <div class="btn-grid" style="margin-top:10px">
         <button class="btn-block ghost" onclick="Receipt.share()">📤 ${escapeHTML(T('receipt_share'))}</button>
-        <button class="btn-block ghost" onclick="Receipt.download()">💾 ${escapeHTML(T('receipt_save'))}</button>
+        <button class="btn-block ghost" onclick="Receipt.pdf()">📄 ${escapeHTML(T('receipt_save'))}</button>
       </div>
     </div>`;
     this.card(html);
     if(navigator.vibrate)navigator.vibrate([60,40,60]);
     setTimeout(()=>{this.bot(T('more_help'));this.chips(T('chips_home'));},900);
   },
-  failed(rec){
+  failed(rec,tx){
     Engine._lastFailed=rec;
+    Engine._lastReceiptCtx={rec,extra:[],tx,bal:null,failed:true};
     const html=`<div class="rcard" style="border-left:4px solid var(--danger);background:var(--danger-soft)">
       <div class="rcard-title" style="color:var(--danger)">❌ ${escapeHTML(T('failed'))}</div>
       <div class="rcard-row"><span class="k">Ref</span><span class="v mono">${escapeHTML(rec.ref)}</span></div>
       <div class="rcard-row"><span class="k">${escapeHTML(T('details'))}</span><span class="v">${escapeHTML(rec.reason||'')}</span></div>
       <button class="btn-block" onclick="Engine.retryLast()">🔄 ${Store.s.lang==='sw'?'Jaribu Tena':'Retry'}</button>
+      <button class="btn-block ghost" style="margin-top:8px" onclick="Receipt.pdf()">📄 ${escapeHTML(T('receipt_save'))}</button>
     </div>`;
     this.card(html);
     setTimeout(()=>this.chips(T('chips_home')),600);
@@ -1300,15 +1334,105 @@ const Receipt={
     if(navigator.share){try{await navigator.share({title:'SemaTel Receipt',text:txt});return;}catch(e){}}
     try{await navigator.clipboard.writeText(txt);UI.toast(T('copied'));}catch(e){}
   },
-  download(){
-    const txt=this.text();if(!txt)return;
-    const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='SemaTel_'+(Engine._lastReceipt.ref)+'.txt';
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    UI.toast(T('saved'));
+  /* ---------- styled, printable PDF receipt (opens a tab → user "Save as PDF") ---------- */
+  pdf(){
+    const ctx=Engine._lastReceiptCtx;
+    if(!ctx||!ctx.rec)return;
+    const{rec,extra,tx,bal,failed}=ctx;
+    const sw=Store.s.lang==='sw';
+    const svc=SERVICES[rec.type];
+    const rows=[];
+    rows.push([T('receipt_service'),svc?svc.name():rec.type]);
+    rows.push([T('details'),rec.details]);
+    if(tx&&tx.paySource)rows.push([T('receipt_method'),tx.paySource]);
+    rows.push([T('date'),rec.date+' · '+rec.time]);
+    rows.push([T('receipt_phone'),Store.s.profile.phone]);
+    const seen=new Set(rows.map(r=>r[0]));
+    (extra||[]).forEach(r=>{if(seen.has(r[0]))return;seen.add(r[0]);rows.push([r[0],String(r[1])]);});
+    if(!failed&&bal&&tx&&!tx.paySourceExternal&&rec.amount>0){
+      rows.push([T('receipt_bal_before'),'Tsh '+fmt(bal.before)]);
+      rows.push([T('receipt_bal_after'),'Tsh '+fmt(bal.after)]);
+    }
+    if(failed)rows.push([T('receipt_reason'),rec.reason||'']);
+
+    const rowsHtml=rows.map(([k,v])=>`<div class="r-row"><span class="r-k">${escapeHTML(k)}</span><span class="r-v">${escapeHTML(v)}</span></div>`).join('');
+    const badge=failed
+      ?`<span class="r-badge r-badge-fail">✕ ${escapeHTML(T('failed'))}</span>`
+      :`<span class="r-badge">✓ ${escapeHTML(T('success'))}</span>`;
+    const total=(!failed&&rec.amount>0)
+      ?`<div class="r-total"><span>${escapeHTML(T('receipt_total'))}</span><span class="r-total-amt">Tsh ${fmt(rec.amount)}</span></div>`
+      :'';
+
+    const doc=`<!DOCTYPE html><html lang="${sw?'sw':'en'}"><head><meta charset="UTF-8">
+<title>SemaTel Receipt ${escapeHTML(rec.ref)}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--forest:#0B4D33;--forest-2:#0F6B45;--gold:#E8B93B;--gold-deep:#B8860B;--ink:#131A16;--muted:#71807A;--line:#DDE3DF;--leaf-soft:rgba(23,160,94,.12);--danger:#D33A2C;--danger-soft:#FDF0EE}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#eef1ef;color:var(--ink);padding:28px 14px;display:flex;justify-content:center}
+.r-card{width:100%;max-width:460px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(11,26,18,.12)}
+.r-hdr{background:linear-gradient(120deg,#0B4D33 0%,#0F6B45 55%,#B8860B 140%);color:#fff;padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.r-hdr-l{display:flex;align-items:center;gap:11px}
+.r-logo{width:38px;height:38px;border-radius:12px;background:var(--gold);color:var(--forest);display:grid;place-items:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;flex:0 0 auto}
+.r-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:17px}
+.r-name em{font-style:normal;color:var(--gold)}
+.r-tag{font-size:10px;letter-spacing:1px;opacity:.85;margin-top:1px}
+.r-pill{font-size:10.5px;font-weight:800;letter-spacing:.6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:4px 11px;flex:0 0 auto;white-space:nowrap}
+.r-torn{border-top:2px dashed rgba(232,185,59,.55)}
+.r-body{padding:18px 20px 6px}
+.r-refline{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:14px;border-bottom:1px dashed var(--line);margin-bottom:4px}
+.r-lbl{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.r-ref{font-family:ui-monospace,monospace;font-weight:700;font-size:15px;margin-top:2px}
+.r-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--forest);background:var(--leaf-soft);border-radius:999px;padding:5px 11px;white-space:nowrap}
+.r-badge-fail{color:var(--danger);background:var(--danger-soft)}
+.r-row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.r-row:last-of-type{border-bottom:none}
+.r-k{color:var(--muted)}
+.r-v{font-weight:700;text-align:right}
+.r-total{display:flex;justify-content:space-between;align-items:center;background:#F4F7F3;border-radius:12px;padding:12px 14px;margin:14px 0 4px;font-weight:800;font-size:12.5px;letter-spacing:.5px;color:var(--forest-2)}
+.r-total-amt{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;color:var(--forest)}
+.r-foot{text-align:center;padding:16px 20px 22px;border-top:1px dashed var(--line);margin-top:10px}
+.r-thanks{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:var(--forest);font-size:13.5px}
+.r-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.r-ver{font-size:10px;color:var(--muted);margin-top:8px;opacity:.7}
+@media print{
+  body{background:#fff;padding:0}
+  .r-card{box-shadow:none;border-radius:0;max-width:100%}
+}
+</style>
+</head><body>
+<div class="r-card">
+  <div class="r-hdr">
+    <div class="r-hdr-l">
+      <span class="r-logo">S</span>
+      <div><div class="r-name">Sema<em>Tel</em></div><div class="r-tag">SEMA · PATA · MALIZA</div></div>
+    </div>
+    <span class="r-pill">${sw?'RISITI':'RECEIPT'}</span>
+  </div>
+  <div class="r-torn"></div>
+  <div class="r-body">
+    <div class="r-refline">
+      <div><div class="r-lbl">${escapeHTML(T('receipt_no'))}</div><div class="r-ref">${escapeHTML(rec.ref)}</div></div>
+      ${badge}
+    </div>
+    ${rowsHtml}
+    ${total}
+  </div>
+  <div class="r-foot">
+    <div class="r-thanks">${escapeHTML(T('receipt_thanks'))}</div>
+    <div class="r-sub">${escapeHTML(T('receipt_keep'))}</div>
+    <div class="r-ver">SemaTel v5 · Tanzania · ${escapeHTML(rec.date)} ${escapeHTML(rec.time)}</div>
+  </div>
+</div>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});<\/script>
+</body></html>`;
+
+    const w=window.open('','_blank');
+    if(!w){UI.toast(T('receipt_popup_blocked'));return;}
+    w.document.open();w.document.write(doc);w.document.close();
   }
 };
 

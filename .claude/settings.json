@@ -24,7 +24,19 @@
       "Bash(NODE_PATH=/home/codespace/.npm/_npx/e41f203b7505f1fb/node_modules npx --prefix /home/codespace/.npm/_npx/e41f203b7505f1fb playwright install chromium --with-deps)",
       "Bash(NODE_PATH=/home/codespace/.npm/_npx/e41f203b7505f1fb/node_modules node check2.js)",
       "Bash(rm -f /tmp/check.js /tmp/check2.js /tmp/sematel.png /tmp/sematel2.png /tmp/styles_body.css /tmp/app_body.js /tmp/httpserver.log)",
-      "Bash(git -C /workspaces/SemaTel status --short)"
+      "Bash(git -C /workspaces/SemaTel status --short)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(curl -s http://localhost:8791/index.html)",
+      "Bash(chromium-cli --help)",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(npx --no-install playwright --version)",
+      "Bash(npm ls *)",
+      "Read(//home/codespace/.npm/_npx/e41f203b7505f1fb/**)",
+      "Bash(node /tmp/claude-1000/-workspaces-SemaTel/02e00c4a-2dc8-41c9-8537-4c1779b65877/scratchpad/verify_xfer.js)",
+      "Bash(pkill -f \"http.server 8791\")",
+      "Bash(timeout 60 node /tmp/claude-1000/-workspaces-SemaTel/02e00c4a-2dc8-41c9-8537-4c1779b65877/scratchpad/verify_receipt.js)",
+      "Bash(grep -n \"execute\\(tx\\){$\" -A2 /workspaces/SemaTel/app.js)"
     ],
     "additionalDirectories": [
       "/tmp"
