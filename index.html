@@ -17,6 +17,7 @@ try{
   var __p=__s.theme||'auto';
   var __d=__p==='dark'||(__p==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.setAttribute('data-theme',__d?'dark':'light');
+  if(__s.dataSaver)document.documentElement.setAttribute('data-saver','on');
 }catch(e){}
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
@@ -33,9 +34,17 @@ try{
 <link rel="apple-touch-icon" href="./logo/sematel.png">
 <meta name="msapplication-TileImage" content="logo/sematel.png">
 <meta name="msapplication-TileColor" content="#0B4D33">
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script>
+/* Data-saver mode: skip the webfont request entirely (falls back to the
+   system sans-serif already declared in --fd/--fb) instead of just hiding it after load. */
+try{
+  if(!(JSON.parse(localStorage.getItem('sematel_v5')||'{}').dataSaver)){
+    document.write('<link rel="preconnect" href="https://fonts.googleapis.com">');
+    document.write('<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>');
+    document.write('<link id="fontLink" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">');
+  }
+}catch(e){}
+</script>
 <link rel="manifest" href="./manifest.json">
 <title>SemaTel — AI ya Huduma za Simu</title>
 <link rel="stylesheet" href="./styles.css">
@@ -53,6 +62,17 @@ try{
     </div>
     <div class="sp-name">Sema<em>Tel</em></div>
     <div class="sp-tag" id="splashTag">Sema. Pata. Maliza.</div>
+  </div>
+
+  <!-- LOCK SCREEN (auto-lock on backgrounding) -->
+  <div class="splash lock-veil" id="lockVeil" role="dialog" aria-label="Locked">
+    <div class="sp-logo-wrap">
+      <span class="sp-ring"></span><span class="sp-ring"></span><span class="sp-ring"></span>
+      <img class="sp-logo" src="./logo/sematel.png" alt="SemaTel">
+    </div>
+    <div class="lock-title" id="lockTitle">Imefungwa kwa Usalama</div>
+    <div class="lock-sub" id="lockSub">Weka PIN yako kufungua</div>
+    <div class="lock-pin-wrap" id="lockPinWrap"></div>
   </div>
 
   <!-- HEADER -->

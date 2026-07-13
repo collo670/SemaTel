@@ -26,6 +26,15 @@ const NETWORK_WALLET={'Vodacom':'M-Pesa','Airtel':'Airtel Money','Yas (Tigo)':'M
 const NETWORK_COLOR={'Vodacom':'#e00','Airtel':'#e53','Yas (Tigo)':'#3B2E8C','Halotel':'#a0c','TTCL':'#c60'};
 const WALLET_LIST=['M-Pesa','Airtel Money','Mixx by Yas','HaloPesa','T-Pesa'];
 
+/* recurring-purchase cues: "kila mwezi / every month" → cadence, independent of DATA bundle period */
+const RECUR_CUES=[
+  {re:/\bkila\s+siku\b|\bevery\s+day\b/i,every:'daily'},
+  {re:/\bkila\s+wiki\b|\bevery\s+week\b/i,every:'weekly'},
+  {re:/\bkila\s+mwezi\b|\bevery\s+month\b/i,every:'monthly'}
+];
+const LOCK_TIMEOUT_MS=120000;      /* auto-lock after 2 min in background */
+const STEP_UP_THRESHOLD=20000;     /* extra confirm for new-recipient sends at/above this amount */
+
 /* Street-Swahili amounts (longest keys matched first) */
 const STREET_AMOUNTS={
   'jero':500,'mia tano':500,'nusu elfu':500,'mia moja':100,'mia mbili':200,'mia':100,
@@ -115,6 +124,7 @@ const LEXICON={
   GOVT:['malipo ya serikali','control number','namba ya malipo','serikali','tra','rita','brela','nssf','kodi','gepg','government','tax'],
   SCHOOL:['ada ya shule','ada ya chuo','lipa karo','school fees','karo','ada'],
   PAYBILL:['lipa namba','paybill','lipa number','till number','till','bill number'],
+  SPLIT:['gawanya malipo','gawanya pesa','gawanya bili','tugawane','split payment','split bill','split money','gawanya'],
   HISTORY:['miamala yangu','historia','history','transactions','risiti zangu','miamala'],
   USAGE:['ripoti ya matumizi','matumizi yangu','nimetumia kiasi gani','matumizi','spending','usage report','usage','takwimu','ripoti'],
   REPEAT:['rudia muamala','kama kawaida','rudia tena','ile ile','rudia','repeat','again'],
@@ -202,7 +212,56 @@ sw:{
   yes_hint:'Weka PIN yako hapo juu kukamilisha 👆',
   theme:'Mandhari',theme_auto:'Otomatiki 🌗',theme_light:'Mwanga ☀️',theme_dark:'Giza 🌙',
   chips_home:['💰 Salio','📶 Nunua Data','📱 Airtime','💸 Tuma Pesa','⚡ LUKU','💬 SMS','📞 Dakika','🧾 Miamala'],
-  demo_note:'Hii ni DEMO — hakuna pesa halisi inayotumika. PIN ya majaribio: 1234'
+  demo_note:'Hii ni DEMO — hakuna pesa halisi inayotumika. PIN ya majaribio: 1234',
+  ussd_hint:'ℹ️ Kama huduma hii haipatikani, unaweza pia kutumia *150*00# moja kwa moja kwenye simu yako.',
+
+  /* did-you-mean */
+  didyoumean:'Sikuelewa vizuri 🤔 Je, ulimaanisha:',
+
+  /* editable review rows */
+  edit_hint:'Gusa kubadilisha',
+
+  /* step-up confirmation for new/large recipients */
+  stepup_new:'Namba hii haijahifadhiwa kwenye anwani zako.',
+  stepup_confirm:'Nathibitisha namba hii ni sahihi',
+
+  /* recurring / subscriptions */
+  recur_offer_q:e=>`🔁 Nikukumbushe kufanya hii tena kila ${e==='daily'?'siku':e==='weekly'?'wiki':'mwezi'}?`,
+  recur_saved:'✓ Nitakukumbusha wakati utakapofika 👍',
+  recur_due:'🔁 Muda wa kurudia umefika:',
+  recur_confirm_now:'Fanya Sasa',recur_skip:'Ruka',
+  recur_title:'Huduma za Kujirudia',recur_none:'Bado huna huduma za kujirudia.',recur_cancel:'Ghairi',
+  recur_cancelled:'✓ Imeghairiwa',
+  every_daily:'Kila Siku',every_weekly:'Kila Wiki',every_monthly:'Kila Mwezi',
+
+  /* nudges */
+  nudge_low:s=>`💡 ${s} yako inakaribia kuisha. Ununue sasa?`,
+  nudge_predict:'💡 Kawaida unanunua data karibu na siku hii. Ununue sasa?',
+  nudge_buy:'Nunua Sasa',nudge_later:'Baadaye',
+
+  /* split payments */
+  split_title:'Gawanya Malipo',split_pick:'Chagua watu wa kugawana nao (au ongeza namba):',
+  split_add:'➕ Ongeza namba',split_continue:'Endelea',split_need2:'Chagua watu wawili au zaidi.',
+  split_each:'Kila Mtu',split_with:n=>`Umegawana na watu ${n}`,
+
+  /* usage / statement */
+  usage_month:'Mwezi Huu',usage_prev:'Mwezi Uliopita',
+  statement_dl:'Pakua Statement',statement_t:'TAARIFA YA MIAMALA',
+
+  /* biometric / lock */
+  bio_title:'Alama ya Kidole / Uso',bio_on:'Imewashwa ✓',bio_off:'Imezimwa',
+  bio_unavailable:'Kifaa hiki hakiruhusu uthibitishaji wa alama.',
+  bio_use:'🔓 Thibitisha kwa Alama',bio_use_pin:'Tumia PIN badala yake',
+  bio_failed:'Imeshindikana. Tumia PIN.',
+  autolock_title:'Funga Kiotomatiki',autolock_on:'Imewashwa ✓',autolock_off:'Imezimwa',
+  lock_title:'Imefungwa kwa Usalama',lock_sub:'Weka PIN yako kufungua',
+
+  /* data saver */
+  datasaver_title:'Hali ya Kuokoa Data',datasaver_on:'Imewashwa ✓',datasaver_off:'Imezimwa',
+
+  /* security & trust */
+  security_title:'Usalama na Uaminifu',
+  security_body:'🔒 PIN yako inahifadhiwa kwa usimbaji kwenye kifaa chako pekee — haitumwi popote.\n\n📡 Alama za mtandao (Vodacom, Airtel, Yas, Halotel, TTCL) zinatambuliwa kutoka namba rasmi za TCRA — ni kwa ajili ya kuonyesha mtandao pekee.\n\n🧪 Programu hii ni DEMO — hakuna pesa halisi inayotumika popote.'
 },
 en:{
   tag:'Say it. Confirm. Done.',
@@ -278,7 +337,56 @@ en:{
   yes_hint:'Enter your PIN above to complete 👆',
   theme:'Theme',theme_auto:'Auto 🌗',theme_light:'Light ☀️',theme_dark:'Dark 🌙',
   chips_home:['💰 Balance','📶 Buy Data','📱 Airtime','💸 Send Money','⚡ LUKU','💬 SMS','📞 Minutes','🧾 History'],
-  demo_note:'This is a DEMO — no real money moves. Demo PIN: 1234'
+  demo_note:'This is a DEMO — no real money moves. Demo PIN: 1234',
+  ussd_hint:'ℹ️ If this isn\'t available, you can always dial *150*00# directly on your phone.',
+
+  /* did-you-mean */
+  didyoumean:'I didn\'t quite catch that 🤔 Did you mean:',
+
+  /* editable review rows */
+  edit_hint:'Tap to change',
+
+  /* step-up confirmation for new/large recipients */
+  stepup_new:'This number isn\'t in your saved contacts.',
+  stepup_confirm:'I confirm this number is correct',
+
+  /* recurring / subscriptions */
+  recur_offer_q:e=>`🔁 Want me to remind you to do this again every ${e==='daily'?'day':e==='weekly'?'week':'month'}?`,
+  recur_saved:'✓ I\'ll remind you when it\'s due 👍',
+  recur_due:'🔁 Time to repeat:',
+  recur_confirm_now:'Do It Now',recur_skip:'Skip',
+  recur_title:'Recurring Services',recur_none:'No recurring services yet.',recur_cancel:'Cancel',
+  recur_cancelled:'✓ Cancelled',
+  every_daily:'Every Day',every_weekly:'Every Week',every_monthly:'Every Month',
+
+  /* nudges */
+  nudge_low:s=>`💡 Your ${s} is running low. Buy now?`,
+  nudge_predict:'💡 You usually buy data around this time. Buy now?',
+  nudge_buy:'Buy Now',nudge_later:'Later',
+
+  /* split payments */
+  split_title:'Split Payment',split_pick:'Pick who\'s splitting (or add a number):',
+  split_add:'➕ Add number',split_continue:'Continue',split_need2:'Pick two or more people.',
+  split_each:'Each Person',split_with:n=>`Splitting with ${n} people`,
+
+  /* usage / statement */
+  usage_month:'This Month',usage_prev:'Last Month',
+  statement_dl:'Download Statement',statement_t:'TRANSACTION STATEMENT',
+
+  /* biometric / lock */
+  bio_title:'Fingerprint / Face Unlock',bio_on:'On ✓',bio_off:'Off',
+  bio_unavailable:'Biometric verification isn\'t available on this device.',
+  bio_use:'🔓 Confirm with Biometric',bio_use_pin:'Use PIN instead',
+  bio_failed:'Failed. Use your PIN.',
+  autolock_title:'Auto-Lock',autolock_on:'On ✓',autolock_off:'Off',
+  lock_title:'Locked for Security',lock_sub:'Enter your PIN to unlock',
+
+  /* data saver */
+  datasaver_title:'Data Saver Mode',datasaver_on:'On ✓',datasaver_off:'Off',
+
+  /* security & trust */
+  security_title:'Security & Trust',
+  security_body:'🔒 Your PIN is hashed and stored only on this device — it\'s never sent anywhere.\n\n📡 Network badges (Vodacom, Airtel, Yas, Halotel, TTCL) are detected from official TCRA number ranges — shown only to identify the network.\n\n🧪 This app is a DEMO — no real money moves anywhere.'
 }};
 function T(key,...args){const v=I18N[Store.s.lang][key];return typeof v==='function'?v(...args):v;}
 
@@ -305,6 +413,10 @@ function lev(a,b){
 }
 function ownPhone(){return Store.s.profile.phone.replace(/\D/g,'');}
 function isSelfPhone(p){return !p||String(p).replace(/\D/g,'')===ownPhone();}
+function isNewRecipient(phone){
+  if(!phone||isSelfPhone(phone))return false;
+  return !(Store.s.contacts||[]).some(c=>c.phone===phone);
+}
 function detectNetwork(msisdn){
   if(!msisdn)return null;
   const d=String(msisdn).replace(/\D/g,'');
@@ -320,6 +432,10 @@ function genRef(){return 'ST'+Math.floor(10000000+Math.random()*89999999);}
 function genToken(){let t=[];for(let i=0;i<5;i++)t.push(String(Math.floor(1000+Math.random()*8999)));return t.join('-');}
 function hashPIN(p){let h=5381;const s='sematel:'+p;for(let i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0;}return String(h>>>0);}
 function nowStamp(){const d=new Date();return{date:d.toLocaleDateString('en-GB'),time:d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})};}
+function parseHistDate(rec){
+  const m=String((rec&&rec.date)||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  return m?new Date(+m[3],+m[2]-1,+m[1]).getTime():null;
+}
 
 /* ============================ STORE ============================ */
 const Store={
@@ -338,7 +454,13 @@ const Store={
     lastTx:null,          /* replayable slots of last successful tx */
     pin:{attempts:0,lockUntil:0},
     txTimes:[],           /* fraud velocity */
-    visited:false
+    visited:false,
+    subscriptions:[],     /* recurring purchases [{id,service,slots,every,nextRun,active}] */
+    biometric:{enabled:false,credId:null},
+    autoLock:true,
+    dataSaver:false,
+    lockAt:0,
+    lastNudgeAt:0
   };},
   load(){
     try{const r=localStorage.getItem(this.KEY);this.s=r?Object.assign(this.defaults(),JSON.parse(r)):this.defaults();}
@@ -348,7 +470,9 @@ const Store={
     this.s.profile=Object.assign({},d.profile,this.s.profile);
     this.s.bal=Object.assign({},d.bal,this.s.bal);
     this.s.pin=Object.assign({},d.pin,this.s.pin);
+    this.s.biometric=Object.assign({},d.biometric,this.s.biometric);
     if(!Array.isArray(this.s.contacts))this.s.contacts=[];
+    if(!Array.isArray(this.s.subscriptions))this.s.subscriptions=[];
   },
   save(){try{localStorage.setItem(this.KEY,JSON.stringify(this.s));}catch(e){}},
   reset(){this.s=this.defaults();this.s.visited=true;this.save();}
@@ -387,6 +511,28 @@ const LexIndex=(function(){
         }
       }
       return best;
+    },
+    /* top-N distinct-intent fuzzy candidates, for "did you mean" chips */
+    fuzzyTop(text,n){
+      const tokens=text.split(/[^a-z0-9]+/).filter(w=>w.length>=4);
+      if(!tokens.length)return[];
+      const hits=[];
+      for(const it of list){
+        if(it.phrase.length<4||it.phrase.includes(' '))continue;
+        const max=it.phrase.length>=7?2:1;
+        for(const w of tokens){
+          const d=lev(w,it.phrase);
+          if(d>0&&d<=max)hits.push({intent:it.intent,phrase:it.phrase,d});
+        }
+      }
+      hits.sort((a,b)=>a.d-b.d||b.phrase.length-a.phrase.length);
+      const seen=new Set(),out=[];
+      for(const h of hits){
+        if(seen.has(h.intent))continue;
+        seen.add(h.intent);out.push(h.intent);
+        if(out.length>=n)break;
+      }
+      return out;
     }
   };
 })();
@@ -449,6 +595,9 @@ function parse(raw){
   if(/\bsiku\b|\bdaily\b|\bleo\b|\bday\b/.test(t))r.period='daily';
   if(/\bwiki\b|\bweek/.test(t))r.period='weekly';
   if(/\bmwezi\b|\bmonth/.test(t))r.period='monthly';
+
+  /* recurring cue: "kila mwezi / every month" → subscription cadence (separate from bundle period above) */
+  for(const c of RECUR_CUES){if(c.re.test(t)){r.recurEvery=c.every;break;}}
 
   /* amount: street slang first (longest key), then numeric */
   for(const k of Object.keys(STREET_AMOUNTS).sort((a,b)=>b.length-a.length)){
@@ -749,6 +898,34 @@ const SERVICES={
     execute(tx){return[[T('receives'),`~${fmt(Math.round(tx.amount*tx.dest.rate))} ${tx.dest.cur}`]];}
   },
 
+  SPLIT:{
+    icon:'👥',name:()=>T('split_title'),
+    slots:[
+      {key:'amount',missing:tx=>!tx.amount,ask(){UI.askAmount([5000,10000,20000,50000,100000]);}},
+      {key:'participants',missing:tx=>!tx.participants||tx.participants.length<2,ask(tx){UI.askParticipants(tx);}}
+    ],
+    prep(tx){
+      const n=tx.participants.length;
+      const base=Math.floor(tx.amount/n);
+      const remainder=tx.amount-base*n;
+      tx.shares=tx.participants.map((p,i)=>{
+        const share=base+(i===0?remainder:0);
+        return{name:p.name,phone:p.phone,share,fee:Math.max(100,Math.round(share*.01))};
+      });
+      tx.totalFee=tx.shares.reduce((s,p)=>s+p.fee,0);
+      tx.total=tx.amount+tx.totalFee;
+      tx.details=`${T('split_title')}: Tsh ${fmt(tx.amount)} → ${T('split_with',n)}`;
+    },
+    review(tx){
+      const rows=tx.shares.map(p=>[p.name||p.phone,`Tsh ${fmt(p.share)}`]);
+      rows.push([T('fee'),`Tsh ${fmt(tx.totalFee)}`]);
+      rows.push([T('total'),`Tsh ${fmt(tx.total)}`,'gold']);
+      return rows;
+    },
+    auth:'pin',cost:tx=>tx.total,warn:true,
+    execute(tx){return tx.shares.map(p=>[p.name||p.phone,`Tsh ${fmt(p.share)}`]);}
+  },
+
   VOUCHER:{
     icon:'🎟️',name:()=>Store.s.lang==='sw'?'Weka Vocha':'Redeem Voucher',
     slots:[{
@@ -818,6 +995,16 @@ const Engine={
       if(this.fillTextSlot(clean,p))return;   /* consumed */
     }
 
+    /* low-confidence fuzzy match with real ambiguity (multiple plausible intents) →
+       ask instead of silently auto-committing to the single best guess */
+    if(p.intent&&p.confidence<=.8){
+      const alts=LexIndex.fuzzyTop(clean.toLowerCase(),3).filter(i=>SERVICES[i]&&i!==p.intent);
+      if(alts.length){
+        UI.typing(()=>UI.didYouMean([p.intent,...alts].slice(0,3)));
+        return;
+      }
+    }
+
     /* strong new intent → start/replace transaction */
     if(p.intent&&SERVICES[p.intent]){
       this.start(p.intent,p);return;
@@ -831,10 +1018,11 @@ const Engine={
       if(JSON.stringify(this.tx)!==before){this.advance();return;}
     }
 
-    /* nothing understood */
-    UI.typing(()=> {
-      UI.bot(T('clarify'));
-      UI.chips(UI.homeChips());
+    /* nothing understood — offer fuzzy "did you mean" candidates before giving up */
+    const guesses=LexIndex.fuzzyTop(clean.toLowerCase(),3).filter(i=>SERVICES[i]);
+    UI.typing(()=>{
+      if(guesses.length){UI.didYouMean(guesses);}
+      else{UI.bot(T('clarify'));UI.chips(UI.homeChips());}
     });
   },
 
@@ -863,6 +1051,7 @@ const Engine={
     if(p.country&&!tx.country)tx.country=p.country;
     if(p.paybill&&!tx.paybill)tx.paybill=p.paybill;
     if(p.wallet)tx.paySource=p.wallet;
+    if(p.recurEvery&&!tx.recurEvery)tx.recurEvery=p.recurEvery;
   },
 
   /* raw-text slot filling (meter numbers, refs, codes, accounts, phones) */
@@ -964,6 +1153,29 @@ const Engine={
     this.tx[key]=val;this.advance();
   },
 
+  /* ---------- split payments: confirm the checked contacts / added numbers ---------- */
+  confirmParticipants(btn){
+    if(!this.tx)return;
+    const wrap=btn.closest('.rcard');
+    const boxes=[...wrap.querySelectorAll('.split-chk:checked')];
+    if(boxes.length<2){UI.bot(T('split_need2'));return;}
+    const participants=boxes.map(b=>({phone:b.value,name:b.dataset.name||null}));
+    UI.user(T('split_with',participants.length));
+    this.tx.participants=participants;
+    this.advance();
+  },
+
+  /* ---------- editable review card: tap a row to fix it instead of restarting ---------- */
+  editSlot(kind){
+    const tx=this.tx;if(!tx)return;
+    UI.removePinPad();
+    if(kind==='amount'){tx.amount=null;tx.bundle=null;tx.pack=null;}
+    else if(kind==='phone'){tx.phone=null;tx.provider=null;tx.contactName=null;}
+    else if(kind==='meter'){tx.meter=null;}
+    this.stage='fill';
+    this.advance();
+  },
+
   /* ---------- review: auto balance check → ONE card (summary + PIN) ---------- */
   review(){
     const tx=this.tx,svc=SERVICES[tx.service];
@@ -984,10 +1196,19 @@ const Engine={
       }
     }
     this.stage='review';
+    tx._stepUp=!!(svc.peerTransfer&&isNewRecipient(tx.phone)&&cost>=STEP_UP_THRESHOLD);
     UI.typing(()=>{
       UI.reviewCard(tx,svc);
-      if(svc.auth==='pin'&&cost>0)setTimeout(()=>UI.pinPad(cost),380);
+      if(svc.auth==='pin'&&cost>0&&!tx._stepUp)setTimeout(()=>UI.pinPad(cost),380);
     });
+  },
+
+  /* required checkbox for new-recipient + large-amount sends before the PIN pad appears */
+  stepUpToggle(checked){
+    if(!this.tx||!checked)return;
+    const svc=SERVICES[this.tx.service];
+    if(svc.auth==='pin'&&this.tx._cost>0)UI.pinPad(this.tx._cost);
+    else this.confirmNoPin();
   },
 
   /* user chose an external mobile-money wallet after "insufficient" */
@@ -1001,6 +1222,7 @@ const Engine={
 
   /* ---------- PIN ---------- */
   pinBuffer:'',
+  pinMode:'tx',   /* 'tx' → authorizing a transaction; 'unlock' → resuming from the auto-lock screen */
   pinKey(d){
     const st=Store.s.pin;
     if(st.lockUntil>Date.now())return;
@@ -1014,12 +1236,14 @@ const Engine={
     if(hashPIN(this.pinBuffer)===Store.s.profile.pinHash){
       this.pinBuffer='';st.attempts=0;Store.save();
       UI.removePinPad();
-      this.execute();
+      if(this.pinMode==='unlock'){this.pinMode='tx';App.unlockSuccess();}
+      else{this.execute();}
     }else{
       this.pinBuffer='';st.attempts++;
       if(st.attempts>=3){
         st.lockUntil=Date.now()+5*60000;st.attempts=0;Store.save();
-        UI.removePinPad();UI.bot(T('pin_locked',5));this.cancel(false);
+        if(this.pinMode==='unlock'){UI.pinError(T('pin_locked',5));}
+        else{UI.removePinPad();UI.bot(T('pin_locked',5));this.cancel(false);}
       }else{
         Store.save();
         UI.pinError(T('pin_wrong',3-st.attempts));
@@ -1027,6 +1251,33 @@ const Engine={
     }
   },
   confirmNoPin(){UI.removePinPad();this.execute();},
+
+  /* ---------- biometric: local WebAuthn gate in front of the same PIN-authorized flow ---------- */
+  async tryBiometric(mode,cost){
+    try{
+      await Biometric.verify();
+      Store.s.pin.attempts=0;Store.save();
+      UI.removePinPad();
+      if(mode==='unlock'){this.pinMode='tx';App.unlockSuccess();}
+      else{this.execute();}
+    }catch(e){
+      UI.toast(T('bio_failed'));
+      if(mode==='unlock'){UI.lockPinPad();}
+      else{UI.useNumericPin(cost);}
+    }
+  },
+
+  /* replayable slots of a tx — reused for both "rudia"/"repeat" and recurring subscriptions */
+  snapshotSlots(tx){
+    return{
+      amount:tx.bundle?null:(tx.amount||null),
+      productMB:tx.bundle?tx.bundle.gb*1024:null,
+      period:tx.bundle?tx.bundle.period:null,
+      phone:tx.phone||null,contactName:tx.contactName||null,
+      meter:tx.meter||null,bill:tx.bill||null,account:tx.account||null,
+      govt:tx.govt||null,ref:tx.ref||null,country:tx.country||null,paybill:tx.paybill||null
+    };
+  },
 
   /* ---------- execute ---------- */
   execute(){
@@ -1049,16 +1300,11 @@ const Engine={
         FraudGuard.record();
         const rec={ref,type:tx.service,details:tx.details,amount:tx._cost,date:stamp.date,time:stamp.time,status:'SUCCESS',token:tx.token||null};
         Store.s.history.unshift(rec);Store.s.history=Store.s.history.slice(0,50);
-        /* remember replayable slots → “rudia” / “kama kawaida” */
+        /* remember replayable slots → “rudia” / “kama kawaida” (and recurring subscriptions) */
+        let snap=null;
         if(tx.service!=='VOUCHER'){
-          Store.s.lastTx={service:tx.service,slots:{
-            amount:tx.bundle?null:(tx.amount||null),
-            productMB:tx.bundle?tx.bundle.gb*1024:null,
-            period:tx.bundle?tx.bundle.period:null,
-            phone:tx.phone||null,contactName:tx.contactName||null,
-            meter:tx.meter||null,bill:tx.bill||null,account:tx.account||null,
-            govt:tx.govt||null,ref:tx.ref||null,country:tx.country||null,paybill:tx.paybill||null
-          }};
+          snap=this.snapshotSlots(tx);
+          Store.s.lastTx={service:tx.service,slots:snap};
         }
         Store.save();UI.refreshBalances();
         UI.receipt(rec,extra,tx,{before:Store.s.bal.wallet+tx._cost,after:Store.s.bal.wallet});
@@ -1066,6 +1312,9 @@ const Engine={
         if(!tx.paySourceExternal&&tx._cost>0&&Store.s.bal.wallet<5000&&!this._lowWarned){
           this._lowWarned=true;
           setTimeout(()=>UI.bot(T('low_bal',fmt(Store.s.bal.wallet))),1800);
+        }
+        if(tx.recurEvery&&snap){
+          setTimeout(()=>UI.subscribeOffer(tx.service,snap,tx.recurEvery),2200);
         }
       }else{
         const reasons=Store.s.lang==='sw'
@@ -1121,7 +1370,7 @@ const Engine={
     this.awaitingText=null;this.stage='fill';
     this.advance();
   },
-  doHELP(){UI.typing(()=>{UI.bot(T('welcome'));UI.bot('ℹ️ '+T('demo_note'));UI.chips(UI.homeChips());});},
+  doHELP(){UI.typing(()=>{UI.bot(T('welcome'));UI.bot('ℹ️ '+T('demo_note'));UI.bot(T('ussd_hint'));UI.chips(UI.homeChips());});},
   doGREET(){const g=T('greet');UI.typing(()=>{UI.bot(g[Math.floor(Math.random()*g.length)]);UI.chips(UI.homeChips());});},
   doTHANKS(){const g=T('thanks');UI.typing(()=>UI.bot(g[Math.floor(Math.random()*g.length)]));},
   doYES(){
@@ -1134,7 +1383,128 @@ const Engine={
     }
     UI.typing(()=>UI.bot(T('more_help')));
   },
-  doACCOUNT(){UI.typing(()=>UI.accountCard());}
+  doACCOUNT(){UI.typing(()=>UI.accountCard());},
+
+  /* ---------- recurring subscriptions ---------- */
+  saveSubscription(){
+    const p=this._pendingSub;if(!p)return;
+    this._pendingSub=null;
+    Store.s.subscriptions.push({
+      id:'sub_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      service:p.service,slots:p.slots,every:p.every,
+      nextRun:Subscriptions.computeNextRun(p.every,Date.now()),
+      active:true
+    });
+    Store.save();
+  },
+  runSubscription(id){
+    const sub=(Store.s.subscriptions||[]).find(s=>s.id===id);
+    if(!sub||!SERVICES[sub.service])return;
+    UI.chips([]);
+    this.tx={service:sub.service};
+    Object.keys(sub.slots||{}).forEach(k=>{if(sub.slots[k]!=null)this.tx[k]=sub.slots[k];});
+    if(this.tx.phone)this.tx.provider=detectNetwork(this.tx.phone);
+    this.awaitingText=null;this.stage='fill';
+    this.advance();
+    sub.nextRun=Subscriptions.computeNextRun(sub.every,Date.now());
+    Store.save();
+  },
+  skipSubscription(id){
+    const sub=(Store.s.subscriptions||[]).find(s=>s.id===id);if(!sub)return;
+    sub.nextRun=Subscriptions.computeNextRun(sub.every,Date.now());
+    Store.save();
+  },
+  cancelSubscription(id){
+    Store.s.subscriptions=(Store.s.subscriptions||[]).filter(s=>s.id!==id);
+    Store.save();UI.toast(T('recur_cancelled'));
+    UI.subscriptionsCard();
+  }
+};
+
+/* ============================ SUBSCRIPTIONS (recurring purchases) ============================ */
+const Subscriptions={
+  computeNextRun(every,from){
+    const d=new Date(from);
+    if(every==='daily')d.setDate(d.getDate()+1);
+    else if(every==='weekly')d.setDate(d.getDate()+7);
+    else d.setMonth(d.getMonth()+1);
+    return d.getTime();
+  },
+  checkDue(){
+    const due=(Store.s.subscriptions||[]).filter(s=>s.active&&s.nextRun<=Date.now());
+    due.slice(0,3).forEach(s=>UI.subscriptionDueCard(s));
+    return due.length;
+  }
+};
+
+/* ============================ INSIGHTS (proactive nudges) ============================ */
+/* Things USSD can never do: notice you're about to run out before you ask.
+   At most one nudge per day, and only when no subscription reminder just fired. */
+const Insights={
+  checkNudges(){
+    if(Date.now()-(Store.s.lastNudgeAt||0)<86400000)return false;
+    const b=Store.s.bal;
+    let nudge=null;
+    if(b.dataMB<200)nudge={svc:'DATA',msg:T('nudge_low',T('data'))};
+    else if(b.airtime<500)nudge={svc:'AIRTIME',msg:T('nudge_low',T('airtime'))};
+    else if(b.minutes<10)nudge={svc:'MINUTES',msg:T('nudge_low',T('mins'))};
+    if(!nudge){
+      const buys=(Store.s.history||[]).filter(r=>r.type==='DATA'&&r.status==='SUCCESS')
+        .map(parseHistDate).filter(t=>t!=null).sort((a,c)=>a-c);
+      if(buys.length>=2){
+        const gaps=buys.slice(1).map((t,i)=>(t-buys[i])/86400000);
+        const avg=gaps.reduce((s,g)=>s+g,0)/gaps.length;
+        const daysSince=(Date.now()-buys[buys.length-1])/86400000;
+        if(avg>=1&&daysSince>=avg*0.9)nudge={svc:'DATA',msg:T('nudge_predict')};
+      }
+    }
+    if(!nudge)return false;
+    Store.s.lastNudgeAt=Date.now();Store.save();
+    UI.nudgeCard(nudge);
+    return true;
+  }
+};
+
+/* ============================ BIOMETRIC (local WebAuthn unlock gate) ============================ */
+/* This is a client-only demo with no server — WebAuthn here is a genuine device
+   fingerprint/face prompt used as a *local* convenience unlock in front of the same
+   simulated PIN flow, not a claim of server-verified transaction signing. */
+const Biometric={
+  supported(){return!!window.PublicKeyCredential;},
+  async platformAvailable(){
+    if(!this.supported())return false;
+    try{return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();}
+    catch(e){return false;}
+  },
+  available(){return!!(App._bioPlatformOk&&Store.s.biometric.enabled&&Store.s.biometric.credId);},
+  async register(){
+    if(!this.supported())throw new Error('unsupported');
+    const challenge=crypto.getRandomValues(new Uint8Array(32));
+    const userId=crypto.getRandomValues(new Uint8Array(16));
+    const cred=await navigator.credentials.create({publicKey:{
+      challenge,rp:{name:'SemaTel'},
+      user:{id:userId,name:Store.s.profile.phone||'sematel-user',displayName:Store.s.profile.name||'SemaTel'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},
+      timeout:30000
+    }});
+    if(!cred)throw new Error('no credential');
+    const idB64=btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+    Store.s.biometric={enabled:true,credId:idB64};Store.save();
+    return true;
+  },
+  disable(){Store.s.biometric={enabled:false,credId:null};Store.save();},
+  async verify(){
+    const credId=Store.s.biometric.credId;
+    if(!credId)throw new Error('no credential');
+    const challenge=crypto.getRandomValues(new Uint8Array(32));
+    const rawId=Uint8Array.from(atob(credId),c=>c.charCodeAt(0));
+    await navigator.credentials.get({publicKey:{
+      challenge,allowCredentials:[{id:rawId,type:'public-key'}],
+      userVerification:'required',timeout:30000
+    }});
+    return true;
+  }
 };
 
 /* ============================ 4. UI ============================ */
@@ -1211,6 +1581,17 @@ const UI={
       box.appendChild(b);
     });
   },
+  /* "did you mean" — offered when NLU can't confidently match, instead of a flat clarify message */
+  didYouMean(intents){
+    let html=`<div class="rcard"><div class="rcard-title">🤔 ${escapeHTML(T('didyoumean'))}</div><div class="dym-row">`;
+    intents.forEach(k=>{
+      const s=SERVICES[k];if(!s)return;
+      html+=`<button class="chip dym-chip" onclick="Engine.start('${k}',{})">${s.icon} ${escapeHTML(s.name())}</button>`;
+    });
+    html+='</div></div>';
+    this.card(html);
+    this.chips(this.homeChips());
+  },
   /* home chips reordered by what THIS user actually does most */
   homeChips(){
     const base=I18N[Store.s.lang].chips_home;
@@ -1252,6 +1633,32 @@ const UI={
       if(p.phone){this.user('📋 '+p.phone);Engine.tx.phone=p.phone;Engine.tx.provider=p.provider;Engine.awaitingText=null;Engine.advance();}
       else this.toast(Store.s.lang==='sw'?'Hakuna namba kwenye clipboard':'No number on clipboard');
     }catch(e){this.toast(Store.s.lang==='sw'?'Clipboard haipatikani':'Clipboard unavailable');}
+  },
+  askParticipants(tx){
+    let html=`<div class="rcard"><div class="rcard-title">👥 ${escapeHTML(T('split_pick'))}</div><div class="splitList">`;
+    (Store.s.contacts||[]).forEach(c=>{
+      html+=`<label class="chk-row participant-row"><input type="checkbox" class="split-chk" value="${escapeHTML(c.phone)}" data-name="${escapeHTML(c.name)}"> 👤 ${escapeHTML(c.name)} · ${escapeHTML(c.phone)} ${netBadge(detectNetwork(c.phone))}</label>`;
+    });
+    html+=`</div>
+      <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+        <input class="txt splitAddNum" placeholder="0712 345 678" inputmode="tel" style="margin-top:0">
+        <button class="p-buy" onclick="UI.addSplitNumber(this)">${escapeHTML(T('split_add'))}</button>
+      </div>
+      <button class="btn-block" style="margin-top:10px" onclick="Engine.confirmParticipants(this)">${escapeHTML(T('split_continue'))}</button>
+    </div>`;
+    this.card(html);
+  },
+  addSplitNumber(btn){
+    const wrap=btn.closest('.rcard');
+    const inp=wrap.querySelector('.splitAddNum');
+    const list=wrap.querySelector('.splitList');
+    const p=parse(inp.value);
+    if(!p.phone){this.toast(Store.s.lang==='sw'?'Namba si sahihi':'Invalid number');return;}
+    const lbl=document.createElement('label');
+    lbl.className='chk-row participant-row';
+    lbl.innerHTML=`<input type="checkbox" class="split-chk" value="${escapeHTML(p.phone)}" checked> 📱 ${escapeHTML(p.phone)} ${netBadge(p.provider)}`;
+    list.appendChild(lbl);
+    inp.value='';
   },
   askText(prompt,slotKey){
     this.bot(prompt);
@@ -1333,24 +1740,35 @@ const UI={
         ${dchips.join('')}
       </div>`;
     if(recipRow){
-      html+=`<div class="xfer-to">
+      html+=`<div class="xfer-to" onclick="Engine.editSlot('phone')" role="button">
         <span class="x-ava">${svc.icon}</span>
         <span class="x-body">
           <span class="x-lbl">${escapeHTML(T('sending_to'))}</span>
-          <span class="x-num">${escapeHTML(String(recipRow[1]))}</span>
+          <span class="x-num">${escapeHTML(String(recipRow[1]))} <small>✏️ ${escapeHTML(T('edit_hint'))}</small></span>
         </span>
       </div>`;
     }
     html+=`<div class="rcard-title">${svc.icon} ${escapeHTML(T('confirm'))}</div>`;
+    const EDITABLE={[T('amount')]:'amount',[T('recipient')]:'phone',[T('meter_no')]:'meter'};
     bodyRows.forEach(r=>{
       const big=isPeer&&r[0]===T('amount')?' big':'';
-      html+=`<div class="rcard-row"><span class="k">${escapeHTML(r[0])}</span><span class="v ${(r[2]||'')+big}">${r[0]===T('network')&&tx.provider?netBadge(tx.provider)+' '+escapeHTML(networkWallet(tx.provider)):escapeHTML(String(r[1]))}</span></div>`;
+      const editKey=EDITABLE[r[0]];
+      const val=r[0]===T('network')&&tx.provider?netBadge(tx.provider)+' '+escapeHTML(networkWallet(tx.provider)):escapeHTML(String(r[1]));
+      if(editKey){
+        html+=`<div class="rcard-row editable" onclick="Engine.editSlot('${editKey}')" role="button"><span class="k">${escapeHTML(r[0])}</span><span class="v ${(r[2]||'')+big}">${val} <span class="edit-pencil">✏️</span></span></div>`;
+      }else{
+        html+=`<div class="rcard-row"><span class="k">${escapeHTML(r[0])}</span><span class="v ${(r[2]||'')+big}">${val}</span></div>`;
+      }
     });
     if((tx._cost||0)>0&&!tx.paySourceExternal){
       html+=`<div class="rcard-row"><span class="k">${escapeHTML(T('bal_after'))}</span><span class="v">Tsh ${fmt(balAfter)}</span></div>`;
     }
-    if(isPeer){
+    if(isPeer||svc.warn){
       html+=`<div class="xfer-warn">⚠️ ${escapeHTML(T('xfer_warn'))}</div>`;
+    }
+    if(tx._stepUp){
+      html+=`<div class="xfer-warn">🆕 ${escapeHTML(T('stepup_new'))}</div>
+      <label class="chk-row"><input type="checkbox" onchange="Engine.stepUpToggle(this.checked)"> ${escapeHTML(T('stepup_confirm'))}</label>`;
     }
     if(svc.auth!=='pin'||!(tx._cost>0)){
       html+=`<div class="btn-grid" style="margin-top:10px">
@@ -1361,9 +1779,25 @@ const UI={
     this.card(html);
   },
 
-  /* ---------- PIN pad ---------- */
+  /* ---------- PIN pad (chat, transaction mode) — biometric-first when enabled+supported ---------- */
   pinPad(cost){
     this.removePinPad();
+    if(Biometric.available()){this.authChoice(cost);return;}
+    this._renderPinPad(cost);
+  },
+  authChoice(cost){
+    const el=document.createElement('div');
+    el.className='msg bot card-msg';el.id='pinMsg';
+    el.innerHTML=`<div class="pin-card">
+      <div class="pin-title">🔒 ${escapeHTML(T('pin_title'))}</div>
+      <div class="pin-sub">${escapeHTML(T('pin_sub',fmt(cost)))}</div>
+      <button class="btn-block" style="margin-top:10px" onclick="Engine.tryBiometric('tx',${cost||0})">${escapeHTML(T('bio_use'))}</button>
+      <button class="btn-block ghost" onclick="UI.useNumericPin(${cost||0})">${escapeHTML(T('bio_use_pin'))}</button>
+    </div>`;
+    this.chat.appendChild(el);this.scroll();
+  },
+  useNumericPin(cost){this._renderPinPad(cost);},
+  _renderPinPad(cost){
     const el=document.createElement('div');
     el.className='msg bot card-msg';el.id='pinMsg';
     el.innerHTML=`<div class="pin-card">
@@ -1378,6 +1812,27 @@ const UI={
       </div>
     </div>`;
     this.chat.appendChild(el);this.scroll();
+  },
+  /* ---------- lock-screen pin pad (rendered into #lockPinWrap, not the chat) ---------- */
+  lockAuthPad(){
+    const wrap=$('lockPinWrap');if(!wrap)return;
+    if(Biometric.available()){
+      wrap.innerHTML=`<button class="btn-block" onclick="Engine.tryBiometric('unlock',0)">${escapeHTML(T('bio_use'))}</button>
+        <button class="btn-block ghost" onclick="UI.lockPinPad()">${escapeHTML(T('bio_use_pin'))}</button>`;
+    }else{
+      this.lockPinPad();
+    }
+  },
+  lockPinPad(){
+    const wrap=$('lockPinWrap');if(!wrap)return;
+    wrap.innerHTML=`<div class="pin-sub" id="pinSub"></div>
+      <div class="pin-dots" id="pinDots">${'<span class="pin-dot"></span>'.repeat(4)}</div>
+      <div class="pin-pad">
+        ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="pin-key" onclick="Engine.pinKey('${n}')">${n}</button>`).join('')}
+        <span></span>
+        <button class="pin-key" onclick="Engine.pinKey('0')">0</button>
+        <button class="pin-key fn" onclick="Engine.pinKey('del')">⌫</button>
+      </div>`;
   },
   pinDots(n){
     const dots=$('pinDots');if(!dots)return;
@@ -1481,14 +1936,89 @@ const UI={
     const total=succ.reduce((s,r)=>s+r.amount,0);
     const by={};
     succ.forEach(r=>{by[r.type]=(by[r.type]||0)+r.amount;});
-    let rows=`<div class="rcard-row"><span class="k">${escapeHTML(T('usage_total'))}</span><span class="v gold">Tsh ${fmt(total)}</span></div>
-      <div class="rcard-row"><span class="k">${escapeHTML(T('usage_count'))}</span><span class="v">${succ.length}</span></div>`;
-    Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(([k,v])=>{
-      const svc=SERVICES[k];
-      rows+=`<div class="rcard-row"><span class="k">${svc?svc.icon+' '+escapeHTML(svc.name()):escapeHTML(k)}</span><span class="v">Tsh ${fmt(v)} · ${Math.round(v/total*100)}%</span></div>`;
+    const now=new Date();
+    const inMonth=(t,offset)=>{
+      const d=new Date(t),ref=new Date(now.getFullYear(),now.getMonth()-offset,1);
+      return d.getFullYear()===ref.getFullYear()&&d.getMonth()===ref.getMonth();
+    };
+    let thisMonth=0,lastMonth=0;
+    succ.forEach(r=>{
+      const t=parseHistDate(r);if(t==null)return;
+      if(inMonth(t,0))thisMonth+=r.amount;else if(inMonth(t,1))lastMonth+=r.amount;
     });
-    this.card(`<div class="rcard" style="border-left:4px solid var(--blue)"><div class="rcard-title">📊 ${escapeHTML(T('usage_t'))}</div>${rows}</div>`);
+    let rows=`<div class="rcard-row"><span class="k">${escapeHTML(T('usage_total'))}</span><span class="v gold">Tsh ${fmt(total)}</span></div>
+      <div class="rcard-row"><span class="k">${escapeHTML(T('usage_count'))}</span><span class="v">${succ.length}</span></div>
+      <div class="rcard-row"><span class="k">${escapeHTML(T('usage_month'))}</span><span class="v">Tsh ${fmt(thisMonth)}</span></div>
+      <div class="rcard-row"><span class="k">${escapeHTML(T('usage_prev'))}</span><span class="v">Tsh ${fmt(lastMonth)}</span></div>`;
+    Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(([k,v])=>{
+      const svc=SERVICES[k];const pct=Math.round(v/total*100);
+      rows+=`<div class="rcard-row" style="display:block;border-bottom:1px dashed var(--line);padding:7px 0">
+        <div style="display:flex;justify-content:space-between"><span class="k">${svc?svc.icon+' '+escapeHTML(svc.name()):escapeHTML(k)}</span><span class="v">Tsh ${fmt(v)} · ${pct}%</span></div>
+        <div class="usage-bar-track"><div class="usage-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    });
+    this.card(`<div class="rcard" style="border-left:4px solid var(--blue)">
+      <div class="rcard-title">📊 ${escapeHTML(T('usage_t'))}</div>${rows}
+      <button class="btn-block ghost" style="margin-top:10px" onclick="Receipt.statementPdf()">📄 ${escapeHTML(T('statement_dl'))}</button>
+    </div>`);
   },
+  /* ---------- recurring subscriptions ---------- */
+  subscribeOffer(service,slots,every){
+    const svc=SERVICES[service];if(!svc)return;
+    Engine._pendingSub={service,slots,every};
+    const html=`<div class="rcard" style="border-left:4px solid var(--blue)">
+      <div class="rcard-title">${svc.icon} ${escapeHTML(T('recur_offer_q',every))}</div>
+      <div class="btn-grid">
+        <button class="btn-block" onclick="Engine.saveSubscription();UI.toast(T('recur_saved'));this.closest('.msg').remove()">✓ ${escapeHTML(T('confirm'))}</button>
+        <button class="btn-block ghost" onclick="this.closest('.msg').remove()">${escapeHTML(T('later'))}</button>
+      </div></div>`;
+    this.card(html);
+  },
+  subscriptionDueCard(sub){
+    const svc=SERVICES[sub.service];if(!svc)return;
+    const html=`<div class="rcard" style="border-left:4px solid var(--blue)">
+      <div class="rcard-title">${svc.icon} ${escapeHTML(T('recur_due'))} ${escapeHTML(svc.name())}</div>
+      <div class="btn-grid">
+        <button class="btn-block" onclick="Engine.runSubscription('${sub.id}');this.closest('.msg').remove()">▶ ${escapeHTML(T('recur_confirm_now'))}</button>
+        <button class="btn-block ghost" onclick="Engine.skipSubscription('${sub.id}');this.closest('.msg').remove()">${escapeHTML(T('recur_skip'))}</button>
+      </div></div>`;
+    this.card(html);
+  },
+  subscriptionsCard(){
+    const subs=(Store.s.subscriptions||[]).filter(s=>s.active);
+    if(!subs.length){this.bot(T('recur_none'));return;}
+    let rows='';
+    subs.forEach(s=>{
+      const svc=SERVICES[s.service];if(!svc)return;
+      rows+=`<div class="prod">
+        <div class="p-ico">${svc.icon}</div>
+        <div class="p-body"><div class="p-name">${escapeHTML(svc.name())}</div><div class="p-sub">${escapeHTML(T('every_'+s.every))}</div></div>
+        <button class="p-buy" style="background:var(--danger)" onclick="Engine.cancelSubscription('${s.id}')">${escapeHTML(T('recur_cancel'))}</button>
+      </div>`;
+    });
+    this.card(`<div class="rcard"><div class="rcard-title">🔁 ${escapeHTML(T('recur_title'))}</div>${rows}</div>`);
+  },
+
+  /* ---------- proactive nudge (Insights) ---------- */
+  nudgeCard(n){
+    const svc=SERVICES[n.svc];
+    const html=`<div class="rcard" style="border-left:4px solid var(--gold)">
+      <div style="font-size:13.5px;margin-bottom:8px">${escapeHTML(n.msg)}</div>
+      <div class="btn-grid">
+        <button class="btn-block" onclick="Engine.start('${n.svc}',{});this.closest('.msg').remove()">${svc?svc.icon:''} ${escapeHTML(T('nudge_buy'))}</button>
+        <button class="btn-block ghost" onclick="this.closest('.msg').remove()">${escapeHTML(T('nudge_later'))}</button>
+      </div></div>`;
+    this.card(html);
+  },
+
+  /* ---------- security & trust info (honest, no fake telco-partnership claims) ---------- */
+  securityInfoCard(){
+    this.card(`<div class="rcard" style="border-left:4px solid var(--leaf)">
+      <div class="rcard-title">🛡️ ${escapeHTML(T('security_title'))}</div>
+      <div style="font-size:13px;line-height:1.6;white-space:pre-wrap">${escapeHTML(T('security_body'))}</div>
+    </div>`);
+  },
+
   accountCard(){
     const p=Store.s.profile;
     const net=detectNetwork(p.phone);
@@ -1502,7 +2032,11 @@ const UI={
       <label class="lbl-sm" style="display:block;margin-top:10px">${escapeHTML(T('acc_pin'))}</label>
       <input class="txt" id="accPin" placeholder="****" inputmode="numeric" maxlength="4" type="password">
       <button class="btn-block" onclick="App.saveAccount()">💾 ${Store.s.lang==='sw'?'Hifadhi':'Save'}</button>
-      <button class="btn-block red" onclick="App.resetDemo()">🗑️ ${escapeHTML(T('acc_reset'))}</button>
+      <label class="lbl-sm" style="display:block;margin-top:14px">${escapeHTML(T('bio_title'))}</label>
+      <button class="btn-block ${Store.s.biometric.enabled?'':'ghost'}" onclick="${Store.s.biometric.enabled?'App.removeBiometric()':'App.registerBiometric()'}">${Store.s.biometric.enabled?'🔓 '+escapeHTML(T('bio_on')):'🔒 '+escapeHTML(T('bio_off'))}</button>
+      <label class="lbl-sm" style="display:block;margin-top:14px">${escapeHTML(T('autolock_title'))}</label>
+      <button class="btn-block ${Store.s.autoLock?'':'ghost'}" onclick="App.toggleAutoLock()">${Store.s.autoLock?'🔒 '+escapeHTML(T('autolock_on')):'🔓 '+escapeHTML(T('autolock_off'))}</button>
+      <button class="btn-block red" style="margin-top:14px" onclick="App.resetDemo()">🗑️ ${escapeHTML(T('acc_reset'))}</button>
     </div>`;
     this.card(html);
   },
@@ -1540,6 +2074,97 @@ const Receipt={
     if(navigator.share){try{await navigator.share({title:'SemaTel Receipt',text:txt});return;}catch(e){}}
     try{await navigator.clipboard.writeText(txt);UI.toast(T('copied'));}catch(e){}
   },
+  /* shared printable-doc CSS, reused by pdf() and statementPdf() */
+  _css:`:root{--forest:#0B4D33;--forest-2:#0F6B45;--gold:#E8B93B;--gold-deep:#B8860B;--ink:#131A16;--muted:#71807A;--line:#DDE3DF;--leaf-soft:rgba(23,160,94,.12);--danger:#D33A2C;--danger-soft:#FDF0EE}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#eef1ef;color:var(--ink);padding:28px 14px;display:flex;justify-content:center}
+.r-card{width:100%;max-width:460px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(11,26,18,.12)}
+.r-hdr{background:linear-gradient(120deg,#0B4D33 0%,#0F6B45 55%,#B8860B 140%);color:#fff;padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.r-hdr-l{display:flex;align-items:center;gap:11px}
+.r-logo{width:38px;height:38px;border-radius:12px;background:var(--gold);color:var(--forest);display:grid;place-items:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;flex:0 0 auto}
+.r-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:17px}
+.r-name em{font-style:normal;color:var(--gold)}
+.r-tag{font-size:10px;letter-spacing:1px;opacity:.85;margin-top:1px}
+.r-pill{font-size:10.5px;font-weight:800;letter-spacing:.6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:4px 11px;flex:0 0 auto;white-space:nowrap}
+.r-torn{border-top:2px dashed rgba(232,185,59,.55)}
+.r-body{padding:18px 20px 6px}
+.r-refline{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:14px;border-bottom:1px dashed var(--line);margin-bottom:4px}
+.r-lbl{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.r-ref{font-family:ui-monospace,monospace;font-weight:700;font-size:15px;margin-top:2px}
+.r-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--forest);background:var(--leaf-soft);border-radius:999px;padding:5px 11px;white-space:nowrap}
+.r-badge-fail{color:var(--danger);background:var(--danger-soft)}
+.r-row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.r-row:last-of-type{border-bottom:none}
+.r-k{color:var(--muted)}
+.r-v{font-weight:700;text-align:right}
+.r-total{display:flex;justify-content:space-between;align-items:center;background:#F4F7F3;border-radius:12px;padding:12px 14px;margin:14px 0 4px;font-weight:800;font-size:12.5px;letter-spacing:.5px;color:var(--forest-2)}
+.r-total-amt{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;color:var(--forest)}
+.r-foot{text-align:center;padding:16px 20px 22px;border-top:1px dashed var(--line);margin-top:10px}
+.r-thanks{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:var(--forest);font-size:13.5px}
+.r-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.r-ver{font-size:10px;color:var(--muted);margin-top:8px;opacity:.7}
+.r-stmt-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12px}
+.r-stmt-row:last-of-type{border-bottom:none}
+.r-stmt-fail{color:var(--danger)}
+@media print{
+  body{background:#fff;padding:0}
+  .r-card{box-shadow:none;border-radius:0;max-width:100%}
+}`,
+  _open(doc){
+    const w=window.open('','_blank');
+    if(!w){UI.toast(T('receipt_popup_blocked'));return;}
+    w.document.open();w.document.write(doc);w.document.close();
+  },
+  /* ---------- styled, printable statement of ALL transaction history ---------- */
+  statementPdf(){
+    const sw=Store.s.lang==='sw';
+    const hist=Store.s.history||[];
+    if(!hist.length)return;
+    const total=hist.filter(r=>r.status==='SUCCESS').reduce((s,r)=>s+(r.amount||0),0);
+    const rowsHtml=hist.map(r=>{
+      const svc=SERVICES[r.type];
+      const fail=r.status!=='SUCCESS';
+      return`<div class="r-stmt-row${fail?' r-stmt-fail':''}">
+        <span>${svc?svc.icon:'🧾'} ${escapeHTML(r.details)}<br><span class="r-sub" style="margin:0">${escapeHTML(r.date)} · ${escapeHTML(r.ref)}</span></span>
+        <span>${r.amount>0?'Tsh '+fmt(r.amount):'—'}</span>
+      </div>`;
+    }).join('');
+    const doc=`<!DOCTYPE html><html lang="${sw?'sw':'en'}"><head><meta charset="UTF-8">
+<title>SemaTel ${escapeHTML(T('statement_t'))}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>${this._css}</style>
+</head><body>
+<div class="r-card">
+  <div class="r-hdr">
+    <div class="r-hdr-l">
+      <span class="r-logo">S</span>
+      <div><div class="r-name">Sema<em>Tel</em></div><div class="r-tag">SEMA · PATA · MALIZA</div></div>
+    </div>
+    <span class="r-pill">${sw?'STATEMENT':'STATEMENT'}</span>
+  </div>
+  <div class="r-torn"></div>
+  <div class="r-body">
+    <div class="r-refline">
+      <div><div class="r-lbl">${escapeHTML(T('statement_t'))}</div><div class="r-ref">${escapeHTML(Store.s.profile.phone)}</div></div>
+      <span class="r-badge">${hist.length} ${sw?'miamala':'transactions'}</span>
+    </div>
+    ${rowsHtml}
+    <div class="r-total"><span>${escapeHTML(T('receipt_total'))}</span><span class="r-total-amt">Tsh ${fmt(total)}</span></div>
+  </div>
+  <div class="r-foot">
+    <div class="r-thanks">${escapeHTML(T('receipt_thanks'))}</div>
+    <div class="r-sub">${escapeHTML(T('receipt_keep'))}</div>
+    <div class="r-ver">SemaTel v5 · Tanzania · ${escapeHTML(nowStamp().date)}</div>
+  </div>
+</div>
+<script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});<\/script>
+</body></html>`;
+    this._open(doc);
+  },
+
   /* ---------- styled, printable PDF receipt (opens a tab → user "Save as PDF") ---------- */
   pdf(){
     const ctx=Engine._lastReceiptCtx;
@@ -1575,40 +2200,7 @@ const Receipt={
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--forest:#0B4D33;--forest-2:#0F6B45;--gold:#E8B93B;--gold-deep:#B8860B;--ink:#131A16;--muted:#71807A;--line:#DDE3DF;--leaf-soft:rgba(23,160,94,.12);--danger:#D33A2C;--danger-soft:#FDF0EE}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#eef1ef;color:var(--ink);padding:28px 14px;display:flex;justify-content:center}
-.r-card{width:100%;max-width:460px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(11,26,18,.12)}
-.r-hdr{background:linear-gradient(120deg,#0B4D33 0%,#0F6B45 55%,#B8860B 140%);color:#fff;padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.r-hdr-l{display:flex;align-items:center;gap:11px}
-.r-logo{width:38px;height:38px;border-radius:12px;background:var(--gold);color:var(--forest);display:grid;place-items:center;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;flex:0 0 auto}
-.r-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:17px}
-.r-name em{font-style:normal;color:var(--gold)}
-.r-tag{font-size:10px;letter-spacing:1px;opacity:.85;margin-top:1px}
-.r-pill{font-size:10.5px;font-weight:800;letter-spacing:.6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:4px 11px;flex:0 0 auto;white-space:nowrap}
-.r-torn{border-top:2px dashed rgba(232,185,59,.55)}
-.r-body{padding:18px 20px 6px}
-.r-refline{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:14px;border-bottom:1px dashed var(--line);margin-bottom:4px}
-.r-lbl{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
-.r-ref{font-family:ui-monospace,monospace;font-weight:700;font-size:15px;margin-top:2px}
-.r-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--forest);background:var(--leaf-soft);border-radius:999px;padding:5px 11px;white-space:nowrap}
-.r-badge-fail{color:var(--danger);background:var(--danger-soft)}
-.r-row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
-.r-row:last-of-type{border-bottom:none}
-.r-k{color:var(--muted)}
-.r-v{font-weight:700;text-align:right}
-.r-total{display:flex;justify-content:space-between;align-items:center;background:#F4F7F3;border-radius:12px;padding:12px 14px;margin:14px 0 4px;font-weight:800;font-size:12.5px;letter-spacing:.5px;color:var(--forest-2)}
-.r-total-amt{font-family:'Bricolage Grotesque',sans-serif;font-size:19px;color:var(--forest)}
-.r-foot{text-align:center;padding:16px 20px 22px;border-top:1px dashed var(--line);margin-top:10px}
-.r-thanks{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;color:var(--forest);font-size:13.5px}
-.r-sub{font-size:11px;color:var(--muted);margin-top:3px}
-.r-ver{font-size:10px;color:var(--muted);margin-top:8px;opacity:.7}
-@media print{
-  body{background:#fff;padding:0}
-  .r-card{box-shadow:none;border-radius:0;max-width:100%}
-}
-</style>
+<style>${this._css}</style>
 </head><body>
 <div class="r-card">
   <div class="r-hdr">
@@ -1636,9 +2228,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#eef1ef;color:var(--i
 <script>window.addEventListener('load',function(){setTimeout(function(){window.print();},300);});<\/script>
 </body></html>`;
 
-    const w=window.open('','_blank');
-    if(!w){UI.toast(T('receipt_popup_blocked'));return;}
-    w.document.open();w.document.write(doc);w.document.close();
+    this._open(doc);
   }
 };
 
@@ -1658,7 +2248,7 @@ const Sheets={
   renderServices(){
     $('svcSheetTitle').textContent=T('svc_all');
     const grid=$('svcGrid');grid.innerHTML='';
-    const order=['AIRTIME','DATA','SMS','MINUTES','MONEY','LUKU','BILLS','VOUCHER','GOVT','SCHOOL','PAYBILL','INTL'];
+    const order=['AIRTIME','DATA','SMS','MINUTES','MONEY','SPLIT','LUKU','BILLS','VOUCHER','GOVT','SCHOOL','PAYBILL','INTL'];
     order.forEach(k=>{
       const s=SERVICES[k];
       const b=document.createElement('button');
@@ -1686,9 +2276,12 @@ const Sheets={
     const list=$('menuList');list.innerHTML='';
     const items=[
       {ic:'🧾',t:sw?'Miamala ya Karibuni':'Recent Transactions',sub:sw?'Risiti na historia':'Receipts & history',fn:()=>{Sheets.close();Engine.doHISTORY();}},
+      {ic:'🔁',t:T('recur_title'),sub:sw?`Huduma ${(Store.s.subscriptions||[]).filter(s=>s.active).length} zinazojirudia`:`${(Store.s.subscriptions||[]).filter(s=>s.active).length} active`,fn:()=>{Sheets.close();UI.subscriptionsCard();}},
       {ic:'👤',t:sw?'Akaunti Yangu':'My Account',sub:sw?'Jina, namba na PIN':'Name, number & PIN',fn:()=>{Sheets.close();Engine.doACCOUNT();}},
+      {ic:'🛡️',t:T('security_title'),sub:sw?'PIN, mtandao na DEMO':'PIN, network & DEMO',fn:()=>{Sheets.close();UI.securityInfoCard();}},
       {ic:'🔊',t:sw?'Sauti ya Majibu':'Voice Replies',sub:(Store.s.tts?(sw?'Imewashwa ✓':'On ✓'):(sw?'Imezimwa':'Off')),fn:()=>{Store.s.tts=!Store.s.tts;Store.save();Sheets.renderMenu();}},
       {ic:'🌓',t:T('theme'),sub:T('theme_'+(Store.s.theme||'auto')),fn:()=>{App.cycleTheme();Sheets.renderMenu();}},
+      {ic:'🐢',t:T('datasaver_title'),sub:Store.s.dataSaver?T('datasaver_on'):T('datasaver_off'),fn:()=>{App.toggleDataSaver();Sheets.renderMenu();}},
       Voice.isStandalone()
         ?{ic:'✅',t:sw?'Imesakinishwa':'Installed',sub:sw?'SemaTel iko kwenye simu yako':'SemaTel is on your device',fn:()=>{Sheets.close();UI.toast(T('installed'));}}
         :{ic:'📲',t:T('install'),sub:sw?'Weka SemaTel kwenye simu yako':'Add SemaTel to your phone',fn:()=>{Sheets.close();App.install();}},
@@ -1834,6 +2427,7 @@ const Voice={
 /* ============================ 6. APP BOOT / PWA ============================ */
 const App={
   deferredInstall:null,
+  _bioPlatformOk:false,
 
   boot(){
     UI.init();Voice.init();
@@ -1847,6 +2441,8 @@ const App={
     UI.refreshBalances();
     this.netWatch();
     this.pwa();
+    this.lockWatch();
+    Biometric.platformAvailable().then(ok=>{this._bioPlatformOk=ok;});
 
     /* welcome — returning users get a much shorter splash */
     const back=Store.s.visited;
@@ -1862,6 +2458,13 @@ const App={
         const it=(q.get('intent')||'').toUpperCase().replace('BUY_','').replace('SEND_','').replace('CHECK_','');
         if(it&&SERVICES[it])Engine.start(it,{});
         else if(it==='BALANCE')Engine.doBALANCE();
+        /* proactive prompts — at most one kind per app open, subscriptions take priority over nudges */
+        if(back){
+          setTimeout(()=>{
+            const dueCount=Subscriptions.checkDue();
+            if(!dueCount)Insights.checkNudges();
+          },900);
+        }
       },700);
     },back?1500:3000);
 
@@ -1880,6 +2483,8 @@ const App={
     $('userInput').placeholder=T('placeholder');
     $('splashTag').textContent=T('tag');
     $('netBanner').textContent=sw?'⚠️ Hakuna intaneti — miamala itasubiri usawazishaji':'⚠️ Offline — transactions will queue until you\'re back';
+    $('lockTitle').textContent=T('lock_title');
+    $('lockSub').textContent=T('lock_sub');
     document.documentElement.lang=Store.s.lang;
     UI.refreshBalances();
   },
@@ -1902,6 +2507,15 @@ const App={
     const order=['auto','dark','light'];
     Store.s.theme=order[(order.indexOf(Store.s.theme||'auto')+1)%order.length];
     Store.save();this.applyTheme();
+  },
+
+  /* data saver: fewer animations now, skips the webfont request on the next load
+     (see the pre-paint <script> in index.html which reads this same flag) */
+  toggleDataSaver(){
+    Store.s.dataSaver=!Store.s.dataSaver;Store.save();
+    if(Store.s.dataSaver)document.documentElement.setAttribute('data-saver','on');
+    else document.documentElement.removeAttribute('data-saver');
+    UI.toast(Store.s.dataSaver?T('datasaver_on'):T('datasaver_off'));
   },
 
   saveAccount(){
@@ -1939,6 +2553,46 @@ const App={
     window.addEventListener('online',upd);
     window.addEventListener('offline',upd);
     upd();
+  },
+
+  /* ---------- auto-lock on backgrounding ---------- */
+  lockWatch(){
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='hidden'){
+        Store.s.lockAt=Date.now();Store.save();
+      }else if(document.visibilityState==='visible'){
+        const away=Store.s.lockAt?Date.now()-Store.s.lockAt:0;
+        Store.s.lockAt=0;
+        /* don't lock mid voice-relay tab-switch, before first visit, or if the user turned it off */
+        if(Store.s.autoLock&&Store.s.visited&&!Voice.active&&away>LOCK_TIMEOUT_MS)this.lock();
+      }
+    });
+  },
+  lock(){
+    if($('lockVeil').classList.contains('open'))return;
+    UI.removePinPad();   /* avoid duplicate #pinDots/#pinSub while a lock pad is also shown */
+    Engine.pinBuffer='';Engine.pinMode='unlock';
+    $('lockVeil').classList.add('open');
+    UI.lockAuthPad();
+  },
+  unlockSuccess(){
+    $('lockVeil').classList.remove('open');
+    $('lockPinWrap').innerHTML='';
+  },
+
+  /* ---------- biometric toggle (Account settings) ---------- */
+  async registerBiometric(){
+    try{await Biometric.register();UI.toast(T('bio_on'));}
+    catch(e){UI.toast(T('bio_unavailable'));}
+    UI.accountCard();
+  },
+  removeBiometric(){
+    Biometric.disable();UI.toast(T('bio_off'));
+    UI.accountCard();
+  },
+  toggleAutoLock(){
+    Store.s.autoLock=!Store.s.autoLock;Store.save();
+    UI.accountCard();
   },
 
   pwa(){

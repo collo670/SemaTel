@@ -54,6 +54,7 @@ body{
 button{font-family:inherit;cursor:pointer;border:none;background:none}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+[data-saver="on"] *,[data-saver="on"] *::before,[data-saver="on"] *::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 
 /* ---------- HEADER ---------- */
 .hdr{
@@ -136,11 +137,28 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 .v.mono{font-family:ui-monospace,monospace;letter-spacing:.5px}
 .v.big{font-size:19px}
 
+/* editable review rows — tap amount/recipient/meter to fix instead of restarting */
+.rcard-row.editable{cursor:pointer}
+.rcard-row.editable:active{background:var(--leaf-soft)}
+.edit-pencil{font-size:10px;opacity:.55;margin-left:2px}
+
+/* mini usage bar chart (Usage/Insights card) */
+.usage-bar-track{height:6px;border-radius:4px;background:var(--paper);overflow:hidden;margin-top:5px}
+.usage-bar-fill{height:100%;background:var(--grad-gold);border-radius:4px;transition:width .3s}
+
+/* checkbox rows — step-up confirmation + split-payment participant picker */
+.chk-row{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--slate);padding:9px 2px;cursor:pointer}
+.chk-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--leaf);flex:0 0 auto}
+.participant-row{border-bottom:1px dashed var(--line)}
+.participant-row:last-child{border-bottom:none}
+
 /* Peer-to-peer transfer confirmation (MONEY/INTL) — elevated emphasis before an irreversible send */
 .xfer-to{
   display:flex;align-items:center;gap:11px;padding:4px 2px 14px;
-  border-bottom:1px dashed var(--line);margin-bottom:10px;
+  border-bottom:1px dashed var(--line);margin-bottom:10px;cursor:pointer;
 }
+.xfer-to:active{opacity:.85}
+.x-num small{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-top:1px;letter-spacing:0}
 .xfer-to .x-ava{
   width:42px;height:42px;border-radius:50%;background:var(--grad-user);color:#fff;
   display:grid;place-items:center;font-size:19px;flex:0 0 auto;
@@ -262,6 +280,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
   box-shadow:0 1px 4px rgba(11,77,51,.06);animation:chipIn .3s both;
 }
 .chip:active{background:var(--leaf-soft);border-color:var(--leaf)}
+.dym-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
 
 /* ---------- COMPOSER ---------- */
 .composer{
@@ -368,6 +387,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{
 .splash .sp-name{font-family:var(--fd);font-weight:800;font-size:28px;color:#fff}
 .splash .sp-name em{font-style:normal;color:var(--gold)}
 .splash .sp-tag{font-size:12.5px;color:rgba(255,255,255,.75);letter-spacing:.4px}
+
+/* ---------- LOCK SCREEN (auto-lock on backgrounding) — reuses .splash, hidden until .open ---------- */
+.lock-veil{opacity:0;visibility:hidden;pointer-events:none}
+.lock-veil.open{opacity:1;visibility:visible;pointer-events:auto}
+.lock-title{font-family:var(--fd);font-weight:800;font-size:19px;color:#fff;margin-top:2px}
+.lock-sub{font-size:12.5px;color:rgba(255,255,255,.75)}
+.lock-pin-wrap{width:min(300px,86vw);margin-top:8px;display:flex;flex-direction:column;gap:8px}
+.lock-pin-wrap .pin-sub{color:rgba(255,255,255,.75);min-height:14px;text-align:center;font-size:11.5px}
+.lock-pin-wrap .pin-dots{justify-content:center}
+.lock-pin-wrap .pin-dot{border-color:rgba(255,255,255,.35)}
+.lock-pin-wrap .pin-dot.on{background:#fff;border-color:#fff}
+.lock-pin-wrap .pin-key{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff}
+.lock-pin-wrap .pin-key:active{background:rgba(255,255,255,.22)}
+.lock-pin-wrap .btn-block{margin-top:0}
 .toast{
   position:absolute;bottom:calc(88px + var(--sab));left:50%;transform:translateX(-50%) translateY(16px);
   background:var(--ink);color:#fff;font-size:12.5px;font-weight:700;border-radius:999px;
