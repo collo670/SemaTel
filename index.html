@@ -11,6 +11,13 @@ window.addEventListener('beforeinstallprompt',function(e){
   e.preventDefault();
   window.__installPromptEvent=e;
 });
+/* Apply saved theme before first paint (no light-mode flash) */
+try{
+  var __s=JSON.parse(localStorage.getItem('sematel_v5')||'{}');
+  var __p=__s.theme||'auto';
+  var __d=__p==='dark'||(__p==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme',__d?'dark':'light');
+}catch(e){}
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>

@@ -381,3 +381,19 @@ input.txt,select.txt{
 }
 input.txt:focus{border-color:var(--leaf);outline:none}
 .lbl-sm{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+
+/* ---------- DARK THEME (html[data-theme=dark], set by App.applyTheme) ---------- */
+:root[data-theme=dark]{
+  --paper:#0E1712;--card:#18241D;--ink:#E9F1EB;--slate:#C2CEC6;--muted:#8FA096;
+  --line:rgba(255,255,255,.1);--leaf-soft:rgba(23,160,94,.18);--gold-soft:rgba(232,185,59,.13);
+  --danger-soft:rgba(211,58,44,.18);--forest:#5AD196;--forest-2:#3FBF7F;--gold-deep:#E8B93B;
+  --sh-card:0 2px 14px rgba(0,0,0,.35);
+}
+[data-theme=dark] .prod,[data-theme=dark] .d-chip,[data-theme=dark] .chip,
+[data-theme=dark] .amt-btn,[data-theme=dark] input.txt,[data-theme=dark] select.txt{background:var(--card)}
+[data-theme=dark] .sheet,[data-theme=dark] .composer{background:#121D16}
+[data-theme=dark] .hdr-logo{color:#0B4D33}
+[data-theme=dark] .bal-pill .amt{color:var(--gold)}
+[data-theme=dark] .toast,[data-theme=dark] .voice-hint{background:#26332B;color:#fff}
+[data-theme=dark] .detected{background:linear-gradient(135deg,rgba(23,160,94,.12),rgba(232,185,59,.1))}
+[data-theme=dark] .r-total{background:rgba(23,160,94,.12)}

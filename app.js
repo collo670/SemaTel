@@ -12,28 +12,19 @@
 'use strict';
 
 /* ============================ 0. DATA ============================ */
-const NETWORK_PREFIXES={
-  '0611':'Vodacom','0612':'Vodacom','0613':'Vodacom','0614':'Vodacom','0615':'Vodacom',
-  '0616':'Vodacom','0617':'Vodacom','0618':'Vodacom','0619':'Vodacom',
-  '0741':'Vodacom','0742':'Vodacom','0743':'Vodacom','0744':'Vodacom','0745':'Vodacom',
-  '0746':'Vodacom','0747':'Vodacom','0748':'Vodacom','0749':'Vodacom',
-  '0710':'Vodacom','0711':'Vodacom','0712':'Vodacom','0713':'Vodacom','0714':'Vodacom',
-  '0715':'Vodacom','0716':'Vodacom','0717':'Vodacom','0718':'Vodacom','0719':'Vodacom',
-  '0620':'Airtel','0621':'Airtel','0622':'Airtel','0623':'Airtel','0624':'Airtel',
-  '0625':'Airtel','0626':'Airtel','0627':'Airtel','0628':'Airtel','0629':'Airtel',
-  '0680':'Tigo','0681':'Tigo','0682':'Tigo','0683':'Tigo','0684':'Tigo',
-  '0671':'Tigo','0672':'Tigo','0673':'Tigo','0674':'Tigo','0675':'Tigo',
-  '0676':'Tigo','0677':'Tigo','0678':'Tigo','0679':'Tigo',
-  '0650':'Halotel','0651':'Halotel','0652':'Halotel','0653':'Halotel',
-  '0654':'Halotel','0655':'Halotel','0656':'Halotel','0657':'Halotel','0658':'Halotel','0659':'Halotel',
-  '0780':'Airtel','0781':'Airtel','0782':'Airtel','0783':'Airtel','0784':'Airtel',
-  '0785':'Airtel','0786':'Airtel','0787':'Airtel','0788':'Airtel','0789':'Airtel',
-  '0754':'Halotel','0755':'Halotel','0756':'Halotel','0757':'Halotel','0758':'Halotel',
-  '0690':'TTCL','0691':'TTCL','0692':'TTCL'
+/* Official TCRA operator allocations — keyed by the 2 digits after the leading 0.
+   61/62 Halotel · 65/67/71 Tigo (now Yas) · 77 Zantel (merged into Yas)
+   68/69/78 Airtel · 74/75/76 Vodacom · 73 TTCL                        */
+const NETWORK_PREFIX2={
+  '61':'Halotel','62':'Halotel',
+  '65':'Yas (Tigo)','67':'Yas (Tigo)','71':'Yas (Tigo)','77':'Yas (Tigo)',
+  '68':'Airtel','69':'Airtel','78':'Airtel',
+  '74':'Vodacom','75':'Vodacom','76':'Vodacom',
+  '73':'TTCL'
 };
-const NETWORK_WALLET={'Vodacom':'M-Pesa','Airtel':'Airtel Money','Tigo':'Tigo Pesa','Halotel':'HaloPesa','TTCL':'T-Pesa'};
-const NETWORK_COLOR={'Vodacom':'#e00','Airtel':'#e53','Tigo':'#06c','Halotel':'#a0c','TTCL':'#c60'};
-const WALLET_LIST=['M-Pesa','Airtel Money','Tigo Pesa','HaloPesa'];
+const NETWORK_WALLET={'Vodacom':'M-Pesa','Airtel':'Airtel Money','Yas (Tigo)':'Mixx by Yas','Halotel':'HaloPesa','TTCL':'T-Pesa'};
+const NETWORK_COLOR={'Vodacom':'#e00','Airtel':'#e53','Yas (Tigo)':'#3B2E8C','Halotel':'#a0c','TTCL':'#c60'};
+const WALLET_LIST=['M-Pesa','Airtel Money','Mixx by Yas','HaloPesa','T-Pesa'];
 
 /* Street-Swahili amounts (longest keys matched first) */
 const STREET_AMOUNTS={
@@ -44,6 +35,8 @@ const STREET_AMOUNTS={
   'buku nane':8000,'elfu nane':8000,'buku tisa':9000,'elfu tisa':9000,
   'buku kumi':10000,'elfu kumi':10000,'kumi':10000,
   'ishirini':20000,'thelathini':30000,'arobaini':40000,'hamsini':50000,
+  'sitini':60000,'sabini':70000,'themanini':80000,'tisini':90000,
+  'laki moja':100000,'laki mbili':200000,'laki tatu':300000,'laki nne':400000,'laki tano':500000,'laki':100000,
   'buku':1000,'elfu moja':1000,'elfu':1000,'kibuyu':1000,'tano':5000
 };
 /* Street products → intent + prefilled slots */
@@ -64,10 +57,12 @@ const DATA_CATALOGUE=[
   {name:'500MB Kila Siku',gb:.5,price:500, validity:'Masaa 24',period:'daily'},
   {name:'1GB Kila Siku', gb:1, price:1000,validity:'Masaa 24',period:'daily'},
   {name:'1GB Wiki',      gb:1, price:2000,validity:'Siku 7',  period:'weekly'},
+  {name:'2GB Wiki',      gb:2, price:2500,validity:'Siku 7',  period:'weekly'},
   {name:'3GB Wiki',      gb:3, price:3000,validity:'Siku 7',  period:'weekly'},
   {name:'5GB Wiki',      gb:5, price:5000,validity:'Siku 7',  period:'weekly'},
   {name:'10GB Mwezi',    gb:10,price:10000,validity:'Siku 30',period:'monthly'},
   {name:'15GB Mwezi',    gb:15,price:15000,validity:'Siku 30',period:'monthly'},
+  {name:'20GB Mwezi',    gb:20,price:20000,validity:'Siku 30',period:'monthly'},
   {name:'30GB Mwezi',    gb:30,price:30000,validity:'Siku 30',period:'monthly'}
 ];
 const SMS_CATALOGUE=[
@@ -113,7 +108,7 @@ const LEXICON={
   SMS:['ujumbe mfupi','kifurushi cha sms','nunua sms','sms bundle','buy sms','meseji','message','sms','msg'],
   BALANCE:['angalia salio','kagua salio','salio langu','salio lililobaki','check balance','check salio','nicheki salio','balansi','balance','salio','baki yangu','check data','baki'],
   VOUCHER:['ingiza vocha','namba ya vocha','voucher code','redeem voucher','use voucher','vocha','voucher'],
-  MONEY:['tuma pesa','tuma hela','tuma shilingi','peleka pesa','peleka hela','mtumie','hamisha pesa','send money','tuma','peleka','transfer'],
+  MONEY:['tuma pesa','tuma hela','tuma shilingi','peleka pesa','peleka hela','mtumie','nitumie','mpelekee','hamisha pesa','send money','tuma','peleka','transfer','hela','mpe'],
   LUKU:['nunua luku','nunua umeme','lipa umeme','token ya umeme','buy luku','luku','umeme','tanesco','electricity','token','meta','mita','meter'],
   BILLS:['lipa bili','bili ya maji','bili ya tv','king\'amuzi','dstv','azam tv','startimes','dawasa','dawasco','tv licence','water bill','pay bills','bili','bill'],
   INTL:['tuma pesa nje','pesa nje ya nchi','international transfer','tuma kenya','tuma uganda','tuma zambia','tuma rwanda','tuma nje','international'],
@@ -121,8 +116,10 @@ const LEXICON={
   SCHOOL:['ada ya shule','ada ya chuo','lipa karo','school fees','karo','ada'],
   PAYBILL:['lipa namba','paybill','lipa number','till number','till','bill number'],
   HISTORY:['miamala yangu','historia','history','transactions','risiti zangu','miamala'],
+  USAGE:['ripoti ya matumizi','matumizi yangu','nimetumia kiasi gani','matumizi','spending','usage report','usage','takwimu','ripoti'],
+  REPEAT:['rudia muamala','kama kawaida','rudia tena','ile ile','rudia','repeat','again'],
   ACCOUNT:['akaunti yangu','akaunti','profile','mipangilio','settings','taarifa zangu'],
-  HELP:['nahitaji msaada','msaada','saidia','help','maswali','faq','support','unaweza nini','unafanya nini'],
+  HELP:['nahitaji msaada','unaweza kufanya nini','msaada','saidia','help','maswali','faq','support','unaweza nini','unafanya nini'],
   GREET:['habari yako','habari','mambo','hujambo','shikamoo','salama','hello','hi','hey','vipi','niaje','jambo','good morning','asubuhi njema'],
   THANKS:['asante sana','asante','ahsante','nashukuru','thanks','thank you','shukrani','poa'],
   CANCEL:['ghairi','acha','sitaki','cancel','stop','hapana','futa','anza upya','restart','mwanzo','home'],
@@ -137,7 +134,7 @@ sw:{
   wallet:'Wallet',placeholder:'Andika au sema unachotaka…',
   listening:'Nasikiliza… sema sasa',
   welcome_back:n=>`Karibu tena${n?', '+n:''} 👋`,
-  welcome:'Mimi ni SemaTel — msaidizi wako wa huduma za simu na pesa.\n\nSema tu unachotaka kwa lugha yako, mfano:\n“Nunua sms za jero” · “Tuma 10,000 kwa 0712…” · “Luku 10000 meta 01234567890”',
+  welcome:'Mimi ni SemaTel — msaidizi wako wa huduma za simu na pesa, mitandao yote Tanzania.\n\nSema tu unachotaka kwa lugha yako, mfano:\n“Nunua sms za jero” · “Tuma 10,000 kwa 0755…” · “Luku 10000 meta 01234567890”\n\nNikishamjua mtu wako, sema tu “tuma buku kwa mama” 😉',
   clarify:'Samahani, sijaelewa vizuri. 🤔 Jaribu kusema kwa mfano “nunua GB 2” au chagua huduma hapa chini.',
   detected:'Nimegundua',
   svc_all:'Huduma Zote',menu:'Menyu',
@@ -194,6 +191,16 @@ sw:{
   best_for:a=>`Vinavyolingana na Tsh ${a}:`,
   own_number:'Namba yako',
   voucher_ok:v=>`Vocha imekubaliwa: ${v}`,voucher_bad:'❌ Namba ya vocha si sahihi. Jaribu tena:',
+  usage_t:'Muhtasari wa Matumizi',usage_none:'Bado hakuna matumizi ya kuonyesha. Anza na muamala wa kwanza!',
+  usage_total:'Jumla Uliyotumia',usage_count:'Idadi ya Miamala',
+  repeat_none:'Hakuna muamala wa kurudia bado. Fanya muamala kwanza 😊',
+  ask_contact_name:'Nimhifadhi kwa jina gani? (mfano “Mama”)',
+  contact_save:p=>`Unataka kuhifadhi ${p} kwenye anwani zako?`,
+  contact_saved:n=>`✓ ${n} amehifadhiwa! Sasa sema tu “tuma buku kwa ${n}”.`,
+  save_lbl:'Hifadhi',
+  low_bal:b=>`💡 Kumbuka: salio la wallet limebaki Tsh ${b} tu.`,
+  yes_hint:'Weka PIN yako hapo juu kukamilisha 👆',
+  theme:'Mandhari',theme_auto:'Otomatiki 🌗',theme_light:'Mwanga ☀️',theme_dark:'Giza 🌙',
   chips_home:['💰 Salio','📶 Nunua Data','📱 Airtime','💸 Tuma Pesa','⚡ LUKU','💬 SMS','📞 Dakika','🧾 Miamala'],
   demo_note:'Hii ni DEMO — hakuna pesa halisi inayotumika. PIN ya majaribio: 1234'
 },
@@ -203,7 +210,7 @@ en:{
   wallet:'Wallet',placeholder:'Type or say what you need…',
   listening:'Listening… speak now',
   welcome_back:n=>`Welcome back${n?', '+n:''} 👋`,
-  welcome:'I\'m SemaTel — your assistant for telecom & money services.\n\nJust say what you want, e.g.:\n“Buy 2GB” · “Send 10,000 to 0712…” · “LUKU 10000 meter 01234567890”',
+  welcome:'I\'m SemaTel — your assistant for telecom & money services on every Tanzanian network.\n\nJust say what you want, e.g.:\n“Buy 2GB” · “Send 10,000 to 0755…” · “LUKU 10000 meter 01234567890”\n\nOnce I know your people, just say “send 5000 to mom” 😉',
   clarify:'Sorry, I didn\'t quite get that. 🤔 Try e.g. “buy 2GB”, or pick a service below.',
   detected:'Detected',
   svc_all:'All Services',menu:'Menu',
@@ -260,6 +267,16 @@ en:{
   best_for:a=>`Best matches for Tsh ${a}:`,
   own_number:'Your number',
   voucher_ok:v=>`Voucher accepted: ${v}`,voucher_bad:'❌ Invalid voucher code. Try again:',
+  usage_t:'Spending Summary',usage_none:'No spending to show yet. Make your first transaction!',
+  usage_total:'Total Spent',usage_count:'Transactions',
+  repeat_none:'No previous transaction to repeat yet 😊',
+  ask_contact_name:'What name should I save them as? (e.g. “Mom”)',
+  contact_save:p=>`Save ${p} to your contacts?`,
+  contact_saved:n=>`✓ ${n} saved! Next time just say “send 5000 to ${n}”.`,
+  save_lbl:'Save',
+  low_bal:b=>`💡 Heads up: only Tsh ${b} left in your wallet.`,
+  yes_hint:'Enter your PIN above to complete 👆',
+  theme:'Theme',theme_auto:'Auto 🌗',theme_light:'Light ☀️',theme_dark:'Dark 🌙',
   chips_home:['💰 Balance','📶 Buy Data','📱 Airtime','💸 Send Money','⚡ LUKU','💬 SMS','📞 Minutes','🧾 History'],
   demo_note:'This is a DEMO — no real money moves. Demo PIN: 1234'
 }};
@@ -270,11 +287,29 @@ const $=id=>document.getElementById(id);
 function escapeHTML(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmt(n){return Number(n||0).toLocaleString('en-US');}
 function fmtMB(mb){return mb>=1024?(mb/1024).toFixed(mb%1024?1:0)+' GB':Math.round(mb)+' MB';}
+function escapeRe(s){return String(s).replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');}
+/* Levenshtein distance with early exit — powers typo-tolerant NLU */
+function lev(a,b){
+  if(a===b)return 0;
+  if(Math.abs(a.length-b.length)>2)return 99;
+  const m=a.length,n=b.length;
+  let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){
+    const cur=[i];
+    for(let j=1;j<=n;j++){
+      cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    }
+    prev=cur;
+  }
+  return prev[n];
+}
+function ownPhone(){return Store.s.profile.phone.replace(/\D/g,'');}
+function isSelfPhone(p){return !p||String(p).replace(/\D/g,'')===ownPhone();}
 function detectNetwork(msisdn){
   if(!msisdn)return null;
   const d=String(msisdn).replace(/\D/g,'');
   const local=d.startsWith('255')?'0'+d.slice(3):d;
-  return NETWORK_PREFIXES[local.slice(0,4)]||null;
+  return NETWORK_PREFIX2[local.slice(1,3)]||null;
 }
 function networkWallet(net){return NETWORK_WALLET[net]||'M-Pesa';}
 function netBadge(net){
@@ -292,12 +327,15 @@ const Store={
   s:null,
   defaults(){return{
     lang:'sw',
-    profile:{name:'',phone:'0712 345 678',pinHash:hashPIN('1234')},
+    theme:'auto',
+    profile:{name:'',phone:'0754 345 678',pinHash:hashPIN('1234')},
     bal:{wallet:50000,airtime:3200,dataMB:1536,sms:45,minutes:20},
     balHidden:false,
     tts:false,
     history:[],           /* [{ref,type,details,amount,date,time,status}] */
     queue:[],             /* offline queued tx */
+    contacts:[],          /* saved beneficiaries [{name,phone}] */
+    lastTx:null,          /* replayable slots of last successful tx */
     pin:{attempts:0,lockUntil:0},
     txTimes:[],           /* fraud velocity */
     visited:false
@@ -310,6 +348,7 @@ const Store={
     this.s.profile=Object.assign({},d.profile,this.s.profile);
     this.s.bal=Object.assign({},d.bal,this.s.bal);
     this.s.pin=Object.assign({},d.pin,this.s.pin);
+    if(!Array.isArray(this.s.contacts))this.s.contacts=[];
   },
   save(){try{localStorage.setItem(this.KEY,JSON.stringify(this.s));}catch(e){}},
   reset(){this.s=this.defaults();this.s.visited=true;this.save();}
@@ -327,12 +366,27 @@ const LexIndex=(function(){
     const ph=(p||'').toLowerCase().trim();if(ph)list.push({intent,phrase:ph});
   }));
   list.sort((a,b)=>b.phrase.length-a.phrase.length);
-  const esc=s=>s.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&');
-  list.forEach(it=>it.re=new RegExp('(^|[^a-z0-9])'+esc(it.phrase)+'($|[^a-z0-9])','i'));
+  list.forEach(it=>it.re=new RegExp('(^|[^a-z0-9])'+escapeRe(it.phrase)+'($|[^a-z0-9])','i'));
   return{
     match(text){
       for(const it of list){if(it.re.test(text))return it;}
       return null;
+    },
+    /* typo tolerance: single-word lexicon entries matched at edit distance
+       1 (words 4–6 chars) or 2 (7+ chars) — "bandoo", "salioo", "arti mie"… */
+    fuzzy(text){
+      const tokens=text.split(/[^a-z0-9]+/).filter(w=>w.length>=4);
+      if(!tokens.length)return null;
+      let best=null;
+      for(const it of list){
+        if(it.phrase.length<4||it.phrase.includes(' '))continue;
+        const max=it.phrase.length>=7?2:1;
+        for(const w of tokens){
+          const d=lev(w,it.phrase);
+          if(d>0&&d<=max&&(!best||it.phrase.length>best.phrase.length))best=it;
+        }
+      }
+      return best;
     }
   };
 })();
@@ -342,7 +396,7 @@ function parse(raw){
   const t=text.toLowerCase();
   const r={intent:null,confidence:0,amount:null,phone:null,meter:null,
            productMB:null,provider:null,wallet:null,period:null,code:null,
-           bill:null,govt:null,country:null,paybill:null,text};
+           bill:null,govt:null,country:null,paybill:null,contactName:null,text};
 
   /* street product shortcuts — highest confidence */
   for(const k of Object.keys(STREET_PRODUCTS).sort((a,b)=>b.length-a.length)){
@@ -356,10 +410,25 @@ function parse(raw){
   }
   /* lexicon intent */
   if(!r.intent){const hit=LexIndex.match(t);if(hit){r.intent=hit.intent;r.confidence=.95;}}
+  /* typo-tolerant fallback */
+  if(!r.intent){const fz=LexIndex.fuzzy(t);if(fz){r.intent=fz.intent;r.confidence=.8;}}
 
   /* phone (do before meter so an msisdn isn't mistaken for a meter) */
   const pm=t.match(/(\+?255\s?[67]\d{2}[\s-]?\d{3}[\s-]?\d{3}|0[67]\d{2}[\s-]?\d{3}[\s-]?\d{3}|0[67]\d{8})/);
   if(pm){r.phone=pm[0].replace(/[\s-]/g,'');const net=detectNetwork(r.phone);if(net){r.provider=net;r.wallet=networkWallet(net);}}
+
+  /* saved contact by name: “tuma buku kwa mama” */
+  if(!r.phone&&Store.s&&Store.s.contacts&&Store.s.contacts.length){
+    for(const c of Store.s.contacts){
+      const nm=String(c.name||'').toLowerCase().trim();
+      if(nm&&new RegExp('(^|[^a-z0-9])'+escapeRe(nm)+'($|[^a-z0-9])','i').test(t)){
+        r.phone=c.phone;r.contactName=c.name;
+        const net=detectNetwork(c.phone);
+        if(net){r.provider=net;r.wallet=networkWallet(net);}
+        break;
+      }
+    }
+  }
 
   /* meter: 11–13 digit group (separators allowed) that isn't the phone */
   const digitRuns=text.match(/\d[\d\s-]{9,20}\d/g)||[];
@@ -404,8 +473,10 @@ function parse(raw){
   }
 
   /* mobile-money provider mention (payment hint) */
-  const provMap={'m-pesa':'M-Pesa','mpesa':'M-Pesa','tigo pesa':'Tigo Pesa','tigopesa':'Tigo Pesa','airtel money':'Airtel Money','halopesa':'HaloPesa','halo pesa':'HaloPesa'};
-  for(const k of Object.keys(provMap).sort((a,b)=>b.length-a.length)){if(t.includes(k)){r.wallet=provMap[k];break;}}
+  const provMap={'airtel money':'Airtel Money','tigo pesa':'Mixx by Yas','halo pesa':'HaloPesa','tigopesa':'Mixx by Yas','halopesa':'HaloPesa','m-pesa':'M-Pesa','t-pesa':'T-Pesa','t pesa':'T-Pesa','mpesa':'M-Pesa','tpesa':'T-Pesa','mixx':'Mixx by Yas','yas':'Mixx by Yas'};
+  for(const k of Object.keys(provMap).sort((a,b)=>b.length-a.length)){
+    if(new RegExp('(^|[^a-z0-9])'+escapeRe(k)+'($|[^a-z0-9])','i').test(t)){r.wallet=provMap[k];break;}
+  }
 
   /* voucher code: letters+digits 8-12 chars */
   const vc=text.toUpperCase().match(/\b([A-Z]{2,6}\d{3,8}|[A-Z0-9]{8,12})\b/);
@@ -458,17 +529,17 @@ const SERVICES={
     prep(tx){
       tx.phone=tx.phone||Store.s.profile.phone.replace(/\s/g,'');
       tx.provider=tx.provider||detectNetwork(tx.phone);
-      tx.details=`Airtime Tsh ${fmt(tx.amount)}`;
+      tx.details=`Airtime Tsh ${fmt(tx.amount)}`+(isSelfPhone(tx.phone)?'':` → ${tx.contactName||tx.phone}`);
     },
     review(tx){return[
       [T('amount'),`Tsh ${fmt(tx.amount)}`,'gold'],
-      [T('recipient'),(tx.phone===Store.s.profile.phone.replace(/\s/g,'')? T('own_number')+' · ':'')+tx.phone],
+      [T('recipient'),(isSelfPhone(tx.phone)?T('own_number')+' · ':(tx.contactName?tx.contactName+' · ':''))+tx.phone],
       [T('network'),tx.provider||'—']
     ];},
     auth:'pin',
     execute(tx){
-      Store.s.bal.airtime+=tx.amount;
-      return[];
+      if(isSelfPhone(tx.phone)){Store.s.bal.airtime+=tx.amount;return[];}
+      return[[T('recipient'),(tx.contactName?tx.contactName+' · ':'')+tx.phone]];
     }
   },
 
@@ -482,17 +553,21 @@ const SERVICES={
     prep(tx){
       const b=tx.bundle||Engine.resolveBundle(tx);
       tx.bundle=b;tx.amount=b.price;
-      tx.details=`Data: ${b.name} (${b.validity})`;
+      tx.details=`Data: ${b.name} (${b.validity})`+(isSelfPhone(tx.phone)?'':` → ${tx.contactName||tx.phone}`);
     },
-    review(tx){return[
-      [T('service'),tx.bundle.name],
-      [T('amount'),`Tsh ${fmt(tx.amount)}`,'gold'],
-      [T('details'),tx.bundle.validity]
-    ];},
+    review(tx){
+      const rows=[
+        [T('service'),tx.bundle.name],
+        [T('amount'),`Tsh ${fmt(tx.amount)}`,'gold'],
+        [T('details'),tx.bundle.validity]
+      ];
+      if(!isSelfPhone(tx.phone))rows.splice(1,0,[T('recipient'),(tx.contactName?tx.contactName+' · ':'')+tx.phone]);
+      return rows;
+    },
     auth:'pin',
     execute(tx){
-      Store.s.bal.dataMB+=tx.bundle.gb*1024;
-      return[[T('data'),'+'+fmtMB(tx.bundle.gb*1024)]];
+      if(isSelfPhone(tx.phone)){Store.s.bal.dataMB+=tx.bundle.gb*1024;return[[T('data'),'+'+fmtMB(tx.bundle.gb*1024)]];}
+      return[[T('recipient'),(tx.contactName?tx.contactName+' · ':'')+tx.phone],[T('data'),'+'+fmtMB(tx.bundle.gb*1024)]];
     }
   },
 
@@ -513,7 +588,10 @@ const SERVICES={
       [T('details'),tx.pack.validity]
     ];},
     auth:'pin',
-    execute(tx){Store.s.bal.sms+=tx.pack.count;return[[T('sms_b'),'+'+tx.pack.count]];}
+    execute(tx){
+      if(isSelfPhone(tx.phone)){Store.s.bal.sms+=tx.pack.count;return[[T('sms_b'),'+'+tx.pack.count]];}
+      return[[T('recipient'),(tx.contactName?tx.contactName+' · ':'')+tx.phone],[T('sms_b'),'+'+tx.pack.count]];
+    }
   },
 
   MINUTES:{
@@ -533,7 +611,10 @@ const SERVICES={
       [T('details'),tx.pack.validity]
     ];},
     auth:'pin',
-    execute(tx){Store.s.bal.minutes+=tx.pack.minutes;return[[T('mins'),'+'+tx.pack.minutes]];}
+    execute(tx){
+      if(isSelfPhone(tx.phone)){Store.s.bal.minutes+=tx.pack.minutes;return[[T('mins'),'+'+tx.pack.minutes]];}
+      return[[T('recipient'),(tx.contactName?tx.contactName+' · ':'')+tx.phone],[T('mins'),'+'+tx.pack.minutes]];
+    }
   },
 
   MONEY:{
@@ -546,17 +627,17 @@ const SERVICES={
       tx.provider=tx.provider||detectNetwork(tx.phone);
       tx.fee=Math.max(100,Math.round(tx.amount*.01));
       tx.total=tx.amount+tx.fee;
-      tx.details=`${Store.s.lang==='sw'?'Tuma kwa':'Send to'} ${tx.phone}`;
+      tx.details=`${Store.s.lang==='sw'?'Tuma kwa':'Send to'} ${tx.contactName?tx.contactName+' · ':''}${tx.phone}`;
     },
     review(tx){return[
-      [T('recipient'),tx.phone],
+      [T('recipient'),(tx.contactName?tx.contactName+' · ':'')+tx.phone],
       [T('network'),tx.provider?`${tx.provider} · ${networkWallet(tx.provider)}`:'—'],
       [T('amount'),`Tsh ${fmt(tx.amount)}`,'gold'],
       [T('fee'),`Tsh ${fmt(tx.fee)}`],
       [T('total'),`Tsh ${fmt(tx.total)}`]
     ];},
     auth:'pin',cost:tx=>tx.total,peerTransfer:true,
-    execute(tx){return[[T('recipient'),tx.phone]];}
+    execute(tx){return[[T('recipient'),(tx.contactName?tx.contactName+' · ':'')+tx.phone]];}
   },
 
   LUKU:{
@@ -708,6 +789,8 @@ const SERVICES={
 const Engine={
   tx:null,            /* active transaction {service, ...slots} */
   awaitingText:null,  /* which raw-text slot we're waiting for   */
+  awaitingContact:null, /* phone we're waiting to name & save    */
+  stage:null,         /* 'fill' | 'review' | 'pay'               */
   lastVoice:false,
 
   /* ---------- entry: every user message lands here ---------- */
@@ -717,6 +800,18 @@ const Engine={
 
     /* universal commands */
     if(p.intent==='CANCEL'){this.cancel(true);return;}
+
+    /* naming a contact after a transfer */
+    if(this.awaitingContact){
+      const name=clean.replace(/\s+/g,' ').trim();
+      if(!p.intent&&name.length<=24&&!/\d{4,}/.test(name)){
+        const phone=this.awaitingContact;this.awaitingContact=null;
+        Store.s.contacts.push({name,phone});Store.save();
+        UI.typing(()=>{UI.bot(T('contact_saved',name));UI.chips(UI.homeChips());});
+        return;
+      }
+      this.awaitingContact=null;   /* not a name → route normally */
+    }
 
     /* if we're waiting for a raw-text slot (meter, ref, code, account…) */
     if(this.tx&&this.awaitingText){
@@ -739,7 +834,7 @@ const Engine={
     /* nothing understood */
     UI.typing(()=> {
       UI.bot(T('clarify'));
-      UI.chips(T('chips_home'));
+      UI.chips(UI.homeChips());
     });
   },
 
@@ -747,6 +842,7 @@ const Engine={
   start(serviceId,entities){
     this.tx={service:serviceId};
     this.awaitingText=null;
+    this.stage='fill';
     this.absorb(entities||{});
     UI.chips([]);
     this.advance();
@@ -757,6 +853,7 @@ const Engine={
     const tx=this.tx;if(!tx)return;
     if(p.amount!=null&&!tx.amount)tx.amount=p.amount;
     if(p.phone&&!tx.phone){tx.phone=p.phone;tx.provider=p.provider||detectNetwork(p.phone);}
+    if(p.contactName&&!tx.contactName)tx.contactName=p.contactName;
     if(p.meter&&!tx.meter)tx.meter=p.meter;
     if(p.productMB&&!tx.productMB)tx.productMB=p.productMB;
     if(p.period&&!tx.period)tx.period=p.period;
@@ -771,6 +868,9 @@ const Engine={
   /* raw-text slot filling (meter numbers, refs, codes, accounts, phones) */
   fillTextSlot(text,p){
     const tx=this.tx,slot=this.awaitingText;
+    /* free-text slots must not swallow a clearly-typed new request
+       ("nunua gb 2" while asked for an account number)            */
+    if(p.intent&&SERVICES[p.intent]&&p.confidence>=.9&&(slot==='ref'||slot==='account')&&!/\d{3,}/.test(text))return false;
     const digits=text.replace(/\D/g,'');
     let val=null;
     if(slot==='meter'&&digits.length>=11&&digits.length<=13)val=digits;
@@ -795,6 +895,7 @@ const Engine={
     const svc=SERVICES[tx.service];
     for(const slot of svc.slots){
       if(slot.missing(tx)){
+        this.stage='fill';
         UI.typing(()=>slot.ask(tx));
         if(['meter','ref','code','account','paybill','phone'].includes(slot.key))this.awaitingText=slot.key;
         return;
@@ -877,10 +978,12 @@ const Engine={
       const src=tx.paySource&&tx.paySource!=='wallet'?tx.paySource:networkWallet(detectNetwork(Store.s.profile.phone))||'M-Pesa';
       tx.paySource=tx.paySource||src;
       if(Store.s.bal.wallet<cost&&!tx._extWallet){
+        this.stage='pay';
         UI.typing(()=>UI.insufficient(cost-Store.s.bal.wallet,tx.paySource));
         return;
       }
     }
+    this.stage='review';
     UI.typing(()=>{
       UI.reviewCard(tx,svc);
       if(svc.auth==='pin'&&cost>0)setTimeout(()=>UI.pinPad(cost),380);
@@ -946,9 +1049,24 @@ const Engine={
         FraudGuard.record();
         const rec={ref,type:tx.service,details:tx.details,amount:tx._cost,date:stamp.date,time:stamp.time,status:'SUCCESS',token:tx.token||null};
         Store.s.history.unshift(rec);Store.s.history=Store.s.history.slice(0,50);
+        /* remember replayable slots → “rudia” / “kama kawaida” */
+        if(tx.service!=='VOUCHER'){
+          Store.s.lastTx={service:tx.service,slots:{
+            amount:tx.bundle?null:(tx.amount||null),
+            productMB:tx.bundle?tx.bundle.gb*1024:null,
+            period:tx.bundle?tx.bundle.period:null,
+            phone:tx.phone||null,contactName:tx.contactName||null,
+            meter:tx.meter||null,bill:tx.bill||null,account:tx.account||null,
+            govt:tx.govt||null,ref:tx.ref||null,country:tx.country||null,paybill:tx.paybill||null
+          }};
+        }
         Store.save();UI.refreshBalances();
         UI.receipt(rec,extra,tx,{before:Store.s.bal.wallet+tx._cost,after:Store.s.bal.wallet});
         Voice.say((Store.s.lang==='sw'?'Imefanikiwa. Kumbukumbu ':'Successful. Reference ')+ref);
+        if(!tx.paySourceExternal&&tx._cost>0&&Store.s.bal.wallet<5000&&!this._lowWarned){
+          this._lowWarned=true;
+          setTimeout(()=>UI.bot(T('low_bal',fmt(Store.s.bal.wallet))),1800);
+        }
       }else{
         const reasons=Store.s.lang==='sw'
           ?['Mtandao umekwama (timeout)','Huduma haipatikani kwa sasa','Malipo yamekataliwa na mtoa huduma']
@@ -958,7 +1076,7 @@ const Engine={
         Store.s.history.unshift(rec);Store.save();
         UI.failed(rec,tx);
       }
-      this.tx=null;this.awaitingText=null;
+      this.tx=null;this.awaitingText=null;this.stage=null;
     },1400);
   },
 
@@ -968,18 +1086,54 @@ const Engine={
   },
 
   cancel(sayIt){
-    this.tx=null;this.awaitingText=null;this.pinBuffer='';
+    this.tx=null;this.awaitingText=null;this.awaitingContact=null;this.stage=null;this.pinBuffer='';
     UI.removePinPad();
-    if(sayIt){UI.bot(T('bye'));UI.chips(T('chips_home'));}
+    if(sayIt){UI.bot(T('bye'));UI.chips(UI.homeChips());}
+  },
+
+  /* ---------- contacts ---------- */
+  saveContactStart(phone){
+    this.awaitingContact=phone;
+    UI.bot(T('ask_contact_name'));
+    UI.input.focus();
+  },
+  pickContact(i){
+    const c=(Store.s.contacts||[])[i];
+    if(!c||!this.tx)return;
+    UI.user('👤 '+c.name);
+    this.tx.phone=c.phone;this.tx.contactName=c.name;
+    this.tx.provider=detectNetwork(c.phone);
+    this.awaitingText=null;
+    this.advance();
   },
 
   /* ---------- instant intents (no tx) ---------- */
-  doBALANCE(){UI.typing(()=>{UI.balanceCard();UI.chips(T('chips_home'));});},
-  doHISTORY(){UI.typing(()=>{UI.historyCard();UI.chips(T('chips_home'));});},
-  doHELP(){UI.typing(()=>{UI.bot(T('welcome'));UI.bot('ℹ️ '+T('demo_note'));UI.chips(T('chips_home'));});},
-  doGREET(){const g=T('greet');UI.typing(()=>{UI.bot(g[Math.floor(Math.random()*g.length)]);UI.chips(T('chips_home'));});},
+  doBALANCE(){UI.typing(()=>{UI.balanceCard();UI.chips(UI.homeChips());});},
+  doHISTORY(){UI.typing(()=>{UI.historyCard();UI.chips(UI.homeChips());});},
+  doUSAGE(){UI.typing(()=>{UI.usageCard();UI.chips(UI.homeChips());});},
+  doREPEAT(){
+    const lt=Store.s.lastTx;
+    if(!lt||!SERVICES[lt.service]){UI.typing(()=>{UI.bot(T('repeat_none'));UI.chips(UI.homeChips());});return;}
+    UI.chips([]);
+    this.tx={service:lt.service};
+    Object.keys(lt.slots||{}).forEach(k=>{if(lt.slots[k]!=null)this.tx[k]=lt.slots[k];});
+    if(this.tx.phone)this.tx.provider=detectNetwork(this.tx.phone);
+    this.awaitingText=null;this.stage='fill';
+    this.advance();
+  },
+  doHELP(){UI.typing(()=>{UI.bot(T('welcome'));UI.bot('ℹ️ '+T('demo_note'));UI.chips(UI.homeChips());});},
+  doGREET(){const g=T('greet');UI.typing(()=>{UI.bot(g[Math.floor(Math.random()*g.length)]);UI.chips(UI.homeChips());});},
   doTHANKS(){const g=T('thanks');UI.typing(()=>UI.bot(g[Math.floor(Math.random()*g.length)]));},
-  doYES(){UI.typing(()=>UI.bot(T('more_help')));},
+  doYES(){
+    /* "ndio/sawa" while a review card is open should move the tx forward */
+    if(this.tx&&this.stage==='review'){
+      const svc=SERVICES[this.tx.service];
+      if(svc.auth!=='pin'||!(this.tx._cost>0)){this.confirmNoPin();return;}
+      UI.typing(()=>UI.bot(T('yes_hint')));
+      return;
+    }
+    UI.typing(()=>UI.bot(T('more_help')));
+  },
   doACCOUNT(){UI.typing(()=>UI.accountCard());}
 };
 
@@ -1007,6 +1161,15 @@ const UI={
     $('menuBtn').addEventListener('click',()=>Sheets.open('menuSheet'));
     $('plusBtn').addEventListener('click',()=>Sheets.open('svcSheet'));
     $('veil').addEventListener('click',()=>Sheets.close());
+    /* physical keyboard on the PIN pad (desktop / bluetooth keyboards) */
+    document.addEventListener('keydown',e=>{
+      if(!$('pinMsg'))return;
+      const ae=document.activeElement;
+      if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='INPUT'))return;
+      if(/^[0-9]$/.test(e.key)){e.preventDefault();Engine.pinKey(e.key);}
+      else if(e.key==='Backspace'){e.preventDefault();Engine.pinKey('del');}
+      else if(e.key==='Escape'){Engine.cancel(true);}
+    });
   },
 
   send(){
@@ -1048,6 +1211,16 @@ const UI={
       box.appendChild(b);
     });
   },
+  /* home chips reordered by what THIS user actually does most */
+  homeChips(){
+    const base=I18N[Store.s.lang].chips_home;
+    const keys=['BALANCE','DATA','AIRTIME','MONEY','LUKU','SMS','MINUTES','HISTORY'];
+    const counts={};
+    (Store.s.history||[]).forEach(r=>{if(r.status==='SUCCESS')counts[r.type]=(counts[r.type]||0)+1;});
+    return base.map((c,i)=>({c,n:counts[keys[i]]||0,i}))
+      .sort((a,b)=>b.n-a.n||a.i-b.i)
+      .map(x=>x.c);
+  },
   toast(msg){
     const t=$('toast');t.textContent=msg;t.classList.add('show');
     clearTimeout(this._tt);this._tt=setTimeout(()=>t.classList.remove('show'),2200);
@@ -1064,8 +1237,11 @@ const UI={
   },
   askPhone(){
     let html=`<div class="rcard"><div class="rcard-title">💸 ${escapeHTML(SERVICES.MONEY.name())}</div>
-      <div style="font-size:13.5px">${escapeHTML(T('ask_phone'))}</div>
-      <button class="btn-block ghost" onclick="UI.pasteClipboard()">📋 ${Store.s.lang==='sw'?'Bandika kutoka Clipboard':'Paste from clipboard'}</button></div>`;
+      <div style="font-size:13.5px">${escapeHTML(T('ask_phone'))}</div>`;
+    (Store.s.contacts||[]).slice(0,6).forEach((c,i)=>{
+      html+=`<button class="btn-block ghost" style="justify-content:flex-start" onclick="Engine.pickContact(${i})">👤 ${escapeHTML(c.name)} · ${escapeHTML(c.phone)} ${netBadge(detectNetwork(c.phone))}</button>`;
+    });
+    html+=`<button class="btn-block ghost" onclick="UI.pasteClipboard()">📋 ${Store.s.lang==='sw'?'Bandika kutoka Clipboard':'Paste from clipboard'}</button></div>`;
     this.card(html);
     Engine.awaitingText='phone';
   },
@@ -1242,7 +1418,23 @@ const UI={
     </div>`;
     this.card(html);
     if(navigator.vibrate)navigator.vibrate([60,40,60]);
-    setTimeout(()=>{this.bot(T('more_help'));this.chips(T('chips_home'));},900);
+    setTimeout(()=>{this.bot(T('more_help'));this.chips(this.homeChips());},900);
+    /* offer to save an unknown recipient as a contact */
+    if(tx&&tx.phone&&!tx.contactName&&!isSelfPhone(tx.phone)
+       &&/^(\+?255|0)\d{9}$/.test(tx.phone)
+       &&!(Store.s.contacts||[]).some(c=>c.phone===tx.phone)){
+      const ph=tx.phone;
+      setTimeout(()=>this.contactSavePrompt(ph),1600);
+    }
+  },
+  contactSavePrompt(phone){
+    const html=`<div class="rcard">
+      <div class="rcard-title">👤 ${escapeHTML(T('contact_save',phone))}</div>
+      <div class="btn-grid">
+        <button class="btn-block" onclick="this.closest('.msg').remove();Engine.saveContactStart('${escapeHTML(phone)}')">💾 ${escapeHTML(T('save_lbl'))}</button>
+        <button class="btn-block ghost" onclick="this.closest('.msg').remove()">${escapeHTML(T('later'))}</button>
+      </div></div>`;
+    this.card(html);
   },
   failed(rec,tx){
     Engine._lastFailed=rec;
@@ -1255,7 +1447,7 @@ const UI={
       <button class="btn-block ghost" style="margin-top:8px" onclick="Receipt.pdf()">📄 ${escapeHTML(T('receipt_save'))}</button>
     </div>`;
     this.card(html);
-    setTimeout(()=>this.chips(T('chips_home')),600);
+    setTimeout(()=>this.chips(this.homeChips()),600);
   },
 
   /* ---------- instant cards ---------- */
@@ -1282,6 +1474,20 @@ const UI={
         <span class="v" style="color:${col}">${r.amount>0?'Tsh '+fmt(r.amount):'—'}</span></div>`;
     }).join('');
     this.card(`<div class="rcard"><div class="rcard-title">🧾 ${escapeHTML(T('history_t'))}</div>${rows}</div>`);
+  },
+  usageCard(){
+    const succ=(Store.s.history||[]).filter(r=>r.status==='SUCCESS'&&r.amount>0);
+    if(!succ.length){this.bot(T('usage_none'));return;}
+    const total=succ.reduce((s,r)=>s+r.amount,0);
+    const by={};
+    succ.forEach(r=>{by[r.type]=(by[r.type]||0)+r.amount;});
+    let rows=`<div class="rcard-row"><span class="k">${escapeHTML(T('usage_total'))}</span><span class="v gold">Tsh ${fmt(total)}</span></div>
+      <div class="rcard-row"><span class="k">${escapeHTML(T('usage_count'))}</span><span class="v">${succ.length}</span></div>`;
+    Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(([k,v])=>{
+      const svc=SERVICES[k];
+      rows+=`<div class="rcard-row"><span class="k">${svc?svc.icon+' '+escapeHTML(svc.name()):escapeHTML(k)}</span><span class="v">Tsh ${fmt(v)} · ${Math.round(v/total*100)}%</span></div>`;
+    });
+    this.card(`<div class="rcard" style="border-left:4px solid var(--blue)"><div class="rcard-title">📊 ${escapeHTML(T('usage_t'))}</div>${rows}</div>`);
   },
   accountCard(){
     const p=Store.s.profile;
@@ -1464,6 +1670,7 @@ const Sheets={
     /* instant items */
     [['BALANCE','💰',Store.s.lang==='sw'?'Salio':'Balance'],
      ['HISTORY','🧾',Store.s.lang==='sw'?'Miamala':'History'],
+     ['USAGE','📊',Store.s.lang==='sw'?'Matumizi':'Usage'],
      ['ACCOUNT','👤',Store.s.lang==='sw'?'Akaunti':'Account'],
      ['HELP','❓',Store.s.lang==='sw'?'Msaada':'Help']].forEach(([k,ic,lb])=>{
       const b=document.createElement('button');
@@ -1481,6 +1688,7 @@ const Sheets={
       {ic:'🧾',t:sw?'Miamala ya Karibuni':'Recent Transactions',sub:sw?'Risiti na historia':'Receipts & history',fn:()=>{Sheets.close();Engine.doHISTORY();}},
       {ic:'👤',t:sw?'Akaunti Yangu':'My Account',sub:sw?'Jina, namba na PIN':'Name, number & PIN',fn:()=>{Sheets.close();Engine.doACCOUNT();}},
       {ic:'🔊',t:sw?'Sauti ya Majibu':'Voice Replies',sub:(Store.s.tts?(sw?'Imewashwa ✓':'On ✓'):(sw?'Imezimwa':'Off')),fn:()=>{Store.s.tts=!Store.s.tts;Store.save();Sheets.renderMenu();}},
+      {ic:'🌓',t:T('theme'),sub:T('theme_'+(Store.s.theme||'auto')),fn:()=>{App.cycleTheme();Sheets.renderMenu();}},
       Voice.isStandalone()
         ?{ic:'✅',t:sw?'Imesakinishwa':'Installed',sub:sw?'SemaTel iko kwenye simu yako':'SemaTel is on your device',fn:()=>{Sheets.close();UI.toast(T('installed'));}}
         :{ic:'📲',t:T('install'),sub:sw?'Weka SemaTel kwenye simu yako':'Add SemaTel to your phone',fn:()=>{Sheets.close();App.install();}},
@@ -1630,26 +1838,32 @@ const App={
   boot(){
     UI.init();Voice.init();
     this.applyLang();
+    this.applyTheme();
+    try{
+      const mq=window.matchMedia('(prefers-color-scheme: dark)');
+      if(mq.addEventListener)mq.addEventListener('change',()=>this.applyTheme());
+      else if(mq.addListener)mq.addListener(()=>this.applyTheme());
+    }catch(e){}
     UI.refreshBalances();
     this.netWatch();
     this.pwa();
 
-    /* welcome */
+    /* welcome — returning users get a much shorter splash */
+    const back=Store.s.visited;
     setTimeout(()=>{
       $('splash').classList.add('hide');
-      const back=Store.s.visited;
       Store.s.visited=true;Store.save();
       UI.typing(()=>{
         UI.bot(back?T('welcome_back',Store.s.profile.name):T('welcome'));
         if(!back)UI.bot('ℹ️ '+T('demo_note'));
-        UI.chips(T('chips_home'));
+        UI.chips(UI.homeChips());
         /* manifest shortcut deep-links: ./?intent=AIRTIME */
         const q=new URLSearchParams(location.search);
         const it=(q.get('intent')||'').toUpperCase().replace('BUY_','').replace('SEND_','').replace('CHECK_','');
         if(it&&SERVICES[it])Engine.start(it,{});
         else if(it==='BALANCE')Engine.doBALANCE();
       },700);
-    },3000);
+    },back?1500:3000);
 
     /* stale voice sessions cleanup */
     try{
@@ -1673,7 +1887,21 @@ const App={
     Store.s.lang=Store.s.lang==='sw'?'en':'sw';
     Store.save();this.applyLang();
     UI.bot(T('lang_switched'));
-    UI.chips(T('chips_home'));
+    UI.chips(UI.homeChips());
+  },
+
+  /* ---------- theme ---------- */
+  applyTheme(){
+    const pref=Store.s.theme||'auto';
+    const dark=pref==='dark'||(pref==='auto'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.theme=dark?'dark':'light';
+    const m=document.querySelector('meta[name="theme-color"]');
+    if(m)m.content=dark?'#0A140F':'#0B4D33';
+  },
+  cycleTheme(){
+    const order=['auto','dark','light'];
+    Store.s.theme=order[(order.indexOf(Store.s.theme||'auto')+1)%order.length];
+    Store.save();this.applyTheme();
   },
 
   saveAccount(){
@@ -1685,10 +1913,10 @@ const App={
     UI.toast(Store.s.lang==='sw'?'Imehifadhiwa ✓':'Saved ✓');
   },
   resetDemo(){
-    const lang=Store.s.lang;
-    Store.reset();Store.s.lang=lang;Store.save();
+    const lang=Store.s.lang,theme=Store.s.theme;
+    Store.reset();Store.s.lang=lang;Store.s.theme=theme;Store.save();
     UI.refreshBalances();UI.toast(T('reset_ok'));
-    UI.bot(T('welcome'));UI.chips(T('chips_home'));
+    UI.bot(T('welcome'));UI.chips(UI.homeChips());
   },
 
   netWatch(){
